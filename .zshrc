@@ -10,6 +10,17 @@ ZSH_THEME="robbyrussell"
 COMPLETION_WAITING_DOTS="true"
 HIST_STAMPS="yyyy-mm-dd"
 
+# History configuration
+HISTSIZE=50000
+SAVEHIST=50000
+setopt HIST_EXPIRE_DUPS_FIRST
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_IGNORE_SPACE
+setopt HIST_FIND_NO_DUPS
+setopt HIST_SAVE_NO_DUPS
+setopt HIST_BEEP
+
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
@@ -20,8 +31,13 @@ plugins=(
   colored-man-pages
   command-not-found
   zsh-autosuggestions
+  zsh-completions
+  fast-syntax-highlighting
   python
 )
+
+# Load completions
+autoload -U compinit && compinit
 
 source $ZSH/oh-my-zsh.sh
 
@@ -35,6 +51,23 @@ if [ -z "$SSH_AUTH_SOCK" ] || ! ssh-add -l &>/dev/null; then
     [[ -f $key && $key != *.pub ]] && ssh-add "$key" &>/dev/null
   done
 fi
+
+# Modern alternatives aliases
+if command -v bat &> /dev/null; then
+    alias cat='bat'
+fi
+
+if command -v fd &> /dev/null; then
+    alias find='fd'
+fi
+
+if command -v rg &> /dev/null; then
+    alias grep='rg'
+fi
+
+# Development aliases
+alias py='python3'
+alias pip='pip3'
 
 # Improved apt wrapper functions
 function install() {
@@ -55,12 +88,16 @@ function search() {
 
 # Generate locales if not present (helps prevent warnings)
 function check_locale() {
-    if ! locale -a | grep -q "en_US.utf8"; then
+    if ! locale -a | grep -qE "(en_US\.utf8|en_US\.UTF-8)"; then
         echo "Generating en_US.UTF-8 locale..."
-        sudo locale-gen en_US.UTF-8
-        sudo update-locale LANG=en_US.UTF-8
+        sudo locale-gen en_US.UTF-8 2>/dev/null
+        sudo update-locale LANG=en_US.UTF-8 2>/dev/null
+        echo "Locale generated. Please restart your shell or run 'source ~/.zshrc'"
     fi
 }
+
+# Check and fix locale on shell startup
+check_locale
 
 # File hash functions
 function hash_file() {
@@ -91,21 +128,6 @@ function extract() {
     fi
 }
 
-# Useful aliases
-alias ll='ls -laF'
-alias la='ls -A'
-alias l='ls -CF'
-alias zshrc='${EDITOR:-vim} ~/.zshrc'
-alias gitc='${EDITOR:-vim} ~/.gitconfig'
-alias path='echo -e ${PATH//:/\\n}'
-alias now='date +"%T"'
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ....='cd ../../..'
-alias .....='cd ../../../..'
-alias myip='curl -s ipinfo.io/ip'
-alias ipinfo='curl -s ipinfo.io'
-alias speedtest='curl -s https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py | python3 -'
 
 # Add local bin to path
 export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
@@ -116,7 +138,3 @@ if [[ -n $SSH_CONNECTION ]]; then
 else
   export EDITOR='nvim'
 fi
-
-# Set larger history
-HISTSIZE=10000
-SAVEHIST=10000
