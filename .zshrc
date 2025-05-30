@@ -47,9 +47,15 @@ source $ZSH/oh-my-zsh.sh
 if [ -z "$SSH_AUTH_SOCK" ] || ! ssh-add -l &>/dev/null; then
   eval "$(ssh-agent -s)" > /dev/null
 
-  for key in ~/.ssh/id_*; do
-    [[ -f $key && $key != *.pub ]] && ssh-add "$key" &>/dev/null
-  done
+  # Check if SSH directory exists and has private keys
+  if [ -d ~/.ssh ]; then
+    for key in ~/.ssh/*; do
+      # Check if the glob matched actual files and if it's a private key
+      if [[ -f "$key" && "$key" != *.pub ]]; then
+        ssh-add "$key" &>/dev/null
+      fi
+    done
+  fi
 fi
 
 # Modern alternatives aliases
