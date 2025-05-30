@@ -1,6 +1,11 @@
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 
+# Set locale environment variables early to prevent warnings
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export LANGUAGE=en_US.UTF-8
+
 ZSH_THEME="robbyrussell"
 COMPLETION_WAITING_DOTS="true"
 HIST_STAMPS="yyyy-mm-dd"
@@ -14,13 +19,22 @@ plugins=(
   history
   colored-man-pages
   command-not-found
-  zsh-autosuggestions 
+  zsh-autosuggestions
   python
 )
 
 source $ZSH/oh-my-zsh.sh
 
 # User configuration
+
+# Start ssh-agent in WSL and add keys from ~/.ssh/
+if [ -z "$SSH_AUTH_SOCK" ] || ! ssh-add -l &>/dev/null; then
+  eval "$(ssh-agent -s)" > /dev/null
+
+  for key in ~/.ssh/id_*; do
+    [[ -f $key && $key != *.pub ]] && ssh-add "$key" &>/dev/null
+  done
+fi
 
 # Improved apt wrapper functions
 function install() {
@@ -37,6 +51,15 @@ function remove() {
 
 function search() {
     apt search $@
+}
+
+# Generate locales if not present (helps prevent warnings)
+function check_locale() {
+    if ! locale -a | grep -q "en_US.utf8"; then
+        echo "Generating en_US.UTF-8 locale..."
+        sudo locale-gen en_US.UTF-8
+        sudo update-locale LANG=en_US.UTF-8
+    fi
 }
 
 # File hash functions
@@ -86,9 +109,6 @@ alias speedtest='curl -s https://raw.githubusercontent.com/sivel/speedtest-cli/m
 
 # Add local bin to path
 export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
-
-# You may need to manually set your language environment
-export LANG=en_US.UTF-8
 
 # Preferred editor for local and remote sessions
 if [[ -n $SSH_CONNECTION ]]; then

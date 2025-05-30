@@ -24,7 +24,8 @@ sudo apt install -y \
   apt-transport-https \
   clang \
   gdb \
-  cmake
+  cmake \
+  jq
 
 # Create necessary directories
 echo "Creating necessary directories"
@@ -41,6 +42,23 @@ if ! command -v delta &> /dev/null; then
   echo "Delta installed"
 else
   echo "Delta already installed"
+fi
+
+# Install JetBrains Mono Nerd Font
+echo "Installing JetBrains Mono Nerd Font"
+FONT_DIR="$HOME/.local/share/fonts"
+FONT_NAME="JetBrainsMono"
+if [ ! -f "$FONT_DIR/${FONT_NAME}.zip" ] && [ ! -d "$FONT_DIR/JetBrainsMono" ]; then
+  mkdir -p "$FONT_DIR"
+  cd "$FONT_DIR"
+  wget -q "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/${FONT_NAME}.zip"
+  unzip -q "${FONT_NAME}.zip" -d "${FONT_NAME}/"
+  rm "${FONT_NAME}.zip"
+  fc-cache -fv
+  echo "JetBrains Mono Nerd Font installed"
+  cd - > /dev/null
+else
+  echo "JetBrains Mono Nerd Font already installed"
 fi
 
 # Installing Oh My Zsh
