@@ -1,0 +1,140 @@
+[user]
+	name = Gabor Pinkova
+	email = vakesz@users.noreply.github.com
+	username = vakesz
+[core]
+	editor = nvim
+	whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
+	pager = delta
+[color]
+	ui = auto
+[color "branch"]
+	current = yellow bold
+	local = green bold
+	remote = cyan bold
+[color "diff"]
+	meta = yellow bold
+	frag = magenta bold
+	old = red bold
+	new = green bold
+	whitespace = red reverse
+[color "status"]
+	added = green bold
+	changed = yellow bold
+	untracked = red bold
+[credential]
+	helper = store
+[diff]
+	tool = vimdiff
+[difftool]
+	prompt = false
+[delta]
+	features = line-numbers decorations
+	line-numbers = true
+[delta "decorations"]
+	minus-style = red bold normal
+	plus-style = green bold normal
+	minus-emph-style = white bold red
+	minus-non-emph-style = red bold normal
+	plus-emph-style = white bold green
+	plus-non-emph-style = green bold normal
+	file-style = yellow bold none
+	file-decoration-style = yellow box
+	hunk-header-style = magenta bold
+	hunk-header-decoration-style = magenta box
+	minus-empty-line-marker-style = normal normal
+	plus-empty-line-marker-style = normal normal
+	line-numbers-right-format = "{np:^4}│ "
+[alias]
+	a = add --all
+	#############
+	b = branch
+	#############
+	c = commit
+	cd = commit --amend
+	#############
+	cl = clone
+	#############
+	cp = cherry-pick
+	cpa = cherry-pick --abort
+	cpc = cherry-pick --continue
+	#############
+	d = diff
+	dt = difftool
+	#############
+	f = fetch
+	#############
+	l = log --oneline
+	lg = log --oneline --graph --decorate
+	#############
+	ls = ls-files
+	#############
+	m = merge
+	ma = merge --abort
+	mc = merge --continue
+	ms = merge --skip
+	#############
+	o = checkout
+	om = checkout master
+	ob = checkout -b
+	#############
+	pr = prune -v
+	#############
+	ps = push
+	psf = push -f
+	#############
+	pl = pull
+	pb = pull --rebase
+	#############
+	rb = rebase
+	rba = rebase --abort
+	rbc = rebase --continue
+	rbi = rebase --interactive
+	rbs = rebase --skip
+	#############
+	re = reset
+	rh = reset HEAD
+	reh = reset --hard
+	rem = reset --mixed
+	res = reset --soft
+	rehh = reset --hard HEAD
+	remh = reset --mixed HEAD
+	resh = reset --soft HEAD
+	rehom = reset --hard origin/master
+	#############
+	r = remote
+	ra = remote add
+	rr = remote rm
+	rv = remote -v
+	rn = remote rename
+	rp = remote prune
+	rs = remote show
+	rao = remote add origin
+	rau = remote add upstream
+	rro = remote remove origin
+	rru = remote remove upstream
+	rso = remote show origin
+	rsu = remote show upstream
+	rpo = remote prune origin
+	rpu = remote prune upstream
+	#############
+	rmf = rm -f
+	rmrf = rm -r -f
+	#############
+	s = status
+	sb = status -s -b
+	#############
+	sa = stash apply
+	sc = stash clear
+	sd = stash drop
+	sl = stash list
+	sp = stash pop
+	ss = stash save
+	ssk = stash save -k
+	sw = stash show
+	#############
+	w = show
+	wp = show -p
+	wr = show -p --no-color
+[pull]
+	rebase = true
