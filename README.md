@@ -31,7 +31,6 @@ chmod +x start.sh
 Available in `bin/` directory:
 - **`git-cleanup`** - Clean up merged git branches
 - **`sysinfo`** - Display system information
-- **`project-init`** - Initialize new projects
 - **`backup-dots`** - Backup current dotfiles
 
 ## Customization
