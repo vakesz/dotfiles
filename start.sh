@@ -63,7 +63,7 @@ install_tools() {
         log "Installing Rust and cargo tools"
         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
         source "$HOME/.cargo/env"
-        cargo install bottom tokei hyperfine dust
+        cargo install bottom hyperfine
     fi
 
     # Delta
@@ -97,6 +97,26 @@ install_nodejs() {
     log "Installing Node.js"
     curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
     sudo apt install -y nodejs
+}
+
+install_node_packages() {
+    log "Installing Tailwind CSS and ESLint globally"
+
+    # Ensure Node.js is installed
+    if ! command -v node &> /dev/null; then
+        log "Node.js is not installed. Installing Node.js first."
+        install_nodejs
+    fi
+
+    # Install Tailwind CSS globally
+    log "Installing Tailwind CSS globally"
+    sudo npm install -g tailwindcss postcss autoprefixer
+
+    # Install ESLint globally
+    log "Installing ESLint globally"
+    sudo npm install -g eslint
+
+    log "Global installation of Tailwind CSS and ESLint completed"
 }
 
 install_font() {
@@ -162,10 +182,22 @@ finalize_setup() {
         log "Default shell changed to Zsh"
     fi
     
-    # WSL2 Git configuration
+    # WSL2 Git configuration and locale setup
     if grep -q microsoft /proc/version 2>/dev/null; then
-        log "Configuring Git for WSL2"
+        log "Configuring Git and locale for WSL2"
         git config --global --add safe.directory '*'
+        
+        # Ensure locale is properly configured for WSL
+        if [ ! -f /etc/locale.gen ] || ! grep -q "^en_US.UTF-8" /etc/locale.gen; then
+            echo "en_US.UTF-8 UTF-8" | sudo tee -a /etc/locale.gen > /dev/null
+        fi
+        sudo locale-gen en_US.UTF-8 2>/dev/null
+        
+        # Set system-wide locale
+        echo 'LANG=en_US.UTF-8' | sudo tee /etc/default/locale > /dev/null
+        echo 'LC_ALL=en_US.UTF-8' | sudo tee -a /etc/default/locale > /dev/null
+        
+        log "WSL locale configuration completed"
     fi
 }
 
@@ -180,6 +212,7 @@ install_packages
 install_tools
 install_docker
 install_nodejs
+install_node_packages
 install_font
 setup_zsh
 copy_dotfiles

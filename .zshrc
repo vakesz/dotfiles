@@ -67,10 +67,6 @@ if command -v fd &> /dev/null; then
     alias find='fd'
 fi
 
-if command -v rg &> /dev/null; then
-    alias grep='rg'
-fi
-
 # Development aliases
 alias py='python3'
 alias pip='pip3'
@@ -94,11 +90,27 @@ function search() {
 
 # Generate locales if not present (helps prevent warnings)
 function check_locale() {
-    if ! locale -a | grep -qE "(en_US\.utf8|en_US\.UTF-8)"; then
+    # Check if en_US.UTF-8 locale exists
+    if ! locale -a 2>/dev/null | grep -qi "en_US.utf"; then
         echo "Generating en_US.UTF-8 locale..."
-        sudo locale-gen en_US.UTF-8 2>/dev/null
-        sudo update-locale LANG=en_US.UTF-8 2>/dev/null
-        echo "Locale generated. Please restart your shell or run 'source ~/.zshrc'"
+        
+        # For WSL, we need to ensure locale persistence
+        if grep -q microsoft /proc/version 2>/dev/null; then
+            # WSL-specific locale setup
+            if [ ! -f /etc/locale.gen ] || ! grep -q "^en_US.UTF-8" /etc/locale.gen; then
+                echo "en_US.UTF-8 UTF-8" | sudo tee -a /etc/locale.gen > /dev/null
+            fi
+            sudo locale-gen en_US.UTF-8 2>/dev/null
+            
+            # Set system-wide locale for WSL persistence
+            echo 'LANG=en_US.UTF-8' | sudo tee /etc/default/locale > /dev/null
+            echo 'LC_ALL=en_US.UTF-8' | sudo tee -a /etc/default/locale > /dev/null
+        else
+            sudo locale-gen en_US.UTF-8 2>/dev/null
+            sudo update-locale LANG=en_US.UTF-8 2>/dev/null
+        fi
+        
+        echo "Locale configured. Changes will persist after restart."
     fi
 }
 
