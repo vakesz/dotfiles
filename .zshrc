@@ -87,6 +87,22 @@ function remove() {
 function search() {
     apt search $@
 }
+# Python virtual environment management
+function venv() 
+{
+    # Check if a virtual environment name is provided, otherwise use default
+    venv_name="${1:-.venv}"
+
+    # Check if the directory exists
+    if [ ! -d "$venv_name" ]; then
+        python3 -m venv "$venv_name"
+        echo "Virtual environment '${venv_name}' created."
+    fi
+
+    # Activate the virtual environment
+    source "$venv_name/bin/activate"
+    echo "Activated virtual environment '${venv_name}'."
+}
 
 # Generate locales if not present (helps prevent warnings)
 function check_locale() {
