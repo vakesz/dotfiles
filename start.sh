@@ -66,12 +66,16 @@ backup_dotfiles() {
 install_packages() {
     log "Installing essential packages"
     sudo apt update && sudo apt upgrade -y
-    
-    PACKAGES="git neovim python3 python3-pip python3-venv build-essential mc zsh curl wget htop tree 
-              software-properties-common apt-transport-https ca-certificates gnupg lsb-release 
-              clang gdb cmake jq unzip zip ripgrep fd-find bat fzf"
-    
-    sudo apt install -y "$PACKAGES"
+
+    # Define packages as an array
+    PACKAGES=(
+        git neovim python3 python3-pip python3-venv build-essential mc zsh curl wget htop tree
+        software-properties-common apt-transport-https ca-certificates gnupg lsb-release
+        clang gdb cmake jq unzip zip ripgrep fd-find bat fzf
+    )
+
+    # Install packages
+    sudo apt install -y "${PACKAGES[@]}"
 }
 
 install_tools() {
