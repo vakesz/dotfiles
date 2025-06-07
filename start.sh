@@ -11,13 +11,38 @@ log() { echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')] $1${NC}"; }
 warn() { echo -e "${YELLOW}[$(date +'%Y-%m-%d %H:%M:%S')] WARNING: $1${NC}"; }
 error() { echo -e "${RED}[$(date +'%Y-%m-%d %H:%M:%S')] ERROR: $1${NC}"; }
 
+show_help() {
+    cat << EOF
+Usage: $(basename "$0") [OPTIONS]
+Setup dotfiles on Ubuntu/Debian.
+
+Options:
+  --help      Show this help message and exit
+
+Preconditions:
+  Must have sudo privileges
+  Do not run this script as root
+EOF
+}
+
+# Handle flags
+if [ "$1" = "--help" ]; then
+    show_help
+    exit 0
+fi
+
 detect_os() {
     if [ ! -f /etc/os-release ]; then
         error "Cannot detect OS distribution"
         exit 1
     fi
     
-    . /etc/os-release
+    # shellcheck disable=SC1091
+    if ! . /etc/os-release; then
+        error "Failed to source /etc/os-release"
+        exit 1
+    fi
+    
     OS=$ID
     
     case $OS in
@@ -32,7 +57,9 @@ backup_dotfiles() {
     mkdir -p "$BACKUP_DIR"
     
     for file in .gitconfig .zshrc; do
-        [ -f "$HOME/$file" ] && cp "$HOME/$file" "$BACKUP_DIR/"
+        if [ -f "$HOME/$file" ]; then
+            cp "$HOME/$file" "$BACKUP_DIR/"
+        fi
     done
 }
 
@@ -44,7 +71,7 @@ install_packages() {
               software-properties-common apt-transport-https ca-certificates gnupg lsb-release 
               clang gdb cmake jq unzip zip ripgrep fd-find bat fzf"
     
-    sudo apt install -y $PACKAGES
+    sudo apt install -y "$PACKAGES"
 }
 
 install_tools() {
@@ -62,6 +89,7 @@ install_tools() {
     if ! command -v rustc &> /dev/null; then
         log "Installing Rust and cargo tools"
         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+        # shellcheck disable=SC1091
         source "$HOME/.cargo/env"
         cargo install bottom hyperfine
     fi
@@ -82,7 +110,7 @@ install_docker() {
     fi
     
     log "Installing Docker"
-    curl -fsSL https://download.docker.com/linux/$OS/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    curl -fsSL https://download.docker.com/linux/"$OS"/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/$OS $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
     sudo apt update
     sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
@@ -201,6 +229,19 @@ finalize_setup() {
     fi
 }
 
+toolkit_post_install_checks() {
+    log "Running post-install checks"
+    for cmd in git zsh docker node npm; do
+        if ! command -v $cmd &> /dev/null; then
+            warn "$cmd not found in PATH"
+        else
+            log "$cmd is available at $(which $cmd)"
+        fi
+    done
+    log "Post-install cleanup completed"
+    echo -e "${YELLOW}Please log out and log back in to apply shell changes.${NC}"
+}
+
 # Main execution
 log "Starting dotfiles setup"
 
@@ -217,6 +258,7 @@ install_font
 setup_zsh
 copy_dotfiles
 finalize_setup
+toolkit_post_install_checks
 
 log "Setup complete!"
 echo -e "${GREEN}Dotfiles have been successfully set up!${NC}"
