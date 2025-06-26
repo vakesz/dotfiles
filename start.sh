@@ -95,15 +95,18 @@ install_packages() {
 install_tools() {
   log "Installing git-delta"
   local DELTA_URL="https://github.com/dandavison/delta/releases/latest/download/git-delta-linux-musl.deb"
-  local tmpdelta=$(mktemp --suffix .deb)
+  local tmpdelta
+  tmpdelta=$(mktemp --suffix .deb)
   curl -fsSL "$DELTA_URL" -o "$tmpdelta"
   sudo dpkg -i "$tmpdelta" || sudo apt install -f -y
   rm -f "$tmpdelta"
 
   log "Installing LazyGit"
-  local VER=$(curl -fsSL https://api.github.com/repos/jesseduffield/lazygit/releases/latest \
+  local VER
+  VER=$(curl -fsSL https://api.github.com/repos/jesseduffield/lazygit/releases/latest \
     | grep -Po '"tag_name": "\K[^"]+')
-  local tmpfile=$(mktemp)
+  local tmpfile
+  tmpfile=$(mktemp)
   curl -fsSL "https://github.com/jesseduffield/lazygit/releases/download/${VER}/lazygit_${VER#v}_Linux_x86_64.tar.gz" \
     -o "$tmpfile"
   tar -xzf "$tmpfile" lazygit
@@ -160,7 +163,8 @@ install_font() {
 
   log "Installing JetBrains Mono Nerd Font"
   mkdir -p "$font_dir"
-  local tmpzip=$(mktemp --suffix .zip)
+  local tmpzip
+  tmpzip=$(mktemp --suffix .zip)
   curl -fsSL https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip \
     -o "$tmpzip"
   unzip "$tmpzip" -d "$font_dir"
