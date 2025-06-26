@@ -1,270 +1,237 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+# ----------------------------------------------------------------------------
+# setup-dotfiles.sh
+#
+# This script bootstraps and configures your Ubuntu/Debian environment with:
+#   - Core packages and development tools
+#   - Docker
+#   - Node.js + npm global tools
+#   - JetBrains Mono Nerd Font
+#   - Oh My Zsh + plugins
+#   - Git delta and LazyGit
+#
+# Usage:
+#   setup-dotfiles.sh [ -h | --help ]
+#
+# Preconditions:
+#   - Sudo privileges
+#   - Do NOT run as root
+# ----------------------------------------------------------------------------
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-NC='\033[0m'
+set -Eeo pipefail
+IFS=$'\n\t'
 
-log() { echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')] $1${NC}"; }
-warn() { echo -e "${YELLOW}[$(date +'%Y-%m-%d %H:%M:%S')] WARNING: $1${NC}"; }
-error() { echo -e "${RED}[$(date +'%Y-%m-%d %H:%M:%S')] ERROR: $1${NC}"; }
+# Color codes for log output
+readonly RED="\033[0;31m"
+readonly GREEN="\033[0;32m"
+readonly YELLOW="\033[0;33m"
+readonly NC="\033[0m"  # No Color
 
+# ----------------------------------------------------------------------------
+# Logging functions
+# ----------------------------------------------------------------------------
+log()   { printf "%b[%s] %s%b\n" "$GREEN" "$(date +'%F %T')" "$1" "$NC"; }
+warn()  { printf "%b[%s] WARNING: %s%b\n" "$YELLOW" "$(date +'%F %T')" "$1" "$NC"; }
+error() { printf "%b[%s] ERROR: %s%b\n" "$RED" "$(date +'%F %T')" "$1" "$NC"; exit 1; }
+
+# ----------------------------------------------------------------------------
+# show_help: Display usage information
+# ----------------------------------------------------------------------------
 show_help() {
-    cat << EOF
-Usage: $(basename "$0") [OPTIONS]
-Setup dotfiles on Ubuntu/Debian.
+  cat << EOF
+Usage: $(basename "${BASH_SOURCE[0]}") [-h|--help]
 
 Options:
-  --help      Show this help message and exit
+  -h, --help    Show this message and exit
 
 Preconditions:
-  Must have sudo privileges
-  Do not run this script as root
+  - sudo privileges
+  - do NOT run as root
 EOF
 }
 
-# Handle flags
-if [ "$1" = "--help" ]; then
-    show_help
-    exit 0
-fi
+# ----------------------------------------------------------------------------
+# Parse command-line flags
+# ----------------------------------------------------------------------------
+case "${1:-}" in
+  -h|--help) show_help; exit 0 ;;
+  -*) error "Unknown option: $1" ;;
+esac
 
+# Locate script directory for dotfile paths
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# ----------------------------------------------------------------------------
+# detect_os: Verify running on Ubuntu or Debian
+# ----------------------------------------------------------------------------
 detect_os() {
-    if [ ! -f /etc/os-release ]; then
-        error "Cannot detect OS distribution"
-        exit 1
-    fi
-    
-    # shellcheck disable=SC1091
-    if ! . /etc/os-release; then
-        error "Failed to source /etc/os-release"
-        exit 1
-    fi
-    
-    OS=$ID
-    
-    case $OS in
-        ubuntu|debian) log "Detected $OS $VERSION_ID" ;;
-        *) error "Unsupported OS: $OS. This script supports Ubuntu and Debian only."; exit 1 ;;
-    esac
+  [[ -r /etc/os-release ]] || error "Cannot detect OS"
+  # shellcheck disable=SC1091
+  source /etc/os-release
+  [[ $ID =~ ^(ubuntu|debian)$ ]] || error "Unsupported OS: $ID"
+  OS=$ID
+  log "Detected OS: $PRETTY_NAME"
 }
 
-backup_dotfiles() {
-    log "Backing up existing dotfiles"
-    BACKUP_DIR="$HOME/.dotfiles_backup_$(date +%Y%m%d_%H%M%S)"
-    mkdir -p "$BACKUP_DIR"
-    
-    for file in .gitconfig .zshrc; do
-        if [ -f "$HOME/$file" ]; then
-            cp "$HOME/$file" "$BACKUP_DIR/"
-        fi
-    done
-}
-
+# ----------------------------------------------------------------------------
+# install_packages: Update apt and install core utilities
+# ----------------------------------------------------------------------------
 install_packages() {
-    log "Installing essential packages"
-    sudo apt update && sudo apt upgrade -y
+  log "Updating apt cache and upgrading existing packages"
+  sudo apt update && sudo apt upgrade -y
 
-    # Define packages as an array
-    PACKAGES=(
-        git neovim python3 python3-pip python3-venv build-essential mc zsh curl wget htop tree
-        software-properties-common apt-transport-https ca-certificates gnupg lsb-release
-        clang gdb cmake jq unzip zip ripgrep fd-find bat fzf
-    )
-
-    # Install packages
-    sudo apt install -y "${PACKAGES[@]}"
+  log "Installing core packages"
+  local pkgs=(
+    git neovim python3-pip python3-venv build-essential mc zsh curl wget htop tree
+    software-properties-common apt-transport-https ca-certificates gnupg lsb-release
+    clang gdb cmake jq unzip zip libarchive-tools
+  )
+  sudo apt install -y "${pkgs[@]}"
 }
 
+# ----------------------------------------------------------------------------
+# install_tools: Install git-delta (diff pager) & lazygit (terminal UI for git)
+# ----------------------------------------------------------------------------
 install_tools() {
-    # Lazygit
-    if ! command -v lazygit &> /dev/null; then
-        log "Installing lazygit"
-        LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
-        curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
-        tar xf lazygit.tar.gz lazygit
-        sudo install lazygit /usr/local/bin
-        rm lazygit lazygit.tar.gz
-    fi
+  log "Installing git-delta"
+  local DELTA_URL="https://github.com/dandavison/delta/releases/latest/download/git-delta-linux-musl.deb"
+  local tmpdelta=$(mktemp --suffix .deb)
+  curl -fsSL "$DELTA_URL" -o "$tmpdelta"
+  sudo dpkg -i "$tmpdelta" || sudo apt install -f -y
+  rm -f "$tmpdelta"
 
-    # Rust and cargo tools
-    if ! command -v rustc &> /dev/null; then
-        log "Installing Rust and cargo tools"
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-        # shellcheck disable=SC1091
-        source "$HOME/.cargo/env"
-        cargo install bottom hyperfine
-    fi
-
-    # Delta
-    if ! command -v delta &> /dev/null; then
-        log "Installing Delta"
-        DELTA_VERSION=$(curl -s "https://api.github.com/repos/dandavison/delta/releases/latest" | jq -r .tag_name | tr -d 'v')
-        wget -q "https://github.com/dandavison/delta/releases/download/${DELTA_VERSION}/git-delta_${DELTA_VERSION}_amd64.deb"
-        sudo dpkg -i git-delta_"${DELTA_VERSION}"_amd64.deb
-        rm git-delta_"${DELTA_VERSION}"_amd64.deb
-    fi
+  log "Installing LazyGit"
+  local VER=$(curl -fsSL https://api.github.com/repos/jesseduffield/lazygit/releases/latest \
+    | grep -Po '"tag_name": "\K[^"]+')
+  local tmpfile=$(mktemp)
+  curl -fsSL "https://github.com/jesseduffield/lazygit/releases/download/${VER}/lazygit_${VER#v}_Linux_x86_64.tar.gz" \
+    -o "$tmpfile"
+  tar -xzf "$tmpfile" lazygit
+  sudo install lazygit /usr/local/bin
+  rm -f lazygit "$tmpfile"
 }
 
+# ----------------------------------------------------------------------------
+# install_docker: Setup Docker repository and install Docker Engine
+# ----------------------------------------------------------------------------
 install_docker() {
-    if command -v docker &> /dev/null; then
-        return
-    fi
-    
-    log "Installing Docker"
-    curl -fsSL https://download.docker.com/linux/"$OS"/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/$OS $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-    sudo apt update
-    sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-    sudo usermod -aG docker "$USER"
+  if command -v docker &>/dev/null; then
+    log "Docker is already installed"
+    return
+  fi
+  log "Installing Docker Engine"
+  curl -fsSL https://download.docker.com/linux/"$OS"/gpg \
+    | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] \
+    https://download.docker.com/linux/$OS $(lsb_release -cs) stable" \
+    | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
+
+  sudo apt update
+  sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+  sudo usermod -aG docker "$USER"
+  log "Added $USER to docker group; please re-login or run 'newgrp docker'"
 }
 
-install_nodejs() {
-    if command -v node &> /dev/null; then
-        return
-    fi
-    
-    log "Installing Node.js"
-    curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-    sudo apt install -y nodejs
+# ----------------------------------------------------------------------------
+# install_node: Install Node.js LTS and global npm packages
+# ----------------------------------------------------------------------------
+install_node() {
+  if command -v node &>/dev/null; then
+    log "Node.js is already installed"
+    return
+  fi
+  log "Installing Node.js LTS"
+  curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+  sudo apt install -y nodejs
+
+  log "Installing global npm packages"
+  sudo npm install -g tailwindcss postcss autoprefixer eslint
 }
 
-install_node_packages() {
-    log "Installing Tailwind CSS and ESLint globally"
-
-    # Ensure Node.js is installed
-    if ! command -v node &> /dev/null; then
-        log "Node.js is not installed. Installing Node.js first."
-        install_nodejs
-    fi
-
-    # Install Tailwind CSS globally
-    log "Installing Tailwind CSS globally"
-    sudo npm install -g tailwindcss postcss autoprefixer
-
-    # Install ESLint globally
-    log "Installing ESLint globally"
-    sudo npm install -g eslint
-
-    log "Global installation of Tailwind CSS and ESLint completed"
-}
-
+# ----------------------------------------------------------------------------
+# install_font: Download and install JetBrains Mono Nerd Font
+# ----------------------------------------------------------------------------
 install_font() {
-    log "Installing JetBrains Mono Nerd Font"
-    FONT_DIR="$HOME/.local/share/fonts"
-    
-    if [ ! -d "$FONT_DIR/JetBrainsMono" ]; then
-        mkdir -p "$FONT_DIR"
-        cd "$FONT_DIR"
-        wget -q "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip"
-        unzip -q JetBrainsMono.zip -d JetBrainsMono/
-        rm JetBrainsMono.zip
-        fc-cache -fv
-        cd - > /dev/null
-    fi
+  local font_dir="$HOME/.local/share/fonts/JetBrainsMono"
+  if [[ -d $font_dir ]]; then
+    log "JetBrains Mono Nerd Font already present"
+    return
+  fi
+
+  log "Installing JetBrains Mono Nerd Font"
+  mkdir -p "$font_dir"
+  local tmpzip=$(mktemp --suffix .zip)
+  curl -fsSL https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip \
+    -o "$tmpzip"
+  unzip "$tmpzip" -d "$font_dir"
+  rm -f "$tmpzip"
+  fc-cache -fv
 }
 
+# ----------------------------------------------------------------------------
+# setup_zsh: Install Oh My Zsh and common plugins
+# ----------------------------------------------------------------------------
 setup_zsh() {
-    log "Setting up ZSH with Oh My Zsh"
-    
-    # Install Oh My Zsh
-    if [ ! -d "$HOME/.oh-my-zsh" ]; then
-        RUNZSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+  log "Configuring Oh My Zsh"
+  if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
+    RUNZSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+  fi
+  local custom=${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}
+  for plugin in zsh-autosuggestions zsh-syntax-highlighting fast-syntax-highlighting zsh-completions; do
+    if [[ ! -d "$custom/plugins/$plugin" ]]; then
+      git clone https://github.com/${plugin/zsh-/zsh-users/}.git "$custom/plugins/$plugin"
     fi
-    
-    # Install plugins
-    ZSH_CUSTOM=${ZSH_CUSTOM:-~/.oh-my-zsh/custom}
-    
-    for plugin in zsh-autosuggestions zsh-syntax-highlighting fast-syntax-highlighting zsh-completions; do
-        PLUGIN_DIR="$ZSH_CUSTOM/plugins/$plugin"
-        if [ ! -d "$PLUGIN_DIR" ]; then
-            case $plugin in
-                zsh-autosuggestions) 
-                    git clone https://github.com/zsh-users/zsh-autosuggestions "$PLUGIN_DIR" ;;
-                zsh-syntax-highlighting) 
-                    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$PLUGIN_DIR" ;;
-                fast-syntax-highlighting) 
-                    git clone https://github.com/zdharma-continuum/fast-syntax-highlighting.git "$PLUGIN_DIR" ;;
-                zsh-completions) 
-                    git clone https://github.com/zsh-users/zsh-completions "$PLUGIN_DIR" ;;
-            esac
-        fi
-    done
+  done
 }
 
+# ----------------------------------------------------------------------------
+# copy_dotfiles: Copy .gitconfig and .zshrc from script location to home
+# ----------------------------------------------------------------------------
 copy_dotfiles() {
-    log "Copying dotfiles"
-    cp .gitconfig ~/.gitconfig
-    cp .zshrc ~/.zshrc
-    
-    # Copy bin scripts
-    mkdir -p "$HOME/bin"
-    if [ -d "bin" ]; then
-        cp bin/* "$HOME/bin/"
-        chmod +x "$HOME/bin/"*
-    fi
+  log "Copying dotfiles to home directory"
+  cp "$SCRIPT_DIR/.gitconfig" "$HOME/.gitconfig"
+  cp "$SCRIPT_DIR/.zshrc"      "$HOME/.zshrc"
 }
 
-finalize_setup() {
-    # Set Zsh as default shell
-    if [ "$SHELL" != "$(which zsh)" ]; then
-        chsh -s "$(which zsh)"
-        log "Default shell changed to Zsh"
+# ----------------------------------------------------------------------------
+# finalize: Change shell to zsh and configure WSL locale if needed
+# ----------------------------------------------------------------------------
+finalize() {
+  # Change default shell to zsh if not already
+  if [[ $SHELL != $(command -v zsh) ]]; then
+    chsh -s "$(command -v zsh)"
+    log "Default shell changed to zsh"
+  fi
+
+  # WSL2-specific locale fix
+  if grep -qi microsoft /proc/version 2>/dev/null; then
+    log "Applying WSL2 locale configuration"
+    if ! grep -q '^en_US.UTF-8 UTF-8' /etc/locale.gen; then
+      echo 'en_US.UTF-8 UTF-8' | sudo tee -a /etc/locale.gen
     fi
-    
-    # WSL2 Git configuration and locale setup
-    if grep -q microsoft /proc/version 2>/dev/null; then
-        log "Configuring Git and locale for WSL2"
-        git config --global --add safe.directory '*'
-        
-        # Ensure locale is properly configured for WSL
-        if [ ! -f /etc/locale.gen ] || ! grep -q "^en_US.UTF-8" /etc/locale.gen; then
-            echo "en_US.UTF-8 UTF-8" | sudo tee -a /etc/locale.gen > /dev/null
-        fi
-        sudo locale-gen en_US.UTF-8 2>/dev/null
-        
-        # Set system-wide locale
-        echo 'LANG=en_US.UTF-8' | sudo tee /etc/default/locale > /dev/null
-        echo 'LC_ALL=en_US.UTF-8' | sudo tee -a /etc/default/locale > /dev/null
-        
-        log "WSL locale configuration completed"
-    fi
+    sudo locale-gen
+    sudo tee /etc/default/locale <<< 'LANG=en_US.UTF-8'
+  fi
+
+  log "Setup complete! Please log out and back in to apply all changes."
 }
 
-toolkit_post_install_checks() {
-    log "Running post-install checks"
-    for cmd in git zsh docker node npm; do
-        if ! command -v $cmd &> /dev/null; then
-            warn "$cmd not found in PATH"
-        else
-            log "$cmd is available at $(which $cmd)"
-        fi
-    done
-    log "Post-install cleanup completed"
-    echo -e "${YELLOW}Please log out and log back in to apply shell changes.${NC}"
+# ----------------------------------------------------------------------------
+# main: Execute all setup steps in order
+# ----------------------------------------------------------------------------
+main() {
+  # Prevent running as root
+  [[ $EUID -eq 0 ]] && error "Do not run as root"
+
+  detect_os            # Check OS compatibility
+  install_packages     # Core utilities
+  install_tools        # git-delta, lazygit
+  install_docker       # Docker Engine
+  install_node         # Node.js + npm tools
+  install_font         # Nerd font
+  setup_zsh            # Z shell and plugins
+  copy_dotfiles        # Custom dotfiles
+  finalize             # Final touches
 }
 
-# Main execution
-log "Starting dotfiles setup"
-
-[ "$EUID" -eq 0 ] && { error "Please do not run this script as root"; exit 1; }
-
-detect_os
-backup_dotfiles
-install_packages
-install_tools
-install_docker
-install_nodejs
-install_node_packages
-install_font
-setup_zsh
-copy_dotfiles
-finalize_setup
-toolkit_post_install_checks
-
-log "Setup complete!"
-echo -e "${GREEN}Dotfiles have been successfully set up!${NC}"
-echo -e "${YELLOW}Note: Please log out and log back in for all changes to take effect.${NC}"
-
+main "$@"
