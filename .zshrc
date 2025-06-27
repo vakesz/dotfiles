@@ -1,22 +1,41 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# Oh My Zsh
+# zplug - Plugin Manager
 # ─────────────────────────────────────────────────────────────────────────────
-export ZSH="$HOME/.oh-my-zsh"
-ZSH_THEME="robbyrussell"
+if [[ ! -d ~/.zplug ]]; then
+  echo "zplug not found. Installing..."
+  git clone https://github.com/zplug/zplug ~/.zplug
+fi
 
-plugins=(
-  git
-  history
-  colored-man-pages
-  command-not-found
-  zsh-autosuggestions
-  zsh-completions
-  fast-syntax-highlighting
-  python
-)
+source ~/.zplug/init.zsh
 
+# Load theme
+zplug "themes/robbyrussell", from:oh-my-zsh, as:theme
+
+# Load plugins from oh-my-zsh
+zplug "plugins/git", from:oh-my-zsh
+zplug "plugins/history", from:oh-my-zsh
+zplug "plugins/colored-man-pages", from:oh-my-zsh
+zplug "plugins/command-not-found", from:oh-my-zsh
+zplug "plugins/python", from:oh-my-zsh
+
+# Load external plugins
+zplug "zsh-users/zsh-autosuggestions"
+zplug "zsh-users/zsh-completions"
+zplug "zdharma-continuum/fast-syntax-highlighting", defer:2
+
+# Install plugins if there are plugins that have not been installed
+if ! zplug check --verbose; then
+  printf "Install zplug plugins? [y/N]: "
+  if read -q; then
+    echo; zplug install
+  fi
+fi
+
+# Load plugins
+zplug load
+
+# Enable completions
 autoload -U compinit && compinit
-source "$ZSH/oh-my-zsh.sh"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Locales
@@ -57,9 +76,11 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 if [[ -z "$SSH_AUTH_SOCK" ]] || ! ssh-add -l &>/dev/null; then
   eval "$(ssh-agent -s)" &>/dev/null
+  setopt nullglob
   for key in ~/.ssh/*; do
     [[ -f $key && $key != *.pub ]] && ssh-add "$key" &>/dev/null
   done
+  unsetopt nullglob
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────

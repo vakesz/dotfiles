@@ -93,25 +93,38 @@ install_packages() {
 # install_tools: Install git-delta (diff pager) & lazygit (terminal UI for git)
 # ----------------------------------------------------------------------------
 install_tools() {
-  log "Installing git-delta"
-  local DELTA_URL="https://github.com/dandavison/delta/releases/latest/download/git-delta-linux-musl.deb"
-  local tmpdelta
-  tmpdelta=$(mktemp --suffix .deb)
-  curl -fsSL "$DELTA_URL" -o "$tmpdelta"
-  sudo dpkg -i "$tmpdelta" || sudo apt install -f -y
-  rm -f "$tmpdelta"
+  # Check and install git-delta
+  if command -v delta &>/dev/null; then
+    log "git-delta is already installed"
+  else
+    log "Installing git-delta"
+    local VER
+    VER=$(curl -fsSL https://api.github.com/repos/dandavison/delta/releases/latest \
+      | grep -Po '"tag_name": "\K[^"]+')
+    local DELTA_URL="https://github.com/dandavison/delta/releases/download/${VER}/git-delta_${VER}_amd64.deb"
+    local tmpdelta
+    tmpdelta=$(mktemp --suffix .deb)
+    curl -fsSL "$DELTA_URL" -o "$tmpdelta"
+    sudo dpkg -i "$tmpdelta" || sudo apt install -f -y
+    rm -f "$tmpdelta"
+  fi
 
-  log "Installing LazyGit"
-  local VER
-  VER=$(curl -fsSL https://api.github.com/repos/jesseduffield/lazygit/releases/latest \
-    | grep -Po '"tag_name": "\K[^"]+')
-  local tmpfile
-  tmpfile=$(mktemp)
-  curl -fsSL "https://github.com/jesseduffield/lazygit/releases/download/${VER}/lazygit_${VER#v}_Linux_x86_64.tar.gz" \
-    -o "$tmpfile"
-  tar -xzf "$tmpfile" lazygit
-  sudo install lazygit /usr/local/bin
-  rm -f lazygit "$tmpfile"
+  # Check and install LazyGit
+  if command -v lazygit &>/dev/null; then
+    log "LazyGit is already installed"
+  else
+    log "Installing LazyGit"
+    local VER
+    VER=$(curl -fsSL https://api.github.com/repos/jesseduffield/lazygit/releases/latest \
+      | grep -Po '"tag_name": "\K[^"]+')
+    local tmpfile
+    tmpfile=$(mktemp)
+    curl -fsSL "https://github.com/jesseduffield/lazygit/releases/download/${VER}/lazygit_${VER#v}_Linux_x86_64.tar.gz" \
+      -o "$tmpfile"
+    tar -xzf "$tmpfile" lazygit
+    sudo install lazygit /usr/local/bin
+    rm -f lazygit "$tmpfile"
+  fi
 }
 
 # ----------------------------------------------------------------------------
@@ -173,19 +186,22 @@ install_font() {
 }
 
 # ----------------------------------------------------------------------------
-# setup_zsh: Install Oh My Zsh and common plugins
+# setup_zsh: Install zplug and configure Zsh with plugins
 # ----------------------------------------------------------------------------
 setup_zsh() {
-  log "Configuring Oh My Zsh"
-  if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
-    RUNZSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+  # Check if zsh is installed
+  if ! command -v zsh &>/dev/null; then
+    log "Zsh not found, installing it first"
+    sudo apt install -y zsh
   fi
-  local custom=${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}
-  for plugin in zsh-autosuggestions zsh-syntax-highlighting fast-syntax-highlighting zsh-completions; do
-    if [[ ! -d "$custom/plugins/$plugin" ]]; then
-      git clone https://github.com/${plugin/zsh-/zsh-users/}.git "$custom/plugins/$plugin"
-    fi
-  done
+
+  # Install zplug if not already installed
+  if [[ ! -d "$HOME/.zplug" ]]; then
+    log "Installing zplug"
+    git clone https://github.com/zplug/zplug "$HOME/.zplug"
+  else
+    log "zplug is already installed"
+  fi
 }
 
 # ----------------------------------------------------------------------------
@@ -193,6 +209,11 @@ setup_zsh() {
 # ----------------------------------------------------------------------------
 copy_dotfiles() {
   log "Copying dotfiles to home directory"
+  
+  # Create .ssh directory if it doesn't exist to prevent zsh glob errors
+  mkdir -p "$HOME/.ssh"
+  chmod 700 "$HOME/.ssh"
+  
   cp "$SCRIPT_DIR/.gitconfig" "$HOME/.gitconfig"
   cp "$SCRIPT_DIR/.zshrc"      "$HOME/.zshrc"
 }
