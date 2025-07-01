@@ -1,157 +1,177 @@
-# ─────────────────────────────────────────────────────────────────────────────
-# Oh My Zsh core
-# ─────────────────────────────────────────────────────────────────────────────
-# Set the installation directory for Oh My Zsh
+# ~/.zshrc – Zsh configuration file
+[[ $- != *i* ]] && return
+
+# ----------------------------------------------------------------------------
+# Core framework: Oh My Zsh
+#   - Install if missing, then source its main script
+# ----------------------------------------------------------------------------
 export ZSH="$HOME/.oh-my-zsh"
-
-# If the main Oh My Zsh script exists, source it to initialize
-if [[ -s "$ZSH/oh-my-zsh.sh" ]]; then
-  source "$ZSH/oh-my-zsh.sh"      # Load Oh My Zsh configuration and themes
-else
-  # Warn if Oh My Zsh is missing or path is incorrect
-  echo "Warning: Oh My Zsh not found in $ZSH"
+if [[ ! -d $ZSH ]]; then
+  git clone https://github.com/ohmyzsh/ohmyzsh.git "$ZSH"
 fi
+source "$ZSH/oh-my-zsh.sh"
 
-# ─────────────────────────────────────────────────────────────────────────────
-# zplug - Plugin Manager
-# ─────────────────────────────────────────────────────────────────────────────
-# Define zplug installation directory
+
+# ----------------------------------------------------------------------------
+# Plugin Manager: zplug
+#   - Quiet logging, auto-install missing plugins, and compile cache
+# ----------------------------------------------------------------------------
+export ZPLUG_LOG_LEVEL=ERROR
 export ZPLUG_HOME="$HOME/.zplug"
 
-# Clone zplug repository if it's not already installed
-if [[ ! -d "$ZPLUG_HOME" ]]; then
+if [[ ! -d $ZPLUG_HOME ]]; then
   git clone https://github.com/zplug/zplug "$ZPLUG_HOME"
+  source "$ZPLUG_HOME/init.zsh"
+  zplug install --all --jobs=4
+  zplug compile
 fi
 
-# Source zplug to enable plugin management
+# Initialize zplug and load installed plugins
 source "$ZPLUG_HOME/init.zsh"
 
-# ─────────────────────────────────────────────────────────────────────────────
-# zplug-managed theme & plugins
-# ─────────────────────────────────────────────────────────────────────────────
-# Defer loading of async helper for speed
-zplug "mafredri/zsh-async", defer:1
+# ----------------------------------------------------------------------------
+# Performance: Fast completion and prompt initialization with caching
+# ----------------------------------------------------------------------------
+autoload -Uz compinit promptinit
+compinit -u -C                # Unsafe mode with cache
+promptinit
 
-# Load the robbyrussell theme (from Oh My Zsh)
-zplug "themes/robbyrussell", from:oh-my-zsh, as:theme
+# Enable on-disk caching for completions
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path ~/.zsh/cache
 
-# Load useful Oh My Zsh plugins
-zplug "plugins/git",             from:oh-my-zsh    # Git shortcuts & helpers
-zplug "plugins/history",         from:oh-my-zsh    # Enhanced history search
-zplug "plugins/colored-man-pages", from:oh-my-zsh # Colorize man pages
-zplug "plugins/command-not-found",  from:oh-my-zsh # Suggest commands for typos
-zplug "plugins/python",            from:oh-my-zsh # Python environment helpers
+# ----------------------------------------------------------------------------
+# Theme & Deferred Plugins
+# ----------------------------------------------------------------------------
+# Spaceship Prompt (theme) – deferred for faster startup
+zplug "denysdovhan/spaceship-prompt", as:theme, defer:2
 
-# Additional community plugins
-zplug "zsh-users/zsh-autosuggestions"        # Suggest commands as you type
-zplug "zsh-users/zsh-completions"            # Additional tab completions
-zplug "zdharma-continuum/fast-syntax-highlighting", defer:2 # Highlight commands fast
+# Customize Spaceship segments and symbols
+export SPACESHIP_PROMPT_ORDER=(
+  user host dir git package node python venv char
+)
+export SPACESHIP_CHAR_PREFIX="\n"
+export SPACESHIP_CHAR_SYMBOL="❯"
+export SPACESHIP_CHAR_SUFFIX=" "
+export SPACESHIP_DIR_TRUNC=2
+export SPACESHIP_CACHE_JOINED=true
+export SPACESHIP_CACHE_CONTROL=true
 
-# Prompt to install any missing plugins interactively
-if ! zplug check --verbose; then
-  printf "Install missing plugins? [y/N]: "
-  if read -q; then
-    echo
-    zplug install                    # Install requested plugins
-  fi
+# Asynchronous support for plugins
+zplug "mafredri/zsh-async", defer:2
+
+# Essential Oh My Zsh plugins (loaded from upstream)
+zplug "plugins/git",             from:oh-my-zsh
+zplug "plugins/history",         from:oh-my-zsh
+zplug "plugins/colored-man-pages", from:oh-my-zsh
+zplug "plugins/command-not-found",  from:oh-my-zsh
+zplug "plugins/python",            from:oh-my-zsh
+
+# Deferred community plugins
+zplug "zsh-users/zsh-autosuggestions", defer:3
+zplug "zsh-users/zsh-completions",    defer:3
+zplug "zdharma-continuum/fast-syntax-highlighting", defer:3
+
+# Auto-install any missing plugins and rebuild cache
+if ! zplug check; then
+  echo "→ Installing missing zplug plugins…"
+  zplug install --jobs=4
+  zplug compile
 fi
 
-# Load all configured plugins and themes
+# Load plugins and theme silently
 zplug load
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Locales
-# ─────────────────────────────────────────────────────────────────────────────
-# Ensure consistent language and encoding settings across applications
+# ----------------------------------------------------------------------------
+# Internationalization: Locale settings
+# ----------------------------------------------------------------------------
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 export LANGUAGE=en_US.UTF-8
 
-# ─────────────────────────────────────────────────────────────────────────────
-# History settings
-# ─────────────────────────────────────────────────────────────────────────────
-# Number of commands to keep in memory and on disk
-HISTSIZE=50000; SAVEHIST=50000; HIST_STAMPS="yyyy-mm-dd"
+# ----------------------------------------------------------------------------
+# Command History: size, formatting, and behavior
+# ----------------------------------------------------------------------------
+HISTSIZE=50000
+SAVEHIST=50000
+HIST_STAMPS="yyyy-mm-dd"
 
-# Configure history behavior
-setopt HIST_EXPIRE_DUPS_FIRST    # Remove older duplicate entries first
-setopt HIST_IGNORE_DUPS          # Don't record duplicate entries
-setopt HIST_IGNORE_ALL_DUPS      # Remove older occurrences of duplicated commands
-setopt HIST_IGNORE_SPACE         # Ignore commands starting with a space
-setopt HIST_FIND_NO_DUPS         # Skip duplicates when searching history
-setopt HIST_SAVE_NO_DUPS         # Don't write duplicates to history file
-setopt HIST_BEEP                 # Audible bell on history expansion
-setopt SHARE_HISTORY             # Share history across multiple shells
-setopt INC_APPEND_HISTORY        # Append commands to history immediately
+# History options to avoid duplicates and clutter
+setopt HIST_EXPIRE_DUPS_FIRST
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_IGNORE_SPACE
+setopt HIST_FIND_NO_DUPS
+setopt HIST_SAVE_NO_DUPS
+setopt HIST_BEEP
 
-# Visual indicator while waiting for completion
+# Show dots while waiting for completion
 COMPLETION_WAITING_DOTS=true
 
-# ─────────────────────────────────────────────────────────────────────────────
-# PATH & EDITOR
-# ─────────────────────────────────────────────────────────────────────────────
-# Prepend local bin directories to PATH for priority execution
+# ----------------------------------------------------------------------------
+# Path & Editor Configuration
+# ----------------------------------------------------------------------------
 export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
-
-# Choose default editor based on SSH connection
+# Use vim over SSH or neovim locally
 export EDITOR=$([[ -n $SSH_CONNECTION ]] && echo vim || echo nvim)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# SSH Agent (WSL-friendly)
-# ─────────────────────────────────────────────────────────────────────────────
-# Start ssh-agent if not already running and add all private keys
-if [[ -z "$SSH_AUTH_SOCK" ]] || ! ssh-add -l &>/dev/null; then
+# ----------------------------------------------------------------------------
+# SSH Agent Setup (WSL-friendly)
+# ----------------------------------------------------------------------------
+if [[ -z $SSH_AUTH_SOCK ]] || ! ssh-add -l &>/dev/null; then
   eval "$(ssh-agent -s)" &>/dev/null
-  setopt nullglob                  # Allow empty glob expansions
-
-  # Automatically add each private key from ~/.ssh
+  setopt nullglob
   for key in ~/.ssh/*; do
-    if [[ -f $key && $key != *.pub ]]; then
-      ssh-add "$key" &>/dev/null
-    fi
+    [[ -f $key && $key != *.pub ]] && ssh-add "$key" &>/dev/null
   done
-  unsetopt nullglob                # Restore default globbing
+  unsetopt nullglob
 fi
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Aliases & Functions
-# ─────────────────────────────────────────────────────────────────────────────
-# Shorten python and pip commands
+# ----------------------------------------------------------------------------
+# Aliases & Utility Functions
+# ----------------------------------------------------------------------------
+# Shortcuts for Python and pip
 alias py='python3'
 alias pip='pip3'
 
-# Apt helpers for installing, updating, removing, and searching packages
+# Apt package management helpers
 install() { sudo apt install -y "$@"; }
 update()  { sudo apt update && sudo apt upgrade -y; }
-remove()  { sudo apt remove "$@"; }
+remove()  { sudo apt remove -y "$@"; }
 search()  { apt search "$@"; }
 
-# Create and activate a virtual environment conveniently
+# Virtual environment management
 venv() {
   local name=${1:-.venv}
-  [[ -d $name ]] || python3 -m venv "$name" && echo "Created venv '$name'."
+  if [[ ! -d $name ]]; then
+    python3 -m venv "$name" && echo "Created venv '$name'."
+  fi
   source "$name/bin/activate" && echo "Activated '$name'."
 }
 
-# Extract archives of various formats with a single function
-extract() {
-  [[ -f $1 ]] || { echo "'$1' not found"; return; }
-  case $1 in
-    *.tar.bz2) tar -jxvf "$1" ;;    # bzip2 compressed
-    *.tar.gz)  tar -zxvf "$1" ;;    # gzip compressed
-    *.zip)     unzip    "$1" ;;    # zip archives
-    *.7z)      7z x     "$1" ;;    # 7zip archives
-    *.rar)     unrar x  "$1" ;;    # rar archives
-    *.bz2)     bunzip2  "$1" ;;    # decompress bzip2 file
-    *.gz)      gunzip   "$1" ;;    # decompress gzip file
-    *.tar)     tar -xvf "$1" ;;    # uncompressed tar archive
-    *)         echo "Cannot extract '$1'" ;;  # unsupported format
+# Archive extraction helper
+eextract() {
+  local file=$1
+  [[ -f $file ]] || { echo "'$file' not found"; return; }
+  case $file in
+    *.tar.bz2) tar -jxvf "$file" ;; 
+    *.tar.gz)  tar -zxvf "$file" ;; 
+    *.zip)     unzip    "$file" ;; 
+    *.7z)      7z x     "$file" ;; 
+    *.rar)     unrar x  "$file" ;; 
+    *.bz2)     bunzip2  "$file" ;; 
+    *.gz)      gunzip   "$file" ;; 
+    *.tar)     tar -xvf "$file" ;; 
+    *)         echo "Cannot extract '$file'" ;; 
   esac
 }
 
-# Compute checksums (MD5, SHA1, SHA256) for a given file
+# Compute file checksums (MD5, SHA1, SHA256)
 hash_file() {
-  for algo in md5 sha1 sha256; do
-    printf "%s: %s\n" "${algo^^}" "$("${algo}sum" "$1" | cut -d' ' -f1)"
+  local file=$1
+  [[ -f $file ]] || { echo "'$file' not found"; return; }
+  for algo in md5sum sha1sum sha256sum; do
+    printf "%s: %s
+" "${algo^^}" "$(\$algo "$file" | cut -d' ' -f1)"
   done
 }
