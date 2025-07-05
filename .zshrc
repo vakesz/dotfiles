@@ -51,6 +51,7 @@ source "$ZPLUG_HOME/init.zsh"
 # ──────────────────────────────────────────────────────────────────────────────
 # Lazily load Oh My Zsh built-in plugins via zplug (from local path)
 # ──────────────────────────────────────────────────────────────────────────────
+zplug "themes/robbyrussell", from:oh-my-zsh,           from:local, as:theme 
 zplug "$ZSH/plugins/git/git.plugin.zsh",               from:local, as:plugin, defer:2
 zplug "$ZSH/plugins/history/history.plugin.zsh",       from:local, as:plugin, defer:2
 zplug "$ZSH/plugins/colored-man-pages/colored-man-pages.plugin.zsh", from:local, as:plugin, defer:3
@@ -60,7 +61,6 @@ zplug "$ZSH/plugins/python/python.plugin.zsh",         from:local, as:plugin, de
 # ──────────────────────────────────────────────────────────────────────────────
 # Lazily load community plugins & theme
 # ──────────────────────────────────────────────────────────────────────────────
-zplug "denysdovhan/spaceship-prompt",               as:theme, defer:2
 zplug "mafredri/zsh-async",                         defer:2
 zplug "zsh-users/zsh-autosuggestions",              defer:3
 zplug "zsh-users/zsh-completions",                  defer:3
@@ -86,19 +86,6 @@ promptinit
 
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path ~/.zsh/cache
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Theme Configuration: Spaceship Prompt
-# ──────────────────────────────────────────────────────────────────────────────
-export SPACESHIP_PROMPT_ORDER=(
-  user host dir git package node python venv char
-)
-export SPACESHIP_CHAR_PREFIX="\n"
-export SPACESHIP_CHAR_SYMBOL="❯"
-export SPACESHIP_CHAR_SUFFIX=" "
-export SPACESHIP_DIR_TRUNC=2
-export SPACESHIP_CACHE_JOINED=true
-export SPACESHIP_CACHE_CONTROL=true
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Internationalization: Locale settings
