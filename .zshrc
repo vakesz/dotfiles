@@ -1,166 +1,173 @@
-# ~/.zshrc – Zsh configuration file
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# ~/.zshrc — Opinionated, fast & portable Z‑shell config managed with zplug
+# =============================================================================
+# Abort early if the shell is non‑interactive
 [[ $- != *i* ]] && return
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Only update Oh My Zsh & zplug when OMZ itself changes
-# ──────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
+# XDG base directories (fall back to legacy paths when undefined)               # 📂
+# -----------------------------------------------------------------------------
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 
-ZSH="$HOME/.oh-my-zsh"
-ZPLUG_HOME="$HOME/.zplug"
-LAST_OMZ_COMMIT_FILE="$HOME/.zsh_last_omz_commit"
-
-# Clone OMZ if missing
-if [[ ! -d $ZSH ]]; then
-  git clone https://github.com/ohmyzsh/ohmyzsh.git "$ZSH"
-fi
-
-# Fetch remote OMZ commit
-git -C "$ZSH" fetch --quiet
-remote_sha=$(git -C "$ZSH" rev-parse origin/master)
-if [[ -f $LAST_OMZ_COMMIT_FILE ]]; then
-  last_sha=$(<"$LAST_OMZ_COMMIT_FILE")
-else
-  last_sha=""
-fi
-
-# If OMZ updated, pull and update zplug
-if [[ $remote_sha != "$last_sha" ]]; then
-  echo "→ Oh My Zsh updated; pulling changes…"
-  git -C "$ZSH" pull --ff-only --quiet origin master
-  echo "$remote_sha" > "$LAST_OMZ_COMMIT_FILE"
-
-  if [[ -d $ZPLUG_HOME ]]; then
-    echo "→ Updating zplug…"
-    git -C "$ZPLUG_HOME" pull --ff-only --quiet origin master
-  else
-    echo "→ Installing zplug…"
-    git clone https://github.com/zplug/zplug "$ZPLUG_HOME"
-  fi
-fi
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Source core frameworks
-# ──────────────────────────────────────────────────────────────────────────────
-# Disable compfix prompt (we’ll cache completions below)
-export ZSH_DISABLE_COMPFIX=true
-source "$ZSH/oh-my-zsh.sh"
-
-# Initialize zplug
+# -----------------------------------------------------------------------------
+# zplug – plugin manager                                                       # 🔌
+# -----------------------------------------------------------------------------
+export ZPLUG_HOME="${ZPLUG_HOME:-$HOME/.zplug}"
 source "$ZPLUG_HOME/init.zsh"
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Lazily load Oh My Zsh built-in plugins via zplug (from local path)
-# ──────────────────────────────────────────────────────────────────────────────
-zplug "themes/robbyrussell", from:oh-my-zsh,           from:local, as:theme 
-zplug "$ZSH/plugins/git/git.plugin.zsh",               from:local, as:plugin, defer:2
-zplug "$ZSH/plugins/history/history.plugin.zsh",       from:local, as:plugin, defer:2
-zplug "$ZSH/plugins/colored-man-pages/colored-man-pages.plugin.zsh", from:local, as:plugin, defer:3
-zplug "$ZSH/plugins/command-not-found/command-not-found.plugin.zsh", from:local, as:plugin, defer:3
-zplug "$ZSH/plugins/python/python.plugin.zsh",         from:local, as:plugin, defer:2
+# Self‑update zplug once a week in the background                              # 🛠
+zplug "zplug/zplug", hook-build:'zplug --self-manage', from:github
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Lazily load community plugins & theme
-# ──────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
+# Theme                                                                        # 🎨
+# -----------------------------------------------------------------------------
+zplug "romkatv/powerlevel10k", as:theme, depth:1
+
+# -----------------------------------------------------------------------------
+# Oh‑My‑Zsh core plugins (lazy‑loaded)                                         # ⚙️
+# -----------------------------------------------------------------------------
+zplug "plugins/git",                   from:oh-my-zsh, as:plugin, defer:2
+zplug "plugins/history",               from:oh-my-zsh, as:plugin, defer:2
+zplug "plugins/colored-man-pages",     from:oh-my-zsh, as:plugin, defer:3
+zplug "plugins/command-not-found",     from:oh-my-zsh, as:plugin, defer:3
+zplug "plugins/python",                from:oh-my-zsh, as:plugin, defer:2
+
+# -----------------------------------------------------------------------------
+# Community plugins & helpers                                                  # ✨
+# -----------------------------------------------------------------------------
 zplug "mafredri/zsh-async",                         defer:2
 zplug "zsh-users/zsh-autosuggestions",              defer:3
 zplug "zsh-users/zsh-completions",                  defer:3
 zplug "zdharma-continuum/fast-syntax-highlighting", defer:3
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Auto-install any missing remote plugins
-# ──────────────────────────────────────────────────────────────────────────────
-if ! zplug check --verbose; then
+# -----------------------------------------------------------------------------
+# Install missing plugins & then load everything                               # 🚀
+# -----------------------------------------------------------------------------
+if ! zplug check; then
   echo "→ Installing missing zplug plugins…"
   zplug install
 fi
-
-# Load all zplug-managed plugins & theme
 zplug load
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Performance: Fast completion & prompt init with caching
-# ──────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
+# Completion & prompt initialisation                                           # ⌨️
+# -----------------------------------------------------------------------------
+# Create cache dir if it does not yet exist
+mkdir -p "$XDG_CACHE_HOME/zsh"
+
 autoload -Uz compinit promptinit
-compinit -u -C               # cache completions, unsafe mode
+compinit -d "$XDG_CACHE_HOME/zsh/compdump" -C
 promptinit
 
+# Cache completions so cold starts stay snappy
 zstyle ':completion:*' use-cache on
-zstyle ':completion:*' cache-path ~/.zsh/cache
+zstyle ':completion:*' cache-path "$XDG_CACHE_HOME/zsh"
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Internationalization: Locale settings
-# ──────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
+# Locale                                                                       # 🌐
+# -----------------------------------------------------------------------------
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 export LANGUAGE=en_US.UTF-8
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Command History: size, formatting, and behavior
-# ──────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
+# History                                                                      # 🗒
+# -----------------------------------------------------------------------------
+mkdir -p "$XDG_STATE_HOME/zsh"
+export HISTFILE="$XDG_STATE_HOME/zsh/history"
 HISTSIZE=50000
 SAVEHIST=50000
-HIST_STAMPS="yyyy-mm-dd"
+
+setopt APPEND_HISTORY             # add commands to history immediately
+setopt INC_APPEND_HISTORY         # … even from other sessions
+setopt SHARE_HISTORY              # share across shells
+setopt EXTENDED_HISTORY           # log duration + timestamp
+
 setopt HIST_EXPIRE_DUPS_FIRST HIST_IGNORE_DUPS HIST_IGNORE_ALL_DUPS \
-       HIST_IGNORE_SPACE HIST_FIND_NO_DUPS HIST_SAVE_NO_DUPS HIST_BEEP
+       HIST_IGNORE_SPACE HIST_FIND_NO_DUPS HIST_SAVE_NO_DUPS HIST_REDUCE_BLANKS
+HIST_STAMPS="yyyy-mm-dd"
 COMPLETION_WAITING_DOTS=true
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Path & Editor Configuration
-# ──────────────────────────────────────────────────────────────────────────────
-export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
-export EDITOR=$([[ -n $SSH_CONNECTION ]] && echo vim || echo nvim
+# -----------------------------------------------------------------------------
+# Path & default editor                                                        # 🛤
+# -----------------------------------------------------------------------------
+path=("$HOME/bin" "$HOME/.local/bin" $path)
+export PATH
 
-)
+if [[ -n $SSH_CONNECTION ]]; then
+  export EDITOR=vim
+else
+  export EDITOR=nvim
+fi
 
-# ──────────────────────────────────────────────────────────────────────────────
-# SSH Agent Setup (WSL-friendly)
-# ──────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
+# SSH agent (plays nicely with WSL & macOS)                                    # 🔑
+# -----------------------------------------------------------------------------
 if [[ -z $SSH_AUTH_SOCK ]] || ! ssh-add -l &>/dev/null; then
   eval "$(ssh-agent -s)" &>/dev/null
   setopt nullglob
-  for key in ~/.ssh/*; do
-    [[ -f $key && $key != *.pub ]] && ssh-add "$key" &>/dev/null
+  for key in ~/.ssh/id_{rsa,ed25519} ~/.ssh/*.pem; do
+    [[ -f $key ]] && ssh-add "$key" &>/dev/null
   done
   unsetopt nullglob
 fi
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Aliases & Utility Functions
-# ──────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
+# Aliases & helper functions                                                   # 🛠
+# -----------------------------------------------------------------------------
 alias py='python3'
 alias pip='pip3'
 
+# apt helpers
 install() { sudo apt install -y "$@"; }
 update()  { sudo apt update && sudo apt upgrade -y; }
 remove()  { sudo apt remove -y "$@"; }
 search()  { apt search "$@"; }
 
+# Create & activate a virtualenv
 venv() {
   local name=${1:-.venv}
   [[ -d $name ]] || python3 -m venv "$name" && echo "Created venv '$name'."
   source "$name/bin/activate" && echo "Activated '$name'."
 }
 
-eextract() {
+# Extract almost any archive with one command
+extract() {
   local file=$1
-  [[ -f $file ]] || { echo "'$file' not found"; return; }
+  [[ -f $file ]] || { print -P "%F{red}✗%f '$file' not found"; return 1; }
   case $file in
-    *.tar.bz2) tar -jxvf "$file" ;;
-    *.tar.gz)  tar -zxvf "$file" ;;
-    *.zip)     unzip    "$file" ;;
-    *.7z)      7z x     "$file" ;;
-    *.rar)     unrar x  "$file" ;;
-    *.bz2)     bunzip2  "$file" ;;
-    *.gz)      gunzip   "$file" ;;
-    *.tar)     tar -xvf "$file" ;;
+    *.tar.bz2) tar -xjf "$file" ;;
+    *.tar.gz)  tar -xzf "$file" ;;
+    *.tar.xz)  tar -xJf "$file" ;;
+    *.tar)     tar -xf "$file" ;;
+    *.zip)     unzip "$file" ;;
+    *.7z)      7z x  "$file" ;;
+    *.rar)     unrar x "$file" ;;
+    *.bz2)     bunzip2 "$file" ;;
+    *.gz)      gunzip  "$file" ;;
     *)         echo "Cannot extract '$file'" ;;
   esac
 }
 
+# Print file checksums in common algorithms
 hash_file() {
   local file=$1
-  [[ -f $file ]] || { echo "'$file' not found"; return; }
+  [[ -f $file ]] || { echo "'$file' not found"; return 1; }
   for algo in md5sum sha1sum sha256sum; do
-    printf "%s: %s\n" "${algo^^}" "$($algo "$file" | cut -d' ' -f1)"
+    printf "%s: %s\n" "${algo:t}" "$($algo "$file" | cut -d' ' -f1)"
   done
 }
+
+# -----------------------------------------------------------------------------
+# Load Powerlevel10k configuration if present                                  # 🪄
+# -----------------------------------------------------------------------------
+[[ -f "${XDG_CONFIG_HOME}/.p10k.zsh" ]] && source "${XDG_CONFIG_HOME}/.p10k.zsh"

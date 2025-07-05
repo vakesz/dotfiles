@@ -71,8 +71,8 @@ EOF
 
 # Parse flags
 case "${1:-}" in
-  -h|--help) show_help; exit 0 ;;  # Print help and exit cleanly
-  -*) error "Unknown option: $1" ;; # Any other flag is invalid
+  -h|--help) show_help; exit 0 ;;
+  -*) error "Unknown option: $1" ;;
 esac
 
 # Directory of this script, used to locate dotfiles for copying
@@ -98,10 +98,10 @@ install_packages() {
   sudo apt update && sudo apt upgrade -y
 
   log "Installing core development packages and utilities"
-  local pkgs=( 
-    git neovim python3-pip python3-venv build-essential mc zsh curl wget \
-    htop tree software-properties-common apt-transport-https \
-    ca-certificates gnupg lsb-release clang gdb cmake jq unzip \
+  local pkgs=(
+    git neovim python3-pip python3-venv build-essential mc zsh curl wget
+    htop tree software-properties-common apt-transport-https
+    ca-certificates gnupg lsb-release clang gdb cmake jq unzip
     zip libarchive-tools
   )
   sudo apt install -y "${pkgs[@]}"
@@ -111,7 +111,6 @@ install_packages() {
 # install_tools: Install Git delta and LazyGit from GitHub releases if missing
 # -----------------------------------------------------------------------------
 install_tools() {
-  # Install or skip git-delta
   if ! command -v delta &>/dev/null; then
     log "Installing git-delta for enhanced diffs"
     VER=$(curl -fsSL https://api.github.com/repos/dandavison/delta/releases/latest \
@@ -125,20 +124,6 @@ install_tools() {
     log "git-delta already installed"
   fi
 
-  # Install or skip LazyGit
-  if ! command -v lazygit &>/dev/null; then
-    log "Installing LazyGit (terminal UI for Git)"
-    VER=$(curl -fsSL https://api.github.com/repos/jesseduffield/lazygit/releases/latest \
-      | grep -Po '"tag_name": "\K[^"]+')
-    tmp=$(mktemp)
-    curl -fsSL "https://github.com/jesseduffield/lazygit/releases/download/${VER}/lazygit_${VER#v}_Linux_x86_64.tar.gz" \
-      -o "$tmp"
-    tar -xzf "$tmp" lazygit
-    sudo install lazygit /usr/local/bin
-    rm -f lazygit "$tmp"
-  else
-    log "LazyGit already installed"
-  fi
 }
 
 # -----------------------------------------------------------------------------
@@ -183,7 +168,7 @@ install_node() {
 }
 
 # -----------------------------------------------------------------------------
-# install_font: Download and install JetBrains Mono Nerd Font into local fonts dir
+# install_font: Download and install JetBrains Mono Nerd Font
 # -----------------------------------------------------------------------------
 install_font() {
   local font_dir="$HOME/.local/share/fonts/JetBrainsMono"
@@ -203,11 +188,11 @@ install_font() {
 }
 
 # -----------------------------------------------------------------------------
-# install_oh_my_zsh: Install Oh My Zsh framework if missing
+# install_oh_my_zsh: Install Oh My Zsh if missing
 # -----------------------------------------------------------------------------
 install_oh_my_zsh() {
   if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
-    log "Installing Oh My Zsh for Zsh configuration management"
+    log "Installing Oh My Zsh"
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" \
       "" --unattended
   else
@@ -216,17 +201,16 @@ install_oh_my_zsh() {
 }
 
 # -----------------------------------------------------------------------------
-# setup_zsh: Ensure Zsh is installed, then configure Oh My Zsh, zplug, and history rotation
+# setup_zsh: Ensure Zsh, Oh My Zsh, zplug, and history rotation
 # -----------------------------------------------------------------------------
 setup_zsh() {
-  # Install Zsh shell if not present
   if ! command -v zsh &>/dev/null; then
     log "Installing Zsh shell"
     sudo apt install -y zsh
   fi
+
   install_oh_my_zsh
 
-  # Setup zplug plugin manager if missing
   if [[ ! -d "$HOME/.zplug" ]]; then
     log "Cloning zplug for Zsh plugin management"
     git clone https://github.com/zplug/zplug "$HOME/.zplug"
@@ -234,10 +218,9 @@ setup_zsh() {
     log "zplug already installed"
   fi
 
-  # Configure weekly cron job to rotate and compress old Zsh history files (>30 days)
-  if ! crontab -l 2>/dev/null | grep -q "zsh_history-.*gzip"; then
+  if ! crontab -l 2>/dev/null | grep -q "history.*gzip"; then
     log "Scheduling weekly Zsh history rotation and compression"
-    (crontab -l 2>/dev/null; echo "0 3 * * 0 /usr/bin/find $HOME/.zsh_history-* -mtime +30 -exec gzip {} \\;") | crontab -
+    (crontab -l 2>/dev/null; echo "0 3 * * 0 /usr/bin/find \$HOME/.local/state/zsh -name 'history-*' -mtime +30 -exec gzip {} \\;") | crontab -
   else
     log "Zsh history rotation cron job already configured"
   fi
@@ -249,15 +232,16 @@ setup_zsh() {
 copy_dotfiles() {
   log "Copying dotfiles (.gitconfig, .zshrc) to home directory"
   mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
+  mkdir -p "$HOME/.config"
   cp "$SCRIPT_DIR/.gitconfig" "$HOME/.gitconfig"
+  cp "$SCRIPT_DIR/.config/.p10k.zsh" "$HOME/.config/.p10k.zsh"
   cp "$SCRIPT_DIR/.zshrc"      "$HOME/.zshrc"
 }
 
 # -----------------------------------------------------------------------------
-# finalize: Change default shell to zsh, apply WSL2 locale fixes, and conclude
+# finalize: Change default shell, apply WSL2 locale fixes, and finish
 # -----------------------------------------------------------------------------
 finalize() {
-  # Change login shell to Zsh if not already
   if [[ $SHELL != "$(command -v zsh)" ]]; then
     chsh -s "$(command -v zsh)"
     log "Default shell changed to zsh"
