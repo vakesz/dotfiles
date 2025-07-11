@@ -113,12 +113,18 @@ fi
 # SSH agent (plays nicely with WSL & macOS)                                    # 🔑
 # -----------------------------------------------------------------------------
 if [[ -z $SSH_AUTH_SOCK ]] || ! ssh-add -l &>/dev/null; then
+  echo "→ Starting ssh-agent and loading all private keys…" >&2
   eval "$(ssh-agent -s)" &>/dev/null
-  setopt nullglob
-  for key in ~/.ssh/*; do
-    [[ -f $key && $key != *.pub ]] && ssh-add "$key" &>/dev/null
+
+  # '~/.ssh/*(N)' : the (N) qualifier makes the glob disappear if there are no matches
+  for key in ~/.ssh/*(N); do
+    [[ -f $key && $key != *.pub ]] || continue
+    echo "   • ssh-add $key" >&2
+    ssh-add "$key" &>/dev/null
   done
-  unsetopt nullglob
+
+  echo "→ Loaded identities:" >&2
+  ssh-add -l >&2
 fi
 
 # -----------------------------------------------------------------------------
