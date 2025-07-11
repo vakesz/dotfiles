@@ -115,8 +115,8 @@ fi
 if [[ -z $SSH_AUTH_SOCK ]] || ! ssh-add -l &>/dev/null; then
   eval "$(ssh-agent -s)" &>/dev/null
   setopt nullglob
-  for key in ~/.ssh/id_{rsa,ed25519} ~/.ssh/*.pem; do
-    [[ -f $key ]] && ssh-add "$key" &>/dev/null
+  for key in ~/.ssh/*; do
+    [[ -f $key && $key != *.pub ]] && ssh-add "$key" &>/dev/null
   done
   unsetopt nullglob
 fi
@@ -124,8 +124,23 @@ fi
 # -----------------------------------------------------------------------------
 # Aliases & helper functions                                                   # 🛠
 # -----------------------------------------------------------------------------
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+
 alias py='python3'
 alias pip='pip3'
+
+# Enhanced ls with colorls if available
+if command -v colorls &> /dev/null; then
+  alias ls='colorls'
+  alias ll='colorls -l'
+  alias la='colorls -la'
+  alias tree='colorls --tree'
+else
+  alias ll='ls -l'
+  alias la='ls -la'
+fi
 
 # apt helpers
 install() { sudo apt install -y "$@"; }

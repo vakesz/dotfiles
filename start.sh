@@ -102,7 +102,7 @@ install_packages() {
     git neovim python3-pip python3-venv build-essential mc zsh curl wget
     htop tree software-properties-common apt-transport-https
     ca-certificates gnupg lsb-release clang gdb cmake jq unzip
-    zip libarchive-tools
+    zip libarchive-tools ruby-full ruby-dev
   )
   sudo apt install -y "${pkgs[@]}"
 }
@@ -124,6 +124,12 @@ install_tools() {
     log "git-delta already installed"
   fi
 
+  if ! command -v colorls &>/dev/null; then
+    log "Installing colorls Ruby gem"
+    sudo gem install colorls
+  else
+    log "colorls already installed"
+  fi
 }
 
 # -----------------------------------------------------------------------------
