@@ -100,6 +100,10 @@ COMPLETION_WAITING_DOTS=true
 # -----------------------------------------------------------------------------
 # Path & default editor                                                        # 🛤
 # -----------------------------------------------------------------------------
+# Ruby Gems configuration
+export GEM_HOME="$HOME/gems"
+export PATH="$HOME/gems/bin:$PATH"
+
 path=("$HOME/bin" "$HOME/.local/bin" $path)
 export PATH
 

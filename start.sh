@@ -102,7 +102,7 @@ install_packages() {
     git neovim python3-pip python3-venv build-essential mc zsh curl wget
     htop tree software-properties-common apt-transport-https
     ca-certificates gnupg lsb-release clang gdb cmake jq unzip
-    zip libarchive-tools ruby-full ruby-dev
+    zip libarchive-tools ruby-full zlib1g-dev
   )
   sudo apt install -y "${pkgs[@]}"
 }
@@ -239,6 +239,7 @@ copy_dotfiles() {
   log "Copying dotfiles (.gitconfig, .zshrc) to home directory"
   mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
   mkdir -p "$HOME/.config"
+  mkdir -p "$HOME/gems"
   cp "$SCRIPT_DIR/.gitconfig" "$HOME/.gitconfig"
   cp "$SCRIPT_DIR/.config/.p10k.zsh" "$HOME/.config/.p10k.zsh"
   cp "$SCRIPT_DIR/.zshrc"      "$HOME/.zshrc"
