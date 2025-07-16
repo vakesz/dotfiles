@@ -130,6 +130,20 @@ install_tools() {
   else
     log "colorls already installed"
   fi
+
+  if ! command -v hugo &>/dev/null; then
+    log "Installing Hugo static site generator"
+    HUGO_VER=$(curl -fsSL https://api.github.com/repos/gohugoio/hugo/releases/latest \
+      | grep -Po '"tag_name": "\K[^"]+')
+    # Use the “extended” build for Sass/SCSS support; change to hugo_${HUGO_VER}_Linux-64bit.deb if you don’t need it
+    HUGO_URL="https://github.com/gohugoio/hugo/releases/download/${HUGO_VER}/hugo_extended_${HUGO_VER}_Linux-64bit.deb"
+    tmp_hugo=$(mktemp --suffix .deb)
+    curl -fsSL "$HUGO_URL" -o "$tmp_hugo"
+    sudo dpkg -i "$tmp_hugo" || sudo apt install -f -y
+    rm -f "$tmp_hugo"
+  else
+    log "hugo already installed"
+  fi
 }
 
 # -----------------------------------------------------------------------------
@@ -262,6 +276,10 @@ finalize() {
     sudo locale-gen
     sudo tee /etc/default/locale <<< 'LANG=en_US.UTF-8'
   fi
+
+  log "Cleaning up apt caches and removing unnecessary packages"
+  sudo apt autoremove -y
+  sudo apt autoclean
 
   log "Bootstrap complete! Please log out and log back in to activate changes."
 }
