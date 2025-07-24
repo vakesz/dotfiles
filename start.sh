@@ -131,19 +131,24 @@ install_tools() {
     log "colorls already installed"
   fi
 
-  if ! command -v hugo &>/dev/null; then
-    log "Installing Hugo static site generator"
-    HUGO_VER=$(curl -fsSL https://api.github.com/repos/gohugoio/hugo/releases/latest \
-      | grep -Po '"tag_name": "\K[^"]+')
-    # Use the “extended” build for Sass/SCSS support; change to hugo_${HUGO_VER}_Linux-64bit.deb if you don’t need it
-    HUGO_URL="https://github.com/gohugoio/hugo/releases/download/${HUGO_VER}/hugo_extended_${HUGO_VER}_Linux-64bit.deb"
-    tmp_hugo=$(mktemp --suffix .deb)
-    curl -fsSL "$HUGO_URL" -o "$tmp_hugo"
-    sudo dpkg -i "$tmp_hugo" || sudo apt install -f -y
-    rm -f "$tmp_hugo"
-  else
-    log "hugo already installed"
-  fi
+if ! command -v hugo &>/dev/null; then
+  log "Installing Hugo static site generator..."
+
+  latest_release=$(curl -fsSL https://api.github.com/repos/gohugoio/hugo/releases/latest)
+  hugo_tag=$(grep -Po '"tag_name": "\K[^"]+' <<< "$latest_release")
+  hugo_ver="${hugo_tag#v}"
+
+  url="https://github.com/gohugoio/hugo/releases/download/${hugo_tag}/hugo_extended_${hugo_ver}_linux-amd64.deb"
+  tmp_deb=$(mktemp --suffix .deb)
+
+  curl -fsSL "$url" -o "$tmp_deb" &&
+  sudo dpkg -i "$tmp_deb" ||
+  sudo apt install -f -y
+
+  rm -f "$tmp_deb"
+else
+  log "Hugo already installed"
+fi
 }
 
 # -----------------------------------------------------------------------------
