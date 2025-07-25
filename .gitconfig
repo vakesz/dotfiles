@@ -2,6 +2,10 @@
 	name     = Gabor Pinkova
 	email    = vakesz@users.noreply.github.com
 	username = vakesz
+[commit]
+	# gpgsign = false
+[gpg]
+	program = gpg
 
 [core]
 	editor     = nvim

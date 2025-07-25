@@ -102,7 +102,7 @@ install_packages() {
     git neovim python3-pip python3-venv build-essential mc zsh curl wget
     htop tree software-properties-common apt-transport-https
     ca-certificates gnupg lsb-release clang gdb cmake jq unzip
-    zip libarchive-tools ruby-full zlib1g-dev
+    zip libarchive-tools ruby-full zlib1g-dev gnupg scdaemon
   )
   sudo apt install -y "${pkgs[@]}"
 }
