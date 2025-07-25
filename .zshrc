@@ -117,7 +117,7 @@ fi
 # GPG agent (provides seamless GPG and SSH key management)                     # 🔑
 # -----------------------------------------------------------------------------
 unset SSH_AGENT_PID
-if [ "${gnupg_SSH_AUTH_SOCK_by:-0}" -ne $ ]; then
+if [[ -n "${GNUPG_SSH_AUTH_SOCK}" ]]; then
   export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
 fi
 gpgconf --launch gpg-agent &>/dev/null
