@@ -252,17 +252,54 @@ setup_zsh() {
 }
 
 # -----------------------------------------------------------------------------
-# copy_dotfiles: Securely copy .gitconfig and .zshrc from script directory to home
+# copy_dotfiles: Backup existing configs and create symlinks to dotfiles repo
 # -----------------------------------------------------------------------------
 copy_dotfiles() {
-  log "Copying dotfiles (.gitconfig, .zshrc) to home directory"
-  mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
-  mkdir -p "$HOME/.config"
-  mkdir -p "$HOME/gems"
-  cp "$SCRIPT_DIR/.gitconfig" "$HOME/.gitconfig"
-  cp "$SCRIPT_DIR/.config/.p10k.zsh" "$HOME/.config/.p10k.zsh"
-  cp "$SCRIPT_DIR/.zshrc"      "$HOME/.zshrc"
+  log "Setting up dotfile symlinks (backing up existing configs)"
+
+  # Ensure required directories exist
+  local dirs=(
+    "$HOME/.ssh" 
+    "$HOME/.config"
+    "$HOME/gems"
+  )
+  for dir in "${dirs[@]}"; do
+    mkdir -p "$dir"
+    [[ "$dir" == "$HOME/.ssh" ]] && chmod 700 "$dir"
+  done
+
+  # Backup and symlink helper
+  backup_and_link() {
+    local src=$1 dst=$2
+    local ts=$(date +%Y%m%d_%H%M%S)
+    if [[ -e "$dst" && ! -L "$dst" ]]; then
+      log "Backing up $dst to ${dst}.backup.$ts"
+      mv "$dst" "${dst}.backup.$ts"
+    elif [[ -L "$dst" ]]; then
+      log "Removing existing symlink: $dst"
+      rm "$dst"
+    fi
+    log "Linking $dst -> $src"
+    ln -sf "$src" "$dst"
+  }
+
+  # List of dotfiles to link (relative to $SCRIPT_DIR)
+  local links=(
+    ".gitconfig:$HOME/.gitconfig"
+    ".zshrc:$HOME/.zshrc"
+    ".config/.p10k.zsh:$HOME/.config/.p10k.zsh"
+  )
+  for pair in "${links[@]}"; do
+    IFS=":" read -r src dst <<< "$pair"
+    backup_and_link "$SCRIPT_DIR/$src" "$dst"
+  done
+
+  # Optionally link nvim config if present
+  if [[ -d "$SCRIPT_DIR/.config/nvim" ]]; then
+    backup_and_link "$SCRIPT_DIR/.config/nvim" "$HOME/.config/nvim"
+  fi
 }
+
 
 # -----------------------------------------------------------------------------
 # finalize: Change default shell, apply WSL2 locale fixes, and finish

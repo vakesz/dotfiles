@@ -1,6 +1,6 @@
 # Dotfiles Setup
 
-This repository contains configuration files and a bootstrap script to quickly set up a development environment on Ubuntu/Debian systems. It includes my Git configuration, Zsh shell configuration, and a comprehensive `start.sh` setup script.
+This repository contains configuration files and a bootstrap script to quickly set up a development environment on Ubuntu/Debian systems. It includes my Git configuration, Zsh shell configuration, and a comprehensive `install` setup script.
 
 ## Repository Structure
 
@@ -8,8 +8,10 @@ This repository contains configuration files and a bootstrap script to quickly s
 .gitconfig          # Git configuration (user, color, tools, delta settings)
 .zshrc              # Zsh shell configuration with Oh My Zsh and helpful aliases
 .config/
-  └── .p10k.zsh     # Powerlevel10k theme configuration for Zsh
-start.sh            # Bootstrap script for installing packages and tools
+  ├── .p10k.zsh     # Powerlevel10k theme configuration for Zsh
+  └── nvim/         # Neovim configuration
+      └── init.lua  # Neovim initialization file
+install             # Bootstrap script for installing packages and tools
 README.md           # This documentation file
 ```
 
@@ -31,13 +33,13 @@ README.md           # This documentation file
 2. Make the bootstrap script executable:
 
    ```bash
-   chmod +x start.sh
+   chmod +x install
    ```
 
 3. Run the setup script:
 
    ```bash
-   ./start.sh
+   ./install
    ```
 
    The script will:
@@ -47,9 +49,12 @@ README.md           # This documentation file
    * Install `git-delta` for enhanced diff output
    * Install Docker Engine and add your user to the `docker` group
    * Install Node.js LTS and global npm tools (TailwindCSS, ESLint, etc.)
+   * Install Hugo static site generator
+   * Install colorls Ruby gem for enhanced directory listings
    * Install JetBrains Mono Nerd Font for terminal use
    * Set up Oh My Zsh with zplug plugin manager
    * Copy the provided dotfiles (`.gitconfig`, `.zshrc`, `.p10k.zsh`) to your home directory
+   * Set up Neovim configuration
    * Configure Zsh history rotation via cron
    * Change your default shell to Zsh
    * Apply WSL2 locale fixes if running on Windows Subsystem for Linux
@@ -74,6 +79,8 @@ README.md           # This documentation file
   * TailwindCSS - Utility-first CSS framework
   * PostCSS & Autoprefixer - CSS processing tools
   * ESLint - JavaScript linter
+* **Hugo** - Fast static site generator
+* **Colorls** - Ruby gem for enhanced directory listings
 
 ### Shell Environment
 
@@ -86,7 +93,8 @@ README.md           # This documentation file
 
 * **Git**: Edit `.gitconfig` to change your user info or color schemes.
 * **Zsh**: Add or remove Oh My Zsh plugins in `.zshrc`.
-* **Packages**: Modify the `pkgs` array in `start.sh` to include additional packages.
+* **Neovim**: Customize the configuration in `.config/nvim/init.lua`.
+* **Packages**: Modify the `pkgs` array in the `install` script to include additional packages.
 
 ---
 

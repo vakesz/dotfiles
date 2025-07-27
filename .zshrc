@@ -129,6 +129,9 @@ alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
 
+alias vi='nvim'
+alias vim='nvim'
+
 alias py='python3'
 alias pip='pip3'
 
