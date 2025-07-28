@@ -114,13 +114,16 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# GPG agent (provides seamless GPG and SSH key management)                     # 🔑
+# SSH agent (plays nicely with WSL & macOS)                                    # 🔑
 # -----------------------------------------------------------------------------
-unset SSH_AGENT_PID
-if [[ -n "${GNUPG_SSH_AUTH_SOCK}" ]]; then
-  export SSH_AUTH_SOCK="$(gpgconf --list-dirs agent-ssh-socket)"
+if [[ -z $SSH_AUTH_SOCK ]] || ! ssh-add -l &>/dev/null; then
+  eval "$(ssh-agent -s)" &>/dev/null
+  for key in ~/.ssh/*(N); do
+    [[ -f $key && $key != *.pub ]] || continue
+    ssh-add "$key" &>/dev/null
+  done
+  ssh-add -l >&2
 fi
-gpgconf --launch gpg-agent &>/dev/null
 
 # -----------------------------------------------------------------------------
 # Aliases & helper functions                                                   # 🛠
