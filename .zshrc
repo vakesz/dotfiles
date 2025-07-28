@@ -118,11 +118,11 @@ fi
 # -----------------------------------------------------------------------------
 if [[ -z $SSH_AUTH_SOCK ]] || ! ssh-add -l &>/dev/null; then
   eval "$(ssh-agent -s)" &>/dev/null
-  for key in ~/.ssh/*(N); do
-    [[ -f $key && $key != *.pub ]] || continue
+  for key in ~/.ssh/*; do
+    [[ -f $key && ! $key =~ \.pub$ ]] || continue
     ssh-add "$key" &>/dev/null
   done
-  ssh-add -l >&2
+  ssh-add -l &>/dev/null
 fi
 
 # -----------------------------------------------------------------------------
