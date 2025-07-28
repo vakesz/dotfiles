@@ -1,5 +1,9 @@
+-- Load core configuration
+require('vakesz.packer')
+
 -- Load custom key remappings from vakesz/remap.lua
 require("vakesz.remap")
+
 -- Load custom settings from vakesz/set.lua
 require("vakesz.set")
 
