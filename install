@@ -177,7 +177,7 @@ install_docker() {
 }
 
 # -----------------------------------------------------------------------------
-# install_node: Set up Node.js LTS and install common global npm tools
+# install_node: Set up Node.js LTS and install common global pnpm tools
 # -----------------------------------------------------------------------------
 install_node() {
   if ! command -v node &>/dev/null; then
@@ -185,8 +185,11 @@ install_node() {
     curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
     sudo apt install -y nodejs
 
-    log "Installing global npm tools: tailwindcss, postcss, autoprefixer, eslint"
-    sudo npm install -g tailwindcss postcss autoprefixer eslint
+    log "Installing pnpm package manager"
+    sudo npm install -g pnpm
+
+    log "Installing global pnpm tools: tailwindcss, postcss, autoprefixer, eslint"
+    sudo pnpm add -g tailwindcss postcss autoprefixer eslint
   else
     log "Node.js already installed"
   fi
