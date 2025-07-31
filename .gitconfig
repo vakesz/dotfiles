@@ -12,6 +12,14 @@
 
 [pull]
 	rebase = true
+
+[push]
+    default = current
+    autoSetupRemote = true
+
+[branch]
+    autosetupmerge = simple
+
 [alias]    
     # Sync current branch from upstream to your fork (origin)
     sync-fork = "!sh -c '\
@@ -23,6 +31,7 @@
     # Optional shorthand
     sf = sync-fork
 	lol = log --graph --oneline --decorate --all
+	
 [diff]
 	tool = vimdiff
 
