@@ -40,7 +40,7 @@ vim.opt.termguicolors = true
 
 -- Always keep at least 8 lines visible above and below the cursor
 vim.opt.scrolloff = 8
--- Reserve a column for signs (e.g. GitGutter, diagnostics)
+-- Always reserve a column for signs (e.g. GitGutter, diagnostics) to prevent text shifting
 vim.opt.signcolumn = "yes"
 -- Treat “@-@” as part of file names (makes it easier to edit things like “foo@bar-baz.txt”)
 vim.opt.isfname:append("@-@")

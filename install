@@ -157,6 +157,19 @@ install_node() {
   fi
 }
 
+# Install SourceGit GUI Git client
+install_sourcegit() {
+  if command -v sourcegit &>/dev/null; then
+    log "SourceGit already installed, skipping"
+    return
+  fi
+  log "Installing SourceGit Git GUI client"
+  curl -fsSL https://codeberg.org/api/packages/yataro/debian/repository.key | sudo tee /etc/apt/keyrings/sourcegit.asc >/dev/null
+  echo "deb [signed-by=/etc/apt/keyrings/sourcegit.asc, arch=amd64,arm64] https://codeberg.org/api/packages/yataro/debian generic main" | sudo tee /etc/apt/sources.list.d/sourcegit.list >/dev/null
+  sudo apt update
+  sudo apt install -y sourcegit
+}
+
 # Download and install JetBrains Mono Nerd Font
 install_font() {
   local font_dir="$HOME/.local/share/fonts/JetBrainsMono"
@@ -287,6 +300,7 @@ main() {
   install_tools
   install_docker
   install_node
+  install_sourcegit
   install_font
   setup_zsh
   copy_dotfiles
