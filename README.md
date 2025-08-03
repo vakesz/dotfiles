@@ -6,7 +6,7 @@ This repository contains configuration files and a bootstrap script to quickly s
 
 ```text
 .gitconfig          # Git configuration (user, color, tools, delta settings)
-.zshrc              # Zsh shell configuration with Oh My Zsh and helpful aliases
+.zshrc              # Zsh shell configuration with zplug and helpful aliases
 .config/
   ├── .p10k.zsh     # Powerlevel10k theme configuration for Zsh
   └── nvim/         # Neovim configuration
@@ -45,16 +45,20 @@ README.md           # This documentation file
    The script will:
 
    * Detect the OS (`Ubuntu` or `Debian`)
+   * Fix APT repository key issues for Neo4j and Element if present
    * Update and install core packages (Git, Neovim, Python, build tools, etc.)
    * Install `git-delta` for enhanced diff output
-   * Install Docker Engine and add your user to the `docker` group
-   * Install Node.js LTS and global npm tools (TailwindCSS, ESLint, etc.)
+   * Install `colorls` Ruby gem for enhanced directory listings
    * Install Hugo static site generator
-   * Install colorls Ruby gem for enhanced directory listings
+   * Install latest stable Neovim
+   * Install Docker Engine and add your user to the `docker` group
+   * Install Go programming language (1.21.5)
+   * Install Zig programming language (0.11.0)
+   * Install Node.js LTS and pnpm with global tools (TailwindCSS, ESLint, etc.)
+   * Install SourceGit Git GUI client
    * Install JetBrains Mono Nerd Font for terminal use
    * Set up Oh My Zsh with zplug plugin manager
    * Copy the provided dotfiles (`.gitconfig`, `.zshrc`, `.p10k.zsh`) to your home directory
-   * Set up Neovim configuration
    * Configure Zsh history rotation via cron
    * Change your default shell to Zsh
    * Apply WSL2 locale fixes if running on Windows Subsystem for Linux
@@ -75,12 +79,15 @@ README.md           # This documentation file
 
 * **Git Delta** - Enhanced diff viewer with syntax highlighting
 * **Docker Engine** - Container platform with user group access
-* **Node.js LTS** - JavaScript runtime with global tools:
+* **Go** - Programming language (version 1.21.5)
+* **Zig** - Programming language (version 0.11.0)
+* **Node.js LTS** - JavaScript runtime with pnpm package manager and global tools:
   * TailwindCSS - Utility-first CSS framework
   * PostCSS & Autoprefixer - CSS processing tools
   * ESLint - JavaScript linter
 * **Hugo** - Fast static site generator
 * **Colorls** - Ruby gem for enhanced directory listings
+* **SourceGit** - Modern Git GUI client
 
 ### Shell Environment
 
@@ -92,7 +99,7 @@ README.md           # This documentation file
 ## Customization
 
 * **Git**: Edit `.gitconfig` to change your user info or color schemes.
-* **Zsh**: Add or remove Oh My Zsh plugins in `.zshrc`.
+* **Zsh**: Add or remove plugins in `.zshrc` (uses zplug plugin manager).
 * **Neovim**: Customize the configuration in `.config/nvim/init.lua`.
 * **Packages**: Modify the `pkgs` array in the `install` script to include additional packages.
 

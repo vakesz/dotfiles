@@ -81,7 +81,12 @@ export GEM_HOME="$HOME/gems"
 export PATH="$HOME/gems/bin:$PATH"
 # Node.js & pnpm
 export PNPM_HOME="$HOME/.local/share/pnpm"
-export PATH="$PNPM_HOME:$PATH"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# Go tooling
+export PATH="$PATH:/usr/local/go/bin"
 # Custom bin dirs
 path=("$HOME/bin" "$HOME/.local/bin" $path)
 export PATH
@@ -167,11 +172,3 @@ hash_file() {
 
 # =============================== Powerlevel10k config ===============================
 [[ -f "${XDG_CONFIG_HOME}/.p10k.zsh" ]] && source "${XDG_CONFIG_HOME}/.p10k.zsh"
-
-# pnpm
-export PNPM_HOME="/home/vakesz/.local/share/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
-# pnpm end

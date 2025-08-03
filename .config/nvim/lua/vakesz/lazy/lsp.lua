@@ -48,7 +48,7 @@ return {
                 "zls",
                 "pyright",
                 "clangd",
-                "volar",
+                "vue_ls",
             },
             handlers = {
                 function(server_name) -- default handler (optional)
@@ -146,9 +146,9 @@ return {
                     })
                 end,
 
-                ["volar"] = function()
+                ["vue_ls"] = function()
                     local lspconfig = require("lspconfig")
-                    lspconfig.volar.setup({
+                    lspconfig.vue_ls.setup({
                         capabilities = capabilities,
                         init_options = {
                             vue = {
