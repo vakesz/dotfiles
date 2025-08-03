@@ -131,6 +131,14 @@ install_tools() {
   else
     log "Neovim found: $(nvim --version | head -n1)"
   fi
+  if ! command -v act &>/dev/null; then
+    log "Installing act for GitHub Actions local testing"
+    curl -s https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
+    sudo mv ./bin/act /usr/local/bin/
+  else
+    log "act already installed: $(act --version)"
+  fi
+
 }
 
 # Add Docker repository, install Docker Engine, and add user to docker group
