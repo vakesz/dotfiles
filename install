@@ -80,7 +80,7 @@ install_packages() {
   update_apt_if_needed
   log "Installing core development packages and utilities"
   local pkgs=(
-    git neovim python3-pip python3-venv build-essential mc zsh curl wget
+    git python3-pip python3-venv build-essential mc zsh curl wget
     htop tree software-properties-common apt-transport-https
     ca-certificates gnupg lsb-release clang gdb cmake jq unzip
     zip libarchive-tools ruby-full zlib1g-dev
@@ -88,7 +88,7 @@ install_packages() {
   sudo apt install -y "${pkgs[@]}"
 }
 
-# Install Git delta, colorls, and Hugo if missing
+# Install Git delta, colorls, Hugo, and Neovim if missing
 install_tools() {
   if ! command -v delta &>/dev/null; then
     log "Installing git-delta for enhanced diffs"
@@ -117,6 +117,20 @@ install_tools() {
     fi
     rm -f "$tmp_deb"
   fi
+  if ! command -v nvim &>/dev/null; then
+    log "Installing latest stable Neovim..."
+    # Get the latest stable release (not pre-release)
+    latest_release=$(curl -fsSL "https://api.github.com/repos/neovim/neovim/releases" | jq -r '.[] | select(.prerelease == false) | .tag_name' | head -n1)
+    url="https://github.com/neovim/neovim/releases/download/${latest_release}/nvim-linux-x86_64.tar.gz"
+    tmp_tar=$(mktemp --suffix .tar.gz)
+    if curl -fsSL "$url" -o "$tmp_tar"; then
+      sudo tar -xzf "$tmp_tar" -C /opt/
+      sudo ln -sf /opt/nvim-linux-x86_64/bin/nvim /usr/local/bin/nvim
+    fi
+    rm -f "$tmp_tar"
+  else
+    log "Neovim found: $(nvim --version | head -n1)"
+  fi
 }
 
 # Add Docker repository, install Docker Engine, and add user to docker group
@@ -136,6 +150,45 @@ install_docker() {
   sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
   log "Adding user '$USER' to docker group"
   sudo usermod -aG docker "$USER"
+}
+
+# Install Go programming language
+install_go() {
+  if ! command -v go &>/dev/null; then
+    log "Installing Go programming language"
+    local go_version="1.21.5"
+    local go_url="https://go.dev/dl/go${go_version}.linux-amd64.tar.gz"
+    local tmp_tar=$(mktemp --suffix .tar.gz)
+    
+    curl -fsSL "$go_url" -o "$tmp_tar"
+    sudo rm -rf /usr/local/go
+    sudo tar -C /usr/local -xzf "$tmp_tar"
+    rm -f "$tmp_tar"
+    
+    # Add Go to PATH in current session
+    export PATH=$PATH:/usr/local/go/bin
+    log "Go installed successfully: $(go version 2>/dev/null || echo 'Go installed, restart shell to use')"
+  else
+    log "Go already installed: $(go version)"
+  fi
+}
+
+# Install Zig programming language
+install_zig() {
+  if ! command -v zig &>/dev/null; then
+    log "Installing Zig programming language"
+    local zig_version="0.11.0"
+    local zig_url="https://ziglang.org/download/${zig_version}/zig-linux-x86_64-${zig_version}.tar.xz"
+    local tmp_tar=$(mktemp --suffix .tar.xz)
+    
+    curl -fsSL "$zig_url" -o "$tmp_tar"
+    sudo tar -C /opt -xf "$tmp_tar"
+    sudo ln -sf "/opt/zig-linux-x86_64-${zig_version}/zig" /usr/local/bin/zig
+    rm -f "$tmp_tar"
+    log "Zig installed successfully: $(zig version 2>/dev/null || echo 'Zig installed, restart shell to use')"
+  else
+    log "Zig already installed: $(zig version)"
+  fi
 }
 
 # Install Node.js LTS and global pnpm tools
@@ -253,11 +306,9 @@ copy_dotfiles() {
   if [[ -d "$SCRIPT_DIR/.config/nvim" ]]; then
     backup_and_link "$SCRIPT_DIR/.config/nvim" "$HOME/.config/nvim"
   fi
-  # Install Packer.nvim plugin manager if nvim config is present
-  if [[ -d "$SCRIPT_DIR/.config/nvim" ]] && [[ ! -d "$HOME/.local/share/nvim/site/pack/packer/start/packer.nvim" ]]; then
-    log "Installing Packer.nvim plugin manager"
-    git clone --depth 1 https://github.com/wbthomason/packer.nvim \
-      "$HOME/.local/share/nvim/site/pack/packer/start/packer.nvim"
+  # Lazy.nvim will be automatically installed when Neovim starts
+  if [[ -d "$SCRIPT_DIR/.config/nvim" ]]; then
+    log "Neovim config found - lazy.nvim will auto-install plugins on first run"
   fi
 }
 
@@ -299,6 +350,8 @@ main() {
   install_packages
   install_tools
   install_docker
+  install_go
+  install_zig
   install_node
   install_sourcegit
   install_font
