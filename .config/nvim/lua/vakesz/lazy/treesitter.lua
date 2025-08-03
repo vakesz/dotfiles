@@ -1,3 +1,6 @@
+-- Treesitter syntax highlighting and context
+-- Docs: https://github.com/nvim-treesitter/nvim-treesitter
+
 return {
     {
     "nvim-treesitter/nvim-treesitter",
@@ -8,8 +11,8 @@ return {
                 "vimdoc", "javascript", "typescript", "c", "lua", "rust",
                 "jsdoc", "bash", "go", "python", "html", "css", "json",
                 "markdown", "markdown_inline", "yaml", "dockerfile", "sql",
-                "regex", "diff", "git_config", "gitignore", "toml", "zig", 
-                "elixir", "tsx", "php", "cpp", "c_sharp", "java", "kotlin", 
+                "regex", "diff", "git_config", "gitignore", "toml", "zig",
+                "elixir", "tsx", "php", "cpp", "c_sharp", "java", "kotlin",
                 "scala", "ruby", "perl", "vue", "svelte"
             },
 

@@ -1,3 +1,9 @@
+-- Language Server Protocol configuration
+-- Docs:
+--  nvim-lspconfig: https://github.com/neovim/nvim-lspconfig
+--  mason.nvim: https://github.com/williamboman/mason.nvim
+--  nvim-cmp: https://github.com/hrsh7th/nvim-cmp
+
 local root_files = {
   '.luarc.json',
   '.luarc.jsonc',
@@ -12,23 +18,22 @@ local root_files = {
 return {
     "neovim/nvim-lspconfig",
     dependencies = {
-        "stevearc/conform.nvim",
-        "williamboman/mason.nvim",
-        "williamboman/mason-lspconfig.nvim",
-        "hrsh7th/cmp-nvim-lsp",
-        "hrsh7th/cmp-buffer",
-        "hrsh7th/cmp-path",
-        "hrsh7th/cmp-cmdline",
-        "hrsh7th/nvim-cmp",
-        "L3MON4D3/LuaSnip",
-        "saadparwaiz1/cmp_luasnip",
-        "j-hui/fidget.nvim",
+        "stevearc/conform.nvim", -- formatter integration
+        "williamboman/mason.nvim", -- LSP/DAP/tool installer
+        "williamboman/mason-lspconfig.nvim", -- bridge mason <-> lspconfig
+        "hrsh7th/cmp-nvim-lsp", -- LSP source for nvim-cmp
+        "hrsh7th/cmp-buffer", -- buffer completions
+        "hrsh7th/cmp-path", -- path completions
+        "hrsh7th/cmp-cmdline", -- cmdline completions
+        "hrsh7th/nvim-cmp", -- completion engine
+        "L3MON4D3/LuaSnip", -- snippet engine
+        "saadparwaiz1/cmp_luasnip", -- luasnip completion source
+        "j-hui/fidget.nvim", -- LSP progress UI https://github.com/j-hui/fidget.nvim
     },
 
     config = function()
         require("conform").setup({
-            formatters_by_ft = {
-            }
+            formatters_by_ft = {}, -- configure formatters per filetype
         })
         local cmp = require('cmp')
         local cmp_lsp = require("cmp_nvim_lsp")
@@ -36,10 +41,11 @@ return {
             "force",
             {},
             vim.lsp.protocol.make_client_capabilities(),
-            cmp_lsp.default_capabilities())
+            cmp_lsp.default_capabilities()
+        )
 
-        require("fidget").setup({})
-        require("mason").setup()
+        require("fidget").setup({}) -- show LSP progress
+        require("mason").setup() -- setup Mason package manager
         require("mason-lspconfig").setup({
             ensure_installed = {
                 "lua_ls",
@@ -49,19 +55,20 @@ return {
                 "pyright",
                 "clangd",
                 "vue_ls",
-            },
+            }, -- automatically install these servers
             handlers = {
-                function(server_name) -- default handler (optional)
+                function(server_name) -- default handler
                     require("lspconfig")[server_name].setup {
                         capabilities = capabilities
                     }
                 end,
 
+                -- Zig language server
                 ["zls"] = function()
                     local lspconfig = require("lspconfig")
                     lspconfig.zls.setup({
                         capabilities = capabilities,
-                        root_dir = lspconfig.util.root_pattern(".git", "build.zig", "zls.json"),
+                        root_dir = lspconfig.util.root_pattern(".git", "build.zig", "zls.json"), -- project root
                         settings = {
                             zls = {
                                 enable_inlay_hints = true,
@@ -74,16 +81,17 @@ return {
                     vim.g.zig_fmt_autosave = 0
                 end,
 
+                -- Go language server
                 ["gopls"] = function()
                     local lspconfig = require("lspconfig")
                     lspconfig.gopls.setup({
                         capabilities = capabilities,
                         cmd = {"gopls"},
-                        root_dir = lspconfig.util.root_pattern("go.mod", ".git"),
+                        root_dir = lspconfig.util.root_pattern("go.mod", ".git"), -- Go project root
                         settings = {
                             gopls = {
                                 analyses = {
-                                    unusedparams = true,
+                                    unusedparams = true, -- warn about unused params
                                 },
                                 staticcheck = true,
                                 gofumpt = true,
@@ -91,6 +99,8 @@ return {
                         },
                     })
                 end,
+
+                -- Lua language server
                 ["lua_ls"] = function()
                     local lspconfig = require("lspconfig")
                     lspconfig.lua_ls.setup {
@@ -99,9 +109,7 @@ return {
                             Lua = {
                                 format = {
                                     enable = true,
-                                    -- Put format options here
-                                    -- NOTE: the value should be STRING!!
-                                    defaultConfig = {
+                                    defaultConfig = { -- stylua formatting
                                         indent_style = "space",
                                         indent_size = "2",
                                     }
@@ -111,6 +119,7 @@ return {
                     }
                 end,
 
+                -- Python language server
                 ["pyright"] = function()
                     local lspconfig = require("lspconfig")
                     lspconfig.pyright.setup({
@@ -127,6 +136,7 @@ return {
                     })
                 end,
 
+                -- C/C++ language server
                 ["clangd"] = function()
                     local lspconfig = require("lspconfig")
                     lspconfig.clangd.setup({
@@ -137,7 +147,7 @@ return {
                             "--clang-tidy",
                             "--completion-style=detailed",
                             "--function-arg-placeholders",
-                        },
+                        }, -- more detailed completions
                         init_options = {
                             usePlaceholders = true,
                             completeUnimported = true,
@@ -146,6 +156,7 @@ return {
                     })
                 end,
 
+                -- Vue language server
                 ["vue_ls"] = function()
                     local lspconfig = require("lspconfig")
                     lspconfig.vue_ls.setup({
@@ -165,26 +176,25 @@ return {
         cmp.setup({
             snippet = {
                 expand = function(args)
-                    require('luasnip').lsp_expand(args.body) -- For `luasnip` users.
+                    require('luasnip').lsp_expand(args.body) -- snippet expansion
                 end,
             },
             mapping = cmp.mapping.preset.insert({
                 ['<C-p>'] = cmp.mapping.select_prev_item(cmp_select),
                 ['<C-n>'] = cmp.mapping.select_next_item(cmp_select),
-                ['<C-y>'] = cmp.mapping.confirm({ select = true }),
-                ["<C-Space>"] = cmp.mapping.complete(),
+                ['<C-y>'] = cmp.mapping.confirm({ select = true }), -- confirm selection
+                ["<C-Space>"] = cmp.mapping.complete(), -- trigger completion
             }),
             sources = cmp.config.sources({
-                { name = "copilot", group_index = 2 },
+                { name = "copilot", group_index = 2 }, -- GitHub Copilot
                 { name = 'nvim_lsp' },
-                { name = 'luasnip' }, -- For luasnip users.
+                { name = 'luasnip' },
             }, {
-                { name = 'buffer' },
+                { name = 'buffer' }, -- buffer words
             })
         })
 
         vim.diagnostic.config({
-            -- update_in_insert = true,
             float = {
                 focusable = false,
                 style = "minimal",

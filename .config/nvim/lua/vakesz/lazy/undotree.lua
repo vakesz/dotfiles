@@ -1,9 +1,10 @@
+-- Visualize Vim undo history
+-- Docs: https://github.com/mbbill/undotree
 
 return {
     "mbbill/undotree",
 
-    config = function() 
-        vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle)
+    config = function()
+        vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle) -- toggle undo tree
     end
 }
-
