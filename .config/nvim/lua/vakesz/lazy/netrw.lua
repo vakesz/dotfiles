@@ -10,10 +10,10 @@ return {
     lazy = false, -- load during startup so netrw shows icons immediately
 
     dependencies = {
-        "nvim-tree/nvim-web-devicons", -- provides file type icons
+        "echasnovski/mini.icons", -- provides file type icons
     },
 
     opts = {
-        use_devicons = true, -- enable icons from nvim-web-devicons
+        use_devicons = true, -- enable icons from mini.icons
     },
 }

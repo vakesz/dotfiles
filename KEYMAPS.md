@@ -55,26 +55,55 @@
 - `<leader>ps` – grep for custom input
 - `<leader>vh` – search help tags
 
-### Testing
+**How to use Telescope:**
+
+- Use the above keymaps to fuzzy-find files, search text, or browse help. Press `<Esc>` to exit Telescope prompt.
+
+### Testing (Neotest)
 
 - `<leader>tc` – run nearest test with neotest
 - `<leader>tf` – run all tests in current file
 
-### Debugging
+**How to use Neotest:**
+
+- Use `<leader>tc` to run the test nearest to the cursor. Use `<leader>tf` to run all tests in the current file. Test results will appear in a floating window or quickfix list.
+
+### Debugging (nvim-dap)
 
 - `<Leader>dt` – toggle breakpoint
 - `<Leader>dc` – start/continue debugging
 - `<Leader>dx` – terminate debugging
 - `<Leader>do` – step over
 
-### Diagnostics list
+**How to use Debugger:**
+
+- Set breakpoints with `<Leader>dt`, start debugging with `<Leader>dc`, and control execution with `<Leader>do` (step over) and `<Leader>dx` (terminate). The DAP UI will open automatically.
+
+### Diagnostics list (Trouble)
 
 - `<leader>tt` – toggle Trouble diagnostics list
 - `[t` / `]t` – next/previous Trouble item
 
-### Undo history
+**How to use Trouble:**
+
+- Toggle the diagnostics list with `<leader>tt`. Navigate diagnostics with `[t` and `]t`.
+
+### Undo history (Undotree)
 
 - `<leader>u` – toggle the undo tree viewer
+
+**How to use Undotree:**
+
+- Press `<leader>u` to open/close the undo history side panel. Use it to browse and restore previous edits.
+
+### Markdown preview (Peek)
+
+- `:PeekOpen` – open live markdown preview
+- `:PeekClose` – close markdown preview
+
+**How to use Peek:**
+
+- Run `:PeekOpen` in a markdown file to open a live preview in your browser. Use `:PeekClose` to stop the preview.
 
 ### Git integration (vim-fugitive)
 
@@ -86,6 +115,18 @@
 - During merge conflicts:
   - `gu` – accept ours (`//2`)
   - `gh` – accept theirs (`//3`)
+
+**How to use Fugitive:**
+
+- Use `<leader>gs` to open the status window. Stage files with `-`, commit with `:Git commit`, push/pull with the above keymaps. Use `gu`/`gh` to resolve merge conflicts.
+
+### File explorer (netrw)
+
+- `<leader>pv` – open the built-in file explorer
+
+**How to use Netrw:**
+
+- Use `<leader>pv` to open the file explorer. Navigate with arrow keys or `hjkl`, open files with `<Enter>`, and use `-` to go up a directory.
 
 ## Useful built-in commands
 
@@ -104,3 +145,16 @@
 2. Stage files with `-` and commit using `:Git commit`.
 3. Use `<leader>p` to push or `<leader>P` to pull with rebase.
 4. Resolve merge conflicts using `gu` (ours) and `gh` (theirs).
+
+---
+
+### Plugin quick reference
+
+- **Telescope:** Fuzzy finder for files, text, help, etc.
+- **Neotest:** Run and view test results for supported languages.
+- **nvim-dap:** Debug code with breakpoints and step controls.
+- **Trouble:** Pretty diagnostics and quickfix/location list UI.
+- **Undotree:** Visual undo history browser.
+- **Peek:** Live markdown preview in browser.
+- **vim-fugitive:** Advanced Git integration.
+- **netrw:** Built-in file explorer with icons.
