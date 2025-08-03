@@ -87,6 +87,9 @@ case ":$PATH:" in
 esac
 # Go tooling
 export PATH="$PATH:/usr/local/go/bin"
+# Deno
+export DENO_INSTALL="$HOME/.deno"
+export PATH="$DENO_INSTALL/bin:$PATH"
 # Custom bin dirs
 path=("$HOME/bin" "$HOME/.local/bin" $path)
 export PATH

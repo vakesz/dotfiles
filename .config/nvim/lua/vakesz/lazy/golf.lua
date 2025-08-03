@@ -1,4 +1,4 @@
 return {
-    "maxmx03/golf", -- gamified editing practice
-    -- Docs: https://github.com/maxmx03/golf
+    "vuciv/golf", -- gamified editing practice
+    -- Docs: https://github.com/vuciv/golf
 }
