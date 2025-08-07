@@ -42,7 +42,8 @@ brew "zsh"
 # Version control
 brew "git"
 brew "git-delta"
-brew "git-gui"
+brew "gitui"
+brew "tig"
 
 # Programming languages and runtimes
 brew "python"
@@ -92,8 +93,10 @@ brew "ruff"
 # Testing frameworks
 brew "pytest"
 
-# Text editors and documentation
+# Text editors
 brew "neovim"
+
+# Static site generators
 brew "hugo"
 
 # Database tools

@@ -14,6 +14,7 @@ readonly RED="\033[0;31m"
 readonly GREEN="\033[0;32m"
 readonly YELLOW="\033[0;33m"
 readonly NC="\033[0m"
+
 log()   { printf "%b[%s] %s%b\n" "${GREEN}" "$(date +'%F %T')" "$1" "${NC}"; }
 warn()  { printf "%b[%s] WARNING: %s%b\n" "${YELLOW}" "$(date +'%F %T')" "$1" "${NC}"; }
 error() { printf "%b[%s] ERROR: %s%b\n" "${RED}" "$(date +'%F %T')" "$1" "${NC}"; exit 1; }
@@ -21,8 +22,8 @@ trap 'error "Script aborted at line $LINENO"' ERR INT
 
 # Detect platform
 case "$(uname -s)" in
-  Darwin*)  log "MAC"   ; HOMEBREW_PREFIX="/opt/homebrew" ;; # Apple Silicon or Intel
-  Linux*)   log "LINUX" ; HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew" ;; 
+  Darwin*)  log "macOS Detected..."; HOMEBREW_PREFIX="/opt/homebrew" ;;
+  Linux*)   log "Linux Detected..."; HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew" ;; 
   *)        error "Unsupported OS" ;; 
 esac
 
@@ -47,7 +48,7 @@ install_brew() {
     curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh | bash \
       >/dev/null 2>&1
     # add to PATH
-    eval "\$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
+    eval "$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
   else
     log "Homebrew present: $(brew --version | head -1)"
   fi
@@ -65,7 +66,7 @@ bundle_install() {
 
 # Final tweaks
 finalize() {
-  # Shell
+  # Change Shell
   local zsh_path; zsh_path=$(command -v zsh)
   if [[ "$SHELL" != "$zsh_path" ]]; then
     # Add zsh to /etc/shells if not already present
@@ -80,7 +81,7 @@ finalize() {
   # WSL2 locale
   if grep -qi microsoft /proc/version 2>/dev/null; then
     log "Configuring WSL2 locale..."
-    if ! locale -a | grep -q "en_US.utf8"; then
+    if ! locale -a | grep -q "en_US.UTF-8"; then
       sudo sed -i.bak -E 's/^#(en_US.UTF-8 UTF-8)/\1/' /etc/locale.gen
       sudo locale-gen
     fi
@@ -90,15 +91,17 @@ finalize() {
 
 # Main
 main() {
-  install_brew
-  bundle_install
-
   # Dotfiles
   link_dot "$DOTFILES_DIR/git/.gitconfig"   "$HOME/.gitconfig"
   link_dot "$DOTFILES_DIR/zsh/.zshrc"       "$HOME/.zshrc"
   link_dot "$DOTFILES_DIR/zsh/.p10k.zsh"    "$HOME/.config/.p10k.zsh"
   link_dot "$DOTFILES_DIR/nvim"             "$HOME/.config/nvim"
 
+  # Install Homebrew and packages
+  install_brew
+  bundle_install
+
+  # Finalize setup
   finalize
   log "Setup complete! Restart your shell."
 }
