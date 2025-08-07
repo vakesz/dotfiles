@@ -1,397 +1,110 @@
 #!/usr/bin/env bash
 # ----------------------------------------------------------------------------
-# setup-dotfiles.sh
+# setup-dotfiles.sh (enhanced)
 #
-# Bootstraps a Debian/Ubuntu system with essential packages, tools, and user environment customizations.
+# Bootstraps macOS, Linux or WSL2 with Homebrew, Brewfile bundles,
+# installs required packages, casks & fonts, links dotfiles,
+# and applies system tweaks idempotently.
 # ----------------------------------------------------------------------------
-# TODO: Add support to upgrade existing packages
-
-set -Eeo pipefail
+set -Eeuo pipefail
 IFS=$'\n\t'
 
-# Color codes for log output
+# Logging
 readonly RED="\033[0;31m"
 readonly GREEN="\033[0;32m"
 readonly YELLOW="\033[0;33m"
 readonly NC="\033[0m"
 
-log()   { printf "%b[%s] %s%b\n" "$GREEN" "$(date +'%F %T')" "$1" "$NC"; }
-warn()  { printf "%b[%s] WARNING: %s%b\n" "$YELLOW" "$(date +'%F %T')" "$1" "$NC"; }
-error() { printf "%b[%s] ERROR: %s%b\n" "$RED" "$(date +'%F %T')" "$1" "$NC"; exit 1; }
+log()   { printf "%b[%s] %s%b\n" "${GREEN}" "$(date +'%F %T')" "$1" "${NC}"; }
+warn()  { printf "%b[%s] WARNING: %s%b\n" "${YELLOW}" "$(date +'%F %T')" "$1" "${NC}"; }
+error() { printf "%b[%s] ERROR: %s%b\n" "${RED}" "$(date +'%F %T')" "$1" "${NC}"; exit 1; }
+trap 'error "Script aborted at line $LINENO"' ERR INT
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-IS_WSL2=""
-APT_UPDATED=false
+# Detect platform
+case "$(uname -s)" in
+  Darwin*)  log "macOS Detected..."; HOMEBREW_PREFIX="/opt/homebrew" ;;
+  Linux*)   log "Linux Detected..."; HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew" ;; 
+  *)        error "Unsupported OS" ;; 
+esac
 
-# Detect if running under WSL2 (Windows Subsystem for Linux)
-is_wsl2() {
-  [[ -n "$IS_WSL2" ]] && [[ "$IS_WSL2" == "true" ]] && return 0
-  [[ -n "$IS_WSL2" ]] && [[ "$IS_WSL2" == "false" ]] && return 1
-  if grep -qi microsoft /proc/version 2>/dev/null; then
-    IS_WSL2="true"
-    return 0
+# Repo and defaults
+REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+DOTFILES_DIR=${DOTFILES_DIR:-"$REPO_ROOT"}
+BREWFILE_PATH="$DOTFILES_DIR/Brewfile"
+
+# Link helper
+link_dot() {
+  local src=$1 dest=$2
+  mkdir -p "$(dirname "$dest")"
+  ln -sfn "$src" "$dest"
+  log "Linked: $dest"
+}
+
+# Install Homebrew if missing
+install_brew() {
+  if ! command -v brew &>/dev/null; then
+    log "Installing Homebrew..."
+    export NONINTERACTIVE=1
+    curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh | bash \
+      >/dev/null 2>&1
+    # add to PATH
+    eval "$(${HOMEBREW_PREFIX}/bin/brew shellenv)"
   else
-    IS_WSL2="false"
-    return 1
+    log "Homebrew present: $(brew --version | head -1)"
   fi
 }
 
-# Only update apt cache once per run
-update_apt_if_needed() {
-  if [[ "$APT_UPDATED" == "false" ]]; then
-    log "Updating apt cache and upgrading existing packages"
-    sudo apt update && sudo apt upgrade -y
-    APT_UPDATED=true
-  fi
-}
-
-detect_os() {
-  [[ -r /etc/os-release ]] || error "Cannot detect OS: missing /etc/os-release"
-  # shellcheck disable=SC1091
-  source /etc/os-release
-  [[ $ID =~ ^(ubuntu|debian)$ ]] || error "Unsupported OS: $ID"
-  OS=$ID
-  log "Detected OS: $PRETTY_NAME"
-}
-
-# Fix missing or deprecated APT repository keys if needed
-fix_apt_keys() {
-  log "Fixing APT repository key issues"
-  # Neo4j repo key fix
-  if [[ -f /etc/apt/sources.list.d/neo4j.list ]]; then
-    log "Fixing Neo4j repository key"
-    curl -fsSL https://debian.neo4j.com/neotechnology.gpg.key | sudo gpg --dearmor --yes -o /usr/share/keyrings/neo4j-archive-keyring.gpg
-    sudo sed -i 's|deb https://debian.neo4j.com|deb [signed-by=/usr/share/keyrings/neo4j-archive-keyring.gpg] https://debian.neo4j.com|' /etc/apt/sources.list.d/neo4j.list
-  fi
-  # Element repo key fix
-  if [[ -f /etc/apt/sources.list.d/element-io.list ]] || grep -r "packages.element.io" /etc/apt/sources.list.d/ &>/dev/null; then
-    log "Fixing Element repository key"
-    curl -fsSL https://packages.element.io/debian/element-io-archive-keyring.gpg | sudo gpg --dearmor --yes -o /usr/share/keyrings/element-io-archive-keyring.gpg
-    sudo find /etc/apt/sources.list.d/ -name "*.list" -exec sed -i 's|deb https://packages.element.io/debian|deb [signed-by=/usr/share/keyrings/element-io-archive-keyring.gpg] https://packages.element.io/debian|g' {} \;
-  fi
-  # Warn if legacy trusted.gpg exists
-  if [[ -f /etc/apt/trusted.gpg ]] && [[ -s /etc/apt/trusted.gpg ]]; then
-    warn "Legacy GPG keyring found - consider manually reviewing /etc/apt/trusted.gpg"
-  fi
-}
-
-# Install essential packages
-install_packages() {
-  fix_apt_keys
-  update_apt_if_needed
-  log "Installing core development packages and utilities"
-  local pkgs=(
-    git python3-pip python3-venv build-essential mc zsh curl wget
-    htop tree software-properties-common apt-transport-https
-    ca-certificates gnupg lsb-release clang gdb cmake jq unzip
-    zip libarchive-tools ruby-full zlib1g-dev
-  )
-  sudo apt install -y "${pkgs[@]}"
-}
-
-# Install Git delta, colorls, Hugo, and Neovim if missing
-install_tools() {
-  if ! command -v delta &>/dev/null; then
-    log "Installing git-delta for enhanced diffs"
-    VER=$(curl -fsSL https://api.github.com/repos/dandavison/delta/releases/latest \
-      | grep -Po '"tag_name": "\\K[^"]+')
-    URL="https://github.com/dandavison/delta/releases/download/${VER}/git-delta_${VER}_amd64.deb"
-    tmp=$(mktemp --suffix .deb)
-    curl -fsSL "$URL" -o "$tmp"
-    sudo dpkg -i "$tmp" || sudo apt install -f -y
-    rm -f "$tmp"
-  fi
-  if ! command -v colorls &>/dev/null; then
-    log "Installing colorls Ruby gem"
-    sudo gem install colorls
-  fi
-  if ! command -v hugo &>/dev/null; then
-    log "Installing Hugo static site generator..."
-    latest_release=$(curl -fsSL https://api.github.com/repos/gohugoio/hugo/releases/latest)
-    hugo_tag=$(grep -Po '"tag_name": "\\K[^"]+' <<< "$latest_release")
-    hugo_ver="${hugo_tag#v}"
-    url="https://github.com/gohugoio/hugo/releases/download/${hugo_tag}/hugo_extended_${hugo_ver}_linux-amd64.deb"
-    tmp_deb=$(mktemp --suffix .deb)
-    curl -fsSL "$url" -o "$tmp_deb"
-    if ! sudo dpkg -i "$tmp_deb"; then
-      sudo apt install -f -y
-    fi
-    rm -f "$tmp_deb"
-  fi
-  if ! command -v nvim &>/dev/null; then
-    log "Installing latest stable Neovim..."
-    # Get the latest stable release (not pre-release)
-    latest_release=$(curl -fsSL "https://api.github.com/repos/neovim/neovim/releases" | jq -r '.[] | select(.prerelease == false) | .tag_name' | head -n1)
-    url="https://github.com/neovim/neovim/releases/download/${latest_release}/nvim-linux-x86_64.tar.gz"
-    tmp_tar=$(mktemp --suffix .tar.gz)
-    if curl -fsSL "$url" -o "$tmp_tar"; then
-      sudo tar -xzf "$tmp_tar" -C /opt/
-      sudo ln -sf /opt/nvim-linux-x86_64/bin/nvim /usr/local/bin/nvim
-    fi
-    rm -f "$tmp_tar"
+# Use Brewfile for bulk installs
+bundle_install() {
+  if [[ -f "$BREWFILE_PATH" ]]; then
+    log "Running brew bundle from $BREWFILE_PATH..."
+    brew bundle install
   else
-    log "Neovim found: $(nvim --version | head -n1)"
-  fi
-  if ! command -v act &>/dev/null; then
-    log "Installing act for GitHub Actions local testing"
-    curl -s https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
-    sudo mv ./bin/act /usr/local/bin/
-  else
-    log "act already installed: $(act --version)"
-  fi
-  if ! command -v deno &>/dev/null; then
-    log "Installing Deno JavaScript/TypeScript runtime"
-    curl -fsSL https://deno.land/install.sh | sh -s > /dev/null 2>&1
-    log "Deno installed successfully: $(deno --version 2>/dev/null || echo 'Deno installed, restart shell to use')"
-  else
-    log "Deno already installed: $(deno --version | head -n1)"
-  fi
-
-}
-
-# Add Docker repository, install Docker Engine, and add user to docker group
-install_docker() {
-  if command -v docker &>/dev/null; then
-    log "Docker already installed, skipping"
-    return
-  fi
-  log "Setting up Docker repository and GPG key"
-  curl -fsSL https://download.docker.com/linux/"$OS"/gpg \
-    | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] \
-    https://download.docker.com/linux/$OS $(lsb_release -cs) stable" \
-    | sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
-  log "Installing Docker Engine and related components"
-  sudo apt update
-  sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-  log "Adding user '$USER' to docker group"
-  sudo usermod -aG docker "$USER"
-}
-
-# Install Go programming language
-install_go() {
-  if ! command -v go &>/dev/null; then
-    log "Installing Go programming language"
-    # Get latest stable Go version
-    local go_version
-    go_version=$(curl -fsSL "https://go.dev/VERSION?m=text" | head -n1)
-    if [[ -z "$go_version" ]]; then
-      error "Failed to fetch Go version"
-    fi
-    local go_url="https://go.dev/dl/${go_version}.linux-amd64.tar.gz"
-    local tmp_tar
-    tmp_tar=$(mktemp --suffix .tar.gz)
-    
-    if ! curl -fsSL "$go_url" -o "$tmp_tar"; then
-      error "Failed to download Go"
-    fi
-    sudo rm -rf /usr/local/go
-    sudo tar -C /usr/local -xzf "$tmp_tar"
-    rm -f "$tmp_tar"
-    
-    # Add Go to PATH in current session
-    export PATH=$PATH:/usr/local/go/bin
-    log "Go installed successfully: $(go version 2>/dev/null || echo 'Go installed, restart shell to use')"
-  else
-    log "Go already installed: $(go version)"
+    warn "No Brewfile found, skipping bundle"
   fi
 }
 
-# Install Zig programming language
-install_zig() {
-  if ! command -v zig &>/dev/null; then
-    log "Installing Zig programming language"
-    # Get latest stable Zig version
-    local zig_version
-    zig_version=$(curl -fsSL "https://ziglang.org/download/index.json" | jq -r '.master.version')
-    if [[ -z "$zig_version" ]]; then
-      warn "Could not fetch latest Zig version, using fallback 0.11.0"
-      zig_version="0.11.0"
-    fi
-    local zig_url="https://ziglang.org/download/${zig_version}/zig-linux-x86_64-${zig_version}.tar.xz"
-    local tmp_tar
-    tmp_tar=$(mktemp --suffix .tar.xz)
-    
-    if ! curl -fsSL "$zig_url" -o "$tmp_tar"; then
-      error "Failed to download Zig"
-    fi
-    sudo tar -C /opt -xf "$tmp_tar"
-    sudo ln -sf "/opt/zig-linux-x86_64-${zig_version}/zig" /usr/local/bin/zig
-    rm -f "$tmp_tar"
-    log "Zig installed successfully: $(zig version 2>/dev/null || echo 'Zig installed, restart shell to use')"
-  else
-    log "Zig already installed: $(zig version)"
-  fi
-}
-
-# Install Node.js LTS and global pnpm tools
-install_node() {
-  if ! command -v node &>/dev/null; then
-    log "Installing Node.js LTS via Nodesource"
-    curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-    sudo apt install -y nodejs
-  fi
-  if ! command -v pnpm &>/dev/null; then
-    log "Installing latest pnpm package manager"
-    curl -fsSL https://get.pnpm.io/install.sh | sh -
-    # Ensure PNPM_HOME and PATH are set for this session
-    export PNPM_HOME="$HOME/.local/share/pnpm"
-    export PATH="$PNPM_HOME:$PATH"
-    log "Installing global pnpm tools: tailwindcss, postcss, autoprefixer, eslint"
-    "$PNPM_HOME/pnpm" add -g tailwindcss postcss autoprefixer eslint 2>/dev/null || {
-      warn "Could not install global pnpm tools - they will be available after shell restart"
-    }
-  fi
-}
-
-# Install SourceGit GUI Git client
-install_sourcegit() {
-  if command -v sourcegit &>/dev/null; then
-    log "SourceGit already installed, skipping"
-    return
-  fi
-  log "Installing SourceGit Git GUI client"
-  curl -fsSL https://codeberg.org/api/packages/yataro/debian/repository.key | sudo tee /etc/apt/keyrings/sourcegit.asc >/dev/null
-  echo "deb [signed-by=/etc/apt/keyrings/sourcegit.asc, arch=amd64,arm64] https://codeberg.org/api/packages/yataro/debian generic main" | sudo tee /etc/apt/sources.list.d/sourcegit.list >/dev/null
-  sudo apt update
-  sudo apt install -y sourcegit
-}
-
-# Download and install JetBrains Mono Nerd Font
-install_font() {
-  local font_dir="$HOME/.local/share/fonts/JetBrainsMono"
-  if [[ -d $font_dir ]]; then
-    return
-  fi
-  log "Downloading and installing JetBrains Mono Nerd Font"
-  mkdir -p "$font_dir"
-  tmp=$(mktemp --suffix .zip)
-  curl -fsSL https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip \
-    -o "$tmp"
-  unzip "$tmp" -d "$font_dir"
-  rm -f "$tmp"
-  fc-cache -fv  # Rebuild font cache
-}
-
-# Install Oh My Zsh if missing
-install_oh_my_zsh() {
-  if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
-    log "Installing Oh My Zsh"
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" \
-      "" --unattended
-  fi
-}
-
-# Ensure Zsh, Oh My Zsh, zplug, and history rotation
-setup_zsh() {
-  if ! command -v zsh &>/dev/null; then
-    log "Installing Zsh shell"
-    sudo apt install -y zsh
-  fi
-  install_oh_my_zsh
-  if [[ ! -d "$HOME/.zplug" ]]; then
-    log "Cloning zplug for Zsh plugin management"
-    git clone https://github.com/zplug/zplug "$HOME/.zplug"
-  fi
-  # Schedule weekly Zsh history rotation and compression if not already present
-  if ! crontab -l 2>/dev/null | grep -q "history.*gzip"; then
-    log "Scheduling weekly Zsh history rotation and compression"
-    (crontab -l 2>/dev/null; echo "0 3 * * 0 /usr/bin/find \$HOME/.local/state/zsh -name 'history-*' -mtime +30 -exec gzip {} \\;") | crontab -
-  fi
-}
-
-# Backup existing configs and create symlinks to dotfiles repo
-copy_dotfiles() {
-  log "Setting up dotfile symlinks (backing up existing configs)"
-  # Ensure required directories exist
-  local dirs=(
-    "$HOME/.ssh"
-    "$HOME/.config"
-    "$HOME/gems"
-  )
-  for dir in "${dirs[@]}"; do
-    mkdir -p "$dir"
-    [[ "$dir" == "$HOME/.ssh" ]] && chmod 700 "$dir"
-  done
-  # Helper: backup and symlink
-  backup_and_link() {
-    local src=$1 dst=$2
-    local ts
-    ts=$(date +%Y%m%d_%H%M%S)
-    if [[ -e "$dst" && ! -L "$dst" ]]; then
-      log "Backing up $dst to ${dst}.backup.$ts"
-      mv "$dst" "${dst}.backup.$ts"
-    elif [[ -L "$dst" ]]; then
-      rm "$dst"
-    fi
-    ln -sf "$src" "$dst"
-  }
-  # List of dotfiles to link (relative to $SCRIPT_DIR)
-  local links=(
-    ".gitconfig:$HOME/.gitconfig"
-    ".zshrc:$HOME/.zshrc"
-    ".config/.p10k.zsh:$HOME/.config/.p10k.zsh"
-  )
-  for pair in "${links[@]}"; do
-    IFS=":" read -r src dst <<< "$pair"
-    backup_and_link "$SCRIPT_DIR/$src" "$dst"
-  done
-  # Optionally link nvim config if present
-  if [[ -d "$SCRIPT_DIR/.config/nvim" ]]; then
-    backup_and_link "$SCRIPT_DIR/.config/nvim" "$HOME/.config/nvim"
-  fi
-  # Lazy.nvim will be automatically installed when Neovim starts
-  if [[ -d "$SCRIPT_DIR/.config/nvim" ]]; then
-    log "Neovim config found - lazy.nvim will auto-install plugins on first run"
-  fi
-}
-
-# -----------------------------------------------------------------------------
-# finalize: Change default shell, apply WSL2 locale fixes, and finish
-# -----------------------------------------------------------------------------
+# Final tweaks
 finalize() {
-  # Only change shell if not already zsh
-  if [[ $SHELL != "$(command -v zsh)" ]]; then
-    chsh -s "$(command -v zsh)"
-    log "Default shell changed to zsh"
+  # Change Shell
+  local zsh_path; zsh_path=$(command -v zsh)
+  if [[ "$SHELL" != "$zsh_path" ]]; then
+    # Add zsh to /etc/shells if not already present
+    if ! grep -Fxq "$zsh_path" /etc/shells 2>/dev/null; then
+      echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
+      log "Added $zsh_path to /etc/shells"
+    fi
+    chsh -s "$zsh_path" || warn "Failed to change default shell"
+    log "Default shell set to zsh"
   fi
-  # On WSL2, ensure locale is properly generated and set to UTF-8
-  if is_wsl2; then
-    log "Applying WSL2 locale configuration"
-    # Only generate locale if not already generated
-    if ! locale -a 2>/dev/null | grep -q "en_US.utf8"; then
-      grep -qxF 'en_US.UTF-8 UTF-8' /etc/locale.gen || \
-        echo 'en_US.UTF-8 UTF-8' | sudo tee -a /etc/locale.gen
+
+  # WSL2 locale
+  if grep -qi microsoft /proc/version 2>/dev/null; then
+    log "Configuring WSL2 locale..."
+    if ! locale -a | grep -q "en_US.UTF-8"; then
+      sudo sed -i.bak -E 's/^#(en_US.UTF-8 UTF-8)/\1/' /etc/locale.gen
+      sudo rm -f /etc/locale.gen.bak
       sudo locale-gen
     fi
-    # Only update locale config if needed
-    if [[ "$(cat /etc/default/locale 2>/dev/null)" != "LANG=en_US.UTF-8" ]]; then
-      sudo tee /etc/default/locale <<< 'LANG=en_US.UTF-8'
-    fi
+    sudo tee /etc/default/locale >/dev/null <<<'LANG=en_US.UTF-8'
   fi
-  log "Cleaning up apt caches and removing unnecessary packages"
-  sudo apt autoremove -y
-  sudo apt autoclean
-  log "Bootstrap complete! Please log out and log back in to activate changes."
 }
 
-# -----------------------------------------------------------------------------
-# main: Entry point - validate, detect OS, and run all setup steps
-# -----------------------------------------------------------------------------
+# Main
 main() {
-  [[ $EUID -eq 0 ]] && error "Do not run this script as root"
-  detect_os
-  install_packages
-  install_tools
-  install_docker
-  install_go
-  install_zig
-  install_node
-  install_sourcegit
-  install_font
-  setup_zsh
-  copy_dotfiles
+  # Dotfiles
+  link_dot "$DOTFILES_DIR/git/.gitconfig"   "$HOME/.gitconfig"
+  link_dot "$DOTFILES_DIR/zsh/.zshrc"       "$HOME/.zshrc"
+  link_dot "$DOTFILES_DIR/zsh/.p10k.zsh"    "$HOME/.config/.p10k.zsh"
+  link_dot "$DOTFILES_DIR/nvim"             "$HOME/.config/nvim"
+
+  # Install Homebrew and packages
+  install_brew
+  bundle_install
+
+  # Finalize setup
   finalize
+  log "Setup complete! Restart your shell."
 }
 
 main "$@"
