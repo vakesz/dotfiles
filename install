@@ -83,6 +83,7 @@ finalize() {
     log "Configuring WSL2 locale..."
     if ! locale -a | grep -q "en_US.UTF-8"; then
       sudo sed -i.bak -E 's/^#(en_US.UTF-8 UTF-8)/\1/' /etc/locale.gen
+      sudo rm -f /etc/locale.gen.bak
       sudo locale-gen
     fi
     sudo tee /etc/default/locale >/dev/null <<<'LANG=en_US.UTF-8'
