@@ -5,8 +5,21 @@ if [[ -n $ZSH_VERSION ]]; then
   fi
 fi
 
-# =============================== Shell interactivity check ===============================
+# =============================== Shell interactivity check ==========================
 [[ $- != *i* ]] && return
+
+# =============================== Homebrew setup =====================================
+# Homebrew setup for Linux, macOS (Intel & Apple Silicon), and WSL2
+if [[ -x /opt/homebrew/bin/brew ]]; then
+  # macOS Apple Silicon
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [[ -x /usr/local/bin/brew ]]; then
+  # macOS Intel or Linux (common Homebrew path)
+  eval "$(/usr/local/bin/brew shellenv)"
+elif [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
+  # Linuxbrew (Linux or WSL2)
+  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
 
 # =============================== XDG base directories ===============================
 export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
@@ -75,25 +88,6 @@ setopt HIST_EXPIRE_DUPS_FIRST HIST_IGNORE_DUPS HIST_IGNORE_ALL_DUPS \
 HIST_STAMPS="yyyy-mm-dd"
 COMPLETION_WAITING_DOTS=true
 
-# =============================== Path & default editor ===============================
-# Ruby Gems
-export GEM_HOME="$HOME/gems"
-export PATH="$HOME/gems/bin:$PATH"
-# Node.js & pnpm
-export PNPM_HOME="$HOME/.local/share/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
-# Go tooling
-export PATH="$PATH:/usr/local/go/bin"
-# Deno
-export DENO_INSTALL="$HOME/.deno"
-export PATH="$DENO_INSTALL/bin:$PATH"
-# Custom bin dirs
-path=("$HOME/bin" "$HOME/.local/bin" $path)
-export PATH
-
 # Use vim for SSH, nvim otherwise
 if [[ -n $SSH_CONNECTION ]]; then
   export EDITOR=vim
@@ -121,23 +115,6 @@ alias vim='nvim'
 
 alias py='python3'
 alias pip='pip3'
-
-# Enhanced ls with colorls if available
-if command -v colorls &> /dev/null; then
-  alias ls='colorls'
-  alias ll='colorls -l'
-  alias la='colorls -la'
-  alias tree='colorls --tree'
-else
-  alias ll='ls -l'
-  alias la='ls -la'
-fi
-
-# apt helpers
-install() { sudo apt install -y "$@"; }
-update()  { sudo apt update && sudo apt upgrade -y; }
-remove()  { sudo apt remove -y "$@"; }
-search()  { apt search "$@"; }
 
 # Create & activate a virtualenv (default: .venv)
 venv() {
