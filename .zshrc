@@ -78,102 +78,98 @@ HIST_STAMPS="yyyy-mm-dd"
 COMPLETION_WAITING_DOTS=true
 
 # =============================== Path & default editor ===============================
-# Ruby Gems
-export GEM_HOME="$HOME/gems"
-export PATH="$HOME/gems/bin:$PATH"
-# Node.js & pnpm
+typeset -U path PATH fpath FPATH
 export PNPM_HOME="$HOME/.local/share/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
-# Go tooling
-export PATH="$PATH:/usr/local/go/bin"
-# Deno
-export DENO_INSTALL="$HOME/.deno"
-export PATH="$DENO_INSTALL/bin:$PATH"
-# Custom bin dirs
-path=("$HOME/bin" "$HOME/.local/bin" $path)
-export PATH
+path=($PNPM_HOME "$HOME/.local/bin" "$HOME/.cargo/bin" "$HOME/go/bin" "/usr/local/go/bin" $path)
+if ! command -v fd >/dev/null 2>&1 && command -v fdfind >/dev/null 2>&1; then alias fd='fdfind'; fi
+if ! command -v bat >/dev/null 2>&1 && command -v batcat >/dev/null 2>&1; then alias bat='batcat'; fi
 
-# Use vim for SSH, nvim otherwise
-if [[ -n $SSH_CONNECTION ]]; then
-  export EDITOR=vim
-else
-  export EDITOR=nvim
+if command -v nvim >/dev/null 2>&1; then export EDITOR="nvim" VISUAL="nvim"
+elif command -v vim >/dev/null 2>&1; then export EDITOR="vim" VISUAL="vim"
+else export EDITOR="nano" VISUAL="nano"; fi
+
+export WORKON_HOME="$HOME/.virtualenvs"
+if command -v javac >/dev/null 2>&1; then export JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(command -v javac)")")")"; fi
+export LESS='-R' CLICOLOR=1
+
+# --- FZF defaults ------------------------------------------------------------
+if command -v fd >/dev/null 2>&1; then
+  export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+  export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
+elif command -v rg >/dev/null 2>&1; then
+  export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob !.git/*'
 fi
+export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border --preview-window=right:50%:hidden --bind=shift-right:preview-page-down,shift-left:preview-page-up,ctrl-/:toggle-preview'
 
-# =============================== SSH agent setup ===============================
-if [[ -z $SSH_AUTH_SOCK ]] || ! ssh-add -l &>/dev/null; then
-  eval "$(ssh-agent -s)" &>/dev/null
-  for key in ~/.ssh/*; do
-    [[ -f $key && ! $key =~ \.pub$ ]] || continue
-    ssh-add "$key" &>/dev/null
-  done
-  ssh-add -l &>/dev/null
-fi
+# --- Helper: alias only if command exists ------------------------------------
+alias_if_exists() { command -v "$2" >/dev/null 2>&1 && alias "$1"="$3"; }
 
-# =============================== Aliases & helpers ===============================
+# --- Aliases -----------------------------------------------------------------
 alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
 
-alias vi='nvim'
-alias vim='nvim'
-
 alias py='python3'
 alias pip='pip3'
 
-# Enhanced ls with colorls if available
-if command -v colorls &> /dev/null; then
-  alias ls='colorls'
-  alias ll='colorls -l'
-  alias la='colorls -la'
-  alias tree='colorls --tree'
-else
-  alias ll='ls -l'
-  alias la='ls -la'
-fi
+# lsd / ls
+type lsd >/dev/null 2>&1 && alias ls='lsd --group-dirs=first --icon=always' ll='lsd -l --group-dirs=first --icon=always' la='lsd -la --group-dirs=first --icon=always'
 
-# apt helpers
-install() { sudo apt install -y "$@"; }
-update()  { sudo apt update && sudo apt upgrade -y; }
-remove()  { sudo apt remove -y "$@"; }
-search()  { apt search "$@"; }
+# grep
+command -v rg >/dev/null 2>&1 && alias grep='rg -n --smart-case'
 
-# Create & activate a virtualenv (default: .venv)
-venv() {
-  local name=${1:-.venv}
-  [[ -d $name ]] || python3 -m venv "$name" && echo "Created venv '$name'."
-  source "$name/bin/activate" && echo "Activated '$name'."
+# python / lint / test
+alias_if_exists pc pre-commit 'pre-commit'
+alias_if_exists pca pre-commit 'pre-commit autoupdate'
+alias_if_exists pcr pre-commit 'pre-commit run -a'
+alias_if_exists blackf black 'black .'
+alias_if_exists rufff ruff 'ruff check --fix .'
+alias_if_exists pt pytest 'pytest -q'
+fmtall() {
+  command -v ruff >/dev/null && ruff check --fix .
+  command -v black >/dev/null && black .
+  command -v prettier >/dev/null && prettier -w .
+  command -v eslint >/dev/null && eslint . --fix || true
+  if command -v clang-format >/dev/null; then
+    local patterns=("**/*.c" "**/*.cc" "**/*.cpp" "**/*.h" "**/*.hh" "**/*.hpp")
+    for p in ${patterns[@]}; do
+      for f in ${(~)p}; do [ -f "$f" ] && clang-format -i "$f"; done
+    done
+  fi
 }
 
-# Extract almost any archive
+# azure
+alias azlogin='az login'
+alias azsubs='az account list -o table'
+azuse() { az account set -s "$1"; }
+
+# misc
+alias scan='nmap -sC -sV'
+alias_if_exists wrk1m wrk 'wrk -t4 -c64 -d60s'
+alias_if_exists upgrade topgrade 'topgrade -y'
+
+mkcd() { mkdir -p "$1" && cd "$1"; }
 extract() {
-  local file=$1
-  [[ -f $file ]] || { print -P "%F{red}✗%f '$file' not found"; return 1; }
-  case $file in
-    *.tar.bz2) tar -xjf "$file" ;;
-    *.tar.gz)  tar -xzf "$file" ;;
-    *.tar.xz)  tar -xJf "$file" ;;
-    *.tar)     tar -xf "$file" ;;
-    *.zip)     unzip "$file" ;;
-    *.7z)      7z x  "$file" ;;
-    *.rar)     unrar x "$file" ;;
-    *.bz2)     bunzip2 "$file" ;;
-    *.gz)      gunzip  "$file" ;;
-    *)         echo "Cannot extract '$file'" ;;
+  local f="$1"; [ -f "$f" ] || { echo "No such file: $f"; return 1; }
+  case "$f" in
+    *.tar.bz2) tar xjf "$f" ;;
+    *.tar.gz) tar xzf "$f" ;;
+    *.tar.xz) tar xJf "$f" ;;
+    *.tar) tar xf "$f" ;;
+    *.tbz2) tar xjf "$f" ;;
+    *.tgz) tar xzf "$f" ;;
+    *.bz2) bunzip2 "$f" ;;
+    *.gz) gunzip "$f" ;;
+    *.zip) unzip "$f" ;;
+    *.rar) unrar x "$f" ;;
+    *.7z) 7z x "$f" ;;
+    *) echo "Don't know how to extract '$f'"; return 1 ;;
   esac
 }
 
-# Print file checksums (md5, sha1, sha256)
-hash_file() {
-  local file=$1
-  [[ -f $file ]] || { echo "'$file' not found"; return 1; }
-  for algo in md5sum sha1sum sha256sum; do
-    printf "%s: %s\n" "${algo:t}" "$($algo "$file" | cut -d' ' -f1)"
-  done
-}
+alias v='${EDITOR:-vi}'
+PROMPT_DIRTRIM=3
+[ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
 
 # =============================== Powerlevel10k config ===============================
 [[ -f "${XDG_CONFIG_HOME}/.p10k.zsh" ]] && source "${XDG_CONFIG_HOME}/.p10k.zsh"
