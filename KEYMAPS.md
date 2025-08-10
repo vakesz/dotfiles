@@ -70,14 +70,14 @@
 
 ### Debugging (nvim-dap)
 
-- `<Leader>dt` – toggle breakpoint
-- `<Leader>dc` – start/continue debugging
-- `<Leader>dx` – terminate debugging
-- `<Leader>do` – step over
+- `<leader>dt` – toggle breakpoint
+- `<leader>dc` – start/continue debugging
+- `<leader>dx` – terminate debugging
+- `<leader>do` – step over
 
 **How to use Debugger:**
 
-- Set breakpoints with `<Leader>dt`, start debugging with `<Leader>dc`, and control execution with `<Leader>do` (step over) and `<Leader>dx` (terminate). The DAP UI will open automatically.
+- Set breakpoints with `<leader>dt`, start debugging with `<leader>dc`, and control execution with `<leader>do` (step over) and `<leader>dx` (terminate). The DAP UI will open automatically.
 
 ### Diagnostics list (Trouble)
 
@@ -132,12 +132,24 @@
 
 | Action | Command |
 | ------ | ------- |
-| Yank current line | `yy` |
-| Yank N lines | `Nyy` (e.g. `3yy`) |
-| Delete current line | `dd` |
-| Delete N lines | `Ndd` or `dNj` (e.g. `3dd`) |
-| Jump six lines down | `6j` (up: `6k`) |
-| Jump to line number *n* | `:n` or `nG` |
+| Save file | `:w` |
+| Save all files | `:wa` |
+| Save and quit | `:wq` |
+| Quit window | `:q` |
+| Quit all | `:qa` |
+| Force quit | `:q!` |
+| Clear search highlight | `:noh` |
+| Open vertical/horizontal split | `:vsp` / `:sp` |
+| Navigate windows | `<C-w> h/j/k/l` |
+| Equalize/resize windows | `<C-w>=`, `<C-w> > / <`, `<C-w> + / -` |
+| New/close tab | `:tabnew` / `:tabclose` |
+| Next/prev tab | `gt` / `gT` |
+| Next/prev buffer | `:bn` / `:bp` |
+| Close buffer | `:bd` |
+| Search word under cursor | `*` / `#` |
+| Increment/decrement number | `<C-a>` / `<C-x>` |
+| Jump to start/end of file | `gg` / `G` |
+| Jump to start/end of line | `0` / `$` |
 
 ### Git workflow tips
 
@@ -145,6 +157,12 @@
 2. Stage files with `-` and commit using `:Git commit`.
 3. Use `<leader>p` to push or `<leader>P` to pull with rebase.
 4. Resolve merge conflicts using `gu` (ours) and `gh` (theirs).
+
+### Discover and verify keymaps
+
+- `:verbose map <leader>` – list mappings that start with your leader and show where they were defined
+- `:map` – list all mappings for the current mode
+- `:Telescope keymaps` – browse keymaps with Telescope (if installed)
 
 ---
 

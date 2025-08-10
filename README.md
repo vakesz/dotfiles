@@ -5,7 +5,7 @@ This repository contains configuration files and a bootstrap script to quickly s
 ## Repository Structure
 
 ```text
-.gitconfig          # Git configuration (user, color, tools, delta settings)
+.gitconfig          # Git configuration (user, editor, whitespace, rebase/push defaults, aliases, vimdiff, credential store, colors)
 .zshrc              # Zsh shell configuration with zplug and helpful aliases
 .config/
   ├── .p10k.zsh     # Powerlevel10k theme configuration for Zsh
@@ -47,13 +47,12 @@ README.md           # This documentation file
    * Detect the OS (`Ubuntu` or `Debian`)
    * Fix APT repository key issues for Neo4j and Element if present
    * Update and install core packages (Git, Neovim, Python, build tools, etc.)
-   * Install `git-delta` for enhanced diff output
    * Install `colorls` Ruby gem for enhanced directory listings
    * Install Hugo static site generator
    * Install latest stable Neovim
    * Install Docker Engine and add your user to the `docker` group
-   * Install Go programming language (1.21.5)
-   * Install Zig programming language (0.11.0)
+   * Install Go programming language
+   * Install Zig programming language
    * Install Node.js LTS and pnpm with global tools (TailwindCSS, ESLint, etc.)
    * Install SourceGit Git GUI client
    * Install JetBrains Mono Nerd Font for terminal use
@@ -77,10 +76,9 @@ README.md           # This documentation file
 
 ### Development Tools
 
-* **Git Delta** - Enhanced diff viewer with syntax highlighting
 * **Docker Engine** - Container platform with user group access
-* **Go** - Programming language (version 1.21.5)
-* **Zig** - Programming language (version 0.11.0)
+* **Go** - Programming language
+* **Zig** - Programming language
 * **Node.js LTS** - JavaScript runtime with pnpm package manager and global tools:
   * TailwindCSS - Utility-first CSS framework
   * PostCSS & Autoprefixer - CSS processing tools
@@ -98,7 +96,7 @@ README.md           # This documentation file
 
 ## Customization
 
-* **Git**: Edit `.gitconfig` to change your user info or color schemes.
+* **Git**: Edit `.gitconfig` to change user info, editor, whitespace rules, rebase/push defaults, aliases, diff tool (vimdiff), credential store, and color schemes.
 * **Zsh**: Add or remove plugins in `.zshrc` (uses zplug plugin manager).
 * **Neovim**: Customize the configuration in `.config/nvim/init.lua`.
 * **Packages**: Modify the `pkgs` array in the `install` script to include additional packages.
