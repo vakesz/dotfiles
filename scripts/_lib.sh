@@ -121,9 +121,23 @@ register_installer() {
   INSTALLERS+=("$order:$fn")
 }
 
+log_installers() {
+  if [ "${#INSTALLERS[@]}" -eq 0 ]; then
+    log "No installers registered."
+    return
+  fi
+  local entry
+  mapfile -t _sorted_installers < <(printf '%s\n' "${INSTALLERS[@]}" | sort -n)
+  log "Registered installers (order:function):"
+  for entry in "${_sorted_installers[@]}"; do
+    log "  $entry"
+  done
+}
+
 run_installers() {
   local entry fn
   mapfile -t sorted < <(printf '%s\n' "${INSTALLERS[@]}" | sort -n)
+  log_installers
   for entry in "${sorted[@]}"; do
     fn="${entry#*:}"
     "$fn"

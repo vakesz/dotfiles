@@ -5,12 +5,17 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=scripts/_lib.sh
 . "$REPO_DIR/scripts/_lib.sh"
 
-# Source per-tool installers
+# Source per-tool installers (all *.sh except _lib.sh)
 if [ -d "$REPO_DIR/scripts" ]; then
+  shopt -s nullglob
   for f in "$REPO_DIR/scripts"/*.sh; do
+    [ -r "$f" ] || continue
+    bn="$(basename "$f")"
+    [[ "$bn" == "_lib.sh" ]] && continue
     # shellcheck source=/dev/null
-    [ -r "$f" ] && . "$f"
+    . "$f"
   done
+  shopt -u nullglob || true
 fi
 
 main "$@"
