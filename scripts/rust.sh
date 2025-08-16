@@ -13,6 +13,10 @@ install_rust() {
       cargo install "$crate"
     fi
   done
+  # Ensure cargo-update installed (used by Topgrade for updating cargo packages)
+  if ! cargo install --list 2>/dev/null | grep -q "^cargo-update "; then
+    cargo install cargo-update
+  fi
 }
 
 register_installer install_rust 60
