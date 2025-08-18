@@ -1,6 +1,6 @@
 # shellcheck shell=bash
 install_docker() {
-  if need_cmd docker; then return; fi
+  if need_cmd docker; then log "Docker already installed"; fi
   local docker_key="/etc/apt/keyrings/docker.gpg"
   local arch codename
   arch="$(dpkg --print-architecture)"

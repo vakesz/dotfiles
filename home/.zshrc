@@ -80,7 +80,8 @@ COMPLETION_WAITING_DOTS=true
 # =============================== Path & default editor ===============================
 typeset -U path PATH fpath FPATH
 export PNPM_HOME="$HOME/.local/share/pnpm"
-path=($PNPM_HOME "$HOME/.local/bin" "$HOME/.cargo/bin" "$HOME/go/bin" "/usr/local/go/bin" $path)
+if [ -d "$PNPM_HOME" ]; then path=($PNPM_HOME $path); fi
+path=($HOME/.local/bin $HOME/.cargo/bin $HOME/go/bin /usr/local/go/bin $path $HOME/.deno/env $HOME/.deno/bin)
 if ! command -v fd >/dev/null 2>&1 && command -v fdfind >/dev/null 2>&1; then alias fd='fdfind'; fi
 if ! command -v bat >/dev/null 2>&1 && command -v batcat >/dev/null 2>&1; then alias bat='batcat'; fi
 

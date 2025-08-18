@@ -23,6 +23,8 @@ APT_PKGS=(
   shellcheck clang-format
   # fonts cache for Nerd Fonts
   fontconfig
+  # OpenSSL development libraries
+  libssl-dev
 )
 
 # npm globals
@@ -89,10 +91,23 @@ ensure_cmd_pkg() { need_cmd "$1" || apt_install "$2"; }
 add_apt_source() {
   # $1=name, $2=list_line, $3=key_path (optional), $4=key_url (optional)
   local name="$1" list="$2" key_path="${3:-}" key_url="${4:-}"
-  if [ -n "$key_url" ] && [ ! -s "$key_path" ]; then
-    sudo install -m 0755 -d "$(dirname "$key_path")"
-    curl -fsSL "$key_url" | sudo gpg --dearmor -o "$key_path"
-    sudo chmod a+r "$key_path" || true
+  if [ -n "$key_url" ]; then
+    # Download/import key only if file missing or empty; ensure non-interactive even if leftover empty file exists.
+    if [ ! -s "$key_path" ]; then
+      sudo install -m 0755 -d "$(dirname "$key_path")"
+      # Remove any existing (possibly zero-length / partial) key file to avoid gpg overwrite prompt.
+      if [ -f "$key_path" ]; then sudo rm -f "$key_path"; fi
+      local tmp
+      tmp="$(mktemp)" || { error "mktemp failed"; return 1; }
+      if ! curl -fsSL "$key_url" -o "$tmp"; then
+        error "Failed to download key: $key_url"; rm -f "$tmp"; return 1
+      fi
+      if ! sudo gpg --dearmor --batch --yes -o "$key_path" "$tmp" 2>/dev/null; then
+        error "gpg dearmor failed for $key_url"; rm -f "$tmp"; return 1
+      fi
+      rm -f "$tmp"
+      sudo chmod a+r "$key_path" || true
+    fi
   fi
   local list_file="/etc/apt/sources.list.d/${name}.list"
   if [ ! -f "$list_file" ] || ! grep -qxF "$list" "$list_file"; then

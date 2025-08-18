@@ -23,8 +23,18 @@ install_node() {
   ensure_npm_user_prefix
   export PATH="$HOME/.local/bin:$PATH"
   if ! need_cmd corepack; then npm i -g corepack || true; fi
-  corepack enable || true
-  corepack prepare pnpm@latest --activate || true
+  # Try to enable corepack; if system dir not writable, use user bin dir.
+  if need_cmd corepack; then
+    corepack_dir="$(dirname "$(command -v corepack)")"
+    if [ ! -w "$corepack_dir" ]; then
+      mkdir -p "$HOME/.local/bin"
+      corepack enable --install-directory "$HOME/.local/bin" || true
+    else
+      corepack enable || true
+    fi
+  fi
+  # Prepare pnpm; if that fails (e.g. due to permissions), fall back to installing pnpm directly.
+  corepack prepare pnpm@latest --activate || npm install -g pnpm || true
   for pkg in "${NPM_GLOBALS[@]}"; do
     if ! npm ls -g --depth=0 "$pkg" >/dev/null 2>&1; then
       npm i -g "$pkg"

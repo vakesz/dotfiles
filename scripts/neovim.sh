@@ -1,5 +1,6 @@
 # shellcheck shell=bash
 install_neovim() {
+  # TODO: Upgrade if not latest
   if need_cmd nvim; then return; fi
   log "Installing latest stable Neovim..."
   local arch
