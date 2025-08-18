@@ -13,7 +13,7 @@ symlink_dotfiles() {
       log "→ $dst → $src"
     fi
   }
-  for f in .gitconfig .zshrc .p10k.zsh .profile; do
+  for f in .gitconfig .zshrc .p10k.zsh .profile .tmux.conf; do
     [ -f "${REPO_DIR}/home/${f}" ] && link "${REPO_DIR}/home/${f}" "${HOME}/${f}"
   done
   if [ -d "${REPO_DIR}/home/.config" ]; then
