@@ -1,106 +1,82 @@
+<!-- filepath: /home/vakesz/git/dotfiles/README.md -->
 # Dotfiles Setup
 
-This repository contains configuration files and a bootstrap script to quickly set up a development environment on Ubuntu/Debian systems. It includes my Git configuration, Zsh shell configuration, and a comprehensive `install` setup script.
+Bootstrap a productive dev environment for Ubuntu / Debian (incl. WSL2). Installs core tooling, languages, shell, font, and opinionated configs in an idempotent way.
 
-## Repository Structure
+## Features
+
+- Single `./install` script (safe to re-run)
+- Distro + WSL2 detection & small WSL fixes
+- Repairs known APT key/repo issues (Neo4j, Element) if present
+- Installs / updates:
+  - Core CLI & build tools (git, neovim, python3/pip, gcc/clang, cmake, jq, unzip, etc.)
+  - Docker Engine (+ user group)
+  - Go, Zig, Node.js LTS (pnpm + tailwindcss, postcss, autoprefixer, eslint)
+  - Hugo, SourceGit, Ruby gem `colorls`
+  - Latest stable Neovim binary
+  - JetBrains Mono Nerd Font
+- Zsh environment (Oh My Zsh, zplug, Powerlevel10k, aliases, cron history rotation)
+- Ships curated dotfiles: `.gitconfig`, `.zshrc`, `.p10k.zsh`, Neovim config
+- Never runs fully as root; uses sudo only when needed
+
+## Repository Layout
 
 ```text
-.gitconfig          # Git configuration (user, editor, whitespace, rebase/push defaults, aliases, vimdiff, credential store, colors)
-.zshrc              # Zsh shell configuration with zplug and helpful aliases
+.gitconfig
+.zshrc
 .config/
-  ├── .p10k.zsh     # Powerlevel10k theme configuration for Zsh
-  └── nvim/         # Neovim configuration
-      └── init.lua  # Neovim initialization file
-install             # Bootstrap script for installing packages and tools
-README.md           # This documentation file
+  ├─ .p10k.zsh
+  └─ nvim/
+      └─ init.lua
+install          # Bootstrap script
+README.md
 ```
 
-## Prerequisites
+## Quick Start
 
-* Ubuntu or Debian-based distribution
-* Sudo privileges (do **not** run as root)
-* Internet connection
+```bash
+git clone https://github.com/vakesz/dotfiles.git
+cd dotfiles
+chmod +x install
+./install
+```
 
-## Installation
+Log out / back in (or reopen terminal) so shell + group changes apply.
 
-1. Clone the repository:
+## Installed Stack (Summary)
 
-   ```bash
-   git clone https://github.com/vakesz/dotfiles.git
-   cd dotfiles
-   ```
+- Core: git, neovim, python3(+pip, venv), build tools, utilities (htop, tree, mc, jq, unzip, etc.)
+- Languages: Go, Zig, Node.js LTS (+ pnpm), Python (system), Ruby gem colorls
+- Web tooling: tailwindcss, postcss, autoprefixer, eslint (global via pnpm)
+- Platform: Docker Engine
+- Editor: Neovim (latest stable)
+- Other: Hugo, SourceGit, JetBrains Mono Nerd Font
+- Shell: Zsh + Oh My Zsh + zplug + Powerlevel10k + custom aliases + history rotation
 
-2. Make the bootstrap script executable:
+## Update
 
-   ```bash
-   chmod +x install
-   ```
+```bash
+cd ~/dotfiles
+git pull
+./install
+```
 
-3. Run the setup script:
+Script overwrites shipped dotfiles (backup first if diverging).
 
-   ```bash
-   ./install
-   ```
+## Uninstall / Revert (Manual)
 
-   The script will:
+- Change shell back: `chsh -s /bin/bash`
+- Remove or edit copied dotfiles
+- Remove packages / runtimes via apt or their installers
 
-   * Detect the OS (`Ubuntu` or `Debian`)
-   * Fix APT repository key issues for Neo4j and Element if present
-   * Update and install core packages (Git, Neovim, Python, build tools, etc.)
-   * Install `colorls` Ruby gem for enhanced directory listings
-   * Install Hugo static site generator
-   * Install latest stable Neovim
-   * Install Docker Engine and add your user to the `docker` group
-   * Install Go programming language
-   * Install Zig programming language
-   * Install Node.js LTS and pnpm with global tools (TailwindCSS, ESLint, etc.)
-   * Install SourceGit Git GUI client
-   * Install JetBrains Mono Nerd Font for terminal use
-   * Set up Oh My Zsh with zplug plugin manager
-   * Copy the provided dotfiles (`.gitconfig`, `.zshrc`, `.p10k.zsh`) to your home directory
-   * Configure Zsh history rotation via cron
-   * Change your default shell to Zsh
-   * Apply WSL2 locale fixes if running on Windows Subsystem for Linux
+## Safety
 
-4. Log out and log back in (or restart your terminal) to apply all changes.
+- Do not run script as root
+- Review script before use in sensitive systems
 
-## What Gets Installed
+## License
 
-### Core Packages
-
-* **Git** - Version control system
-* **Neovim** - Modern terminal-based text editor
-* **Python 3** - With pip and venv for package management
-* **Build tools** - Essential compilation tools (gcc, clang, cmake, etc.)
-* **Utilities** - htop, tree, mc, jq, unzip, and more
-
-### Development Tools
-
-* **Docker Engine** - Container platform with user group access
-* **Go** - Programming language
-* **Zig** - Programming language
-* **Node.js LTS** - JavaScript runtime with pnpm package manager and global tools:
-  * TailwindCSS - Utility-first CSS framework
-  * PostCSS & Autoprefixer - CSS processing tools
-  * ESLint - JavaScript linter
-* **Hugo** - Fast static site generator
-* **Colorls** - Ruby gem for enhanced directory listings
-* **SourceGit** - Modern Git GUI client
-
-### Shell Environment
-
-* **Zsh** - Advanced shell with Oh My Zsh framework
-* **zplug** - Plugin manager for Zsh
-* **Powerlevel10k** - Feature-rich Zsh theme
-* **JetBrains Mono Nerd Font** - Programming font with icon support
-
-## Customization
-
-* **Git**: Edit `.gitconfig` to change user info, editor, whitespace rules, rebase/push defaults, aliases, diff tool (vimdiff), credential store, and color schemes.
-* **Zsh**: Add or remove plugins in `.zshrc` (uses zplug plugin manager).
-* **Neovim**: Customize the configuration in `.config/nvim/init.lua`.
-* **Packages**: Modify the `pkgs` array in the `install` script to include additional packages.
+No explicit license. Treat as personal config; fork & adapt responsibly.
 
 ---
-
-*Happy hacking!*
+Happy hacking.

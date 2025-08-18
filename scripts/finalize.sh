@@ -23,6 +23,12 @@ finalize() {
     fi
   fi
 
+  # Disable telemetry packages
+  log "Disabling telemetry packages (ubuntu-report, popularity-contest)"
+  if dpkg -s ubuntu-report >/dev/null 2>&1 || dpkg -s popularity-contest >/dev/null 2>&1; then
+    sudo apt purge -y ubuntu-report popularity-contest || true
+  fi
+
   log "Cleaning up apt caches and removing unnecessary packages"
   sudo apt autoremove -y
   sudo apt autoclean -y || true
