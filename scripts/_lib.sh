@@ -15,6 +15,8 @@ APT_PKGS=(
   zsh lsd fzf mc tldr tig httpie nmap tree htop jq ripgrep fd-find
   # compilers & build
   build-essential gcc g++ clang llvm cmake make ninja-build pkg-config autoconf automake
+  # swift dependencies
+  gnupg2 libcurl4-openssl-dev
   # scripting / langs
   python3 python3-pip python3-venv pipx lua5.4
   # java
