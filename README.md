@@ -1,82 +1,198 @@
-<!-- filepath: /home/vakesz/git/dotfiles/README.md -->
 # Dotfiles Setup
 
-Bootstrap a productive dev environment for Ubuntu / Debian (incl. WSL2). Installs core tooling, languages, shell, font, and opinionated configs in an idempotent way.
+Cross-platform dotfiles that bootstrap a productive development environment using Homebrew. Works seamlessly on macOS, Linux, and WSL2.
 
-## Features
+## ✨ Features
 
-- Single `./install` script (safe to re-run)
-- Distro + WSL2 detection & small WSL fixes
-- Repairs known APT key/repo issues (Neo4j, Element) if present
-- Installs / updates:
-  - Core CLI & build tools (git, neovim, python3/pip, gcc/clang, cmake, jq, unzip, etc.)
-  - Docker Engine (+ user group)
-  - Go, Zig, Node.js LTS (pnpm + tailwindcss, postcss, autoprefixer, eslint)
-  - Hugo, SourceGit, Ruby gem `colorls`
-  - Latest stable Neovim binary
-  - JetBrains Mono Nerd Font
-- Zsh environment (Oh My Zsh, zplug, Powerlevel10k, aliases, cron history rotation)
-- Ships curated dotfiles: `.gitconfig`, `.zshrc`, `.p10k.zsh`, Neovim config
-- Never runs fully as root; uses sudo only when needed
+- **Cross-Platform**: Single setup works on macOS, Linux, and WSL2
+- **Homebrew-Powered**: Unified package management across all platforms
+- **Symlinked Configs**: Live-updating dotfiles - changes sync automatically
+- **Idempotent**: Safe to re-run anytime for updates
+- **Modular Design**: Clean, maintainable architecture
 
-## Repository Layout
+## 🚀 Quick Start
+
+```bash
+git clone https://github.com/vakesz/dotfiles.git ~/.dotfiles
+cd ~/.dotfiles
+chmod +x install.sh
+./install.sh
+```
+
+Restart your shell: `exec $SHELL`
+
+## 📁 Repository Structure
 
 ```text
-.gitconfig
-.zshrc
-.config/
-  ├─ .p10k.zsh
-  └─ nvim/
-      └─ init.lua
-install          # Bootstrap script
-README.md
+dotfiles/
+├── Brewfile                    # All packages via Homebrew
+├── install.sh                  # Main installer script
+├── lib/                        # Modular utilities
+│   ├── brew.sh                 # Homebrew management
+│   ├── platform.sh             # OS detection & logging
+│   └── symlink.sh              # Symlinking logic
+├── config/                     # Dotfiles (symlinked to ~/)
+│   ├── .gitconfig
+│   ├── .zshrc
+│   ├── .tmux.conf
+│   └── .config/
+│       ├── nvim/               # Neovim configuration
+│       └── .p10k.zsh           # Powerlevel10k theme
+└── README.md
 ```
 
-## Quick Start
+## 🛠 Development Stack
+
+### Core Tools
+
+- **Shell**: Zsh with Starship prompt + modern plugins
+- **Editor**: Neovim with extensive plugin setup
+- **Terminal**: tmux with custom configuration
+- **Version Control**: Git with helpful aliases
+
+### Languages & Runtimes
+
+- Node.js (with pnpm)
+- Python 3.11 (with pipx)
+- Rust (with cargo)
+- Go
+- Zig
+- Java (OpenJDK 21)
+- Ruby
+- Lua
+
+### Development Tools
+
+- Docker & Docker Compose
+- GitHub CLI (gh)
+- Various linters: shellcheck, prettier, eslint, black, ruff
+- Build tools: cmake, make, ninja, gcc, llvm
+
+### CLI Utilities
+
+- Modern replacements: `lsd`, `bat`, `fd`, `ripgrep`
+- System tools: `htop`, `tree`, `jq`, `httpie`, `nmap`
+- Development: `fzf`, `tig`, `tldr`, `pre-commit`
+
+## 💻 Usage
+
+### Installation Options
 
 ```bash
-git clone https://github.com/vakesz/dotfiles.git
-cd dotfiles
-chmod +x install
-./install
+# Full installation (recommended)
+./install.sh
+
+# Update existing setup
+./install.sh --update
+
+# Skip package installation (configs only)
+./install.sh --skip-packages
+
+# Skip symlinking (packages only)
+./install.sh --skip-symlinks
+
+# Clean up broken symlinks
+./install.sh --cleanup
+
+# Show help
+./install.sh --help
 ```
 
-Log out / back in (or reopen terminal) so shell + group changes apply.
+### Adding New Packages
 
-## Installed Stack (Summary)
+Simply edit `Brewfile` and add your package:
 
-- Core: git, neovim, python3(+pip, venv), build tools, utilities (htop, tree, mc, jq, unzip, etc.)
-- Languages: Go, Zig, Node.js LTS (+ pnpm), Python (system), Ruby gem colorls
-- Web tooling: tailwindcss, postcss, autoprefixer, eslint (global via pnpm)
-- Platform: Docker Engine
-- Editor: Neovim (latest stable)
-- Other: Hugo, SourceGit, JetBrains Mono Nerd Font
-- Shell: Zsh + Oh My Zsh + zplug + Powerlevel10k + custom aliases + history rotation
+```ruby
+# Add a CLI tool
+brew "your-package"
 
-## Update
+# Add a desktop app (macOS only)
+cask "your-app" if OS.mac?
+
+# Add from a tap
+tap "owner/repo"
+brew "special-package"
+```
+
+Then run: `./install.sh --update`
+
+### Customizing Configs
+
+All configs are in `config/` and automatically symlinked to your home directory. Make changes directly in the repo - they'll be reflected immediately since they're symlinked.
+
+## 🔧 Platform-Specific Notes
+
+### macOS
+
+- Uses `/opt/homebrew` on Apple Silicon, `/usr/local` on Intel
+- Installs GUI applications via Homebrew casks
+- Includes Nerd Font installation
+
+### Linux/WSL
+
+- Installs Homebrew to `/home/linuxbrew/.linuxbrew`
+- Sets up proper locale configuration for WSL2
+- Handles font installation via fontconfig
+- Installs build essentials automatically
+
+## 🔄 Maintenance
+
+### Keep Everything Updated
 
 ```bash
-cd ~/dotfiles
+cd ~/.dotfiles
 git pull
-./install
+./install.sh --update
 ```
 
-Script overwrites shipped dotfiles (backup first if diverging).
+### Manage Homebrew
 
-## Uninstall / Revert (Manual)
+```bash
+# Update package list
+brew bundle dump --force
 
-- Change shell back: `chsh -s /bin/bash`
-- Remove or edit copied dotfiles
-- Remove packages / runtimes via apt or their installers
+# Check what would be installed/removed
+brew bundle --dry-run
 
-## Safety
+# Clean up
+brew cleanup
+```
 
-- Do not run script as root
-- Review script before use in sensitive systems
+## 🗂 Migration Guide
 
-## License
+If migrating from the old apt-based setup:
 
-No explicit license. Treat as personal config; fork & adapt responsibly.
+1. **Backup**: The installer automatically backs up existing configs
+2. **Run**: Execute `./install.sh` - it handles the migration
+3. **Verify**: Check that symlinks are working: `ls -la ~/ | grep -E '\->'`
+4. **Cleanup**: Remove old installation files when satisfied
+
+## 🆘 Troubleshooting
+
+### Broken Symlinks
+
+```bash
+./install.sh --cleanup
+```
+
+### Permission Issues
+
+```bash
+# Fix Homebrew permissions
+sudo chown -R $(whoami) $(brew --prefix)/*
+```
+
+### Missing Dependencies
+
+```bash
+# Reinstall Homebrew
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
+./install.sh
+```
+
+## 📝 License
+
+Personal configuration repository. Fork and adapt as needed.
 
 ---
-Happy hacking.
+Happy coding! 🎯

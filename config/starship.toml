@@ -1,0 +1,54 @@
+# Left prompt: path + languages + prompt char
+format = "$directory $python$nodejs$go$rust$zig$lua $character"
+add_newline = false
+# Right prompt: git + time
+right_format = "$git_branch$git_status$time"
+
+[directory]
+truncation_length = 0
+truncate_to_repo = false
+home_symbol = "~"
+
+[git_branch]
+format = "git:$branch"
+style = "bold purple"
+
+[git_status]
+format = " [$all_status$ahead_behind]($style)"
+style = "red"
+
+[python]
+symbol = "Py"
+format = "[$symbol]($style)"
+version_format = ""
+pyenv_version_name = false
+detect_extensions = []
+detect_files = []
+detect_folders = []
+
+[nodejs]
+symbol = "Node"
+format = "[$symbol]($style)"
+
+[golang]
+symbol = "Go"
+format = "[$symbol]($style)"
+
+[rust]
+symbol = "Rust"
+format = "[$symbol]($style)"
+
+[zig]
+symbol = "Zig"
+format = "[$symbol]($style)"
+
+[lua]
+symbol = "Lua"
+format = "[$symbol]($style)"
+
+[time]
+disabled = false
+format = "[ $time]($style)"
+time_format = "%R"
+utc_time_offset = "local"
+style = "italic dimmed white"

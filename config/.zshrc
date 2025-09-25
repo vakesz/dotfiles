@@ -1,12 +1,5 @@
 # oh, hello there!
 
-# --- Powerlevel10k instant prompt (early) -------------------------------------
-if [[ -n $ZSH_VERSION ]]; then
-  if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-    source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-  fi
-fi
-
 # --- Shell interactivity check ------------------------------------------------
 [[ $- != *i* ]] && return
 
@@ -36,6 +29,17 @@ COMPLETION_WAITING_DOTS=true
 # --- Paths & core environment -------------------------------------------------
 typeset -U path PATH fpath FPATH
 export PNPM_HOME="$HOME/.local/share/pnpm"
+# Homebrew path setup (cross-platform)
+if [[ -d /opt/homebrew ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [[ -d /usr/local/Homebrew ]]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+elif [[ -d /home/linuxbrew/.linuxbrew ]]; then
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+elif [[ -d ~/.linuxbrew ]]; then
+    eval "$(~/.linuxbrew/bin/brew shellenv)"
+fi
+
 # Prepend important user paths (order matters)
 local _user_paths=($PNPM_HOME $HOME/.local/bin $HOME/.cargo/bin $HOME/go/bin /usr/local/go/bin $HOME/.deno/env $HOME/.deno/bin)
 for _p in "${_user_paths[@]}"; do [ -d "$_p" ] && path=($_p $path); done
@@ -52,34 +56,27 @@ export WORKON_HOME="$HOME/.virtualenvs"
 if have javac; then export JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(command -v javac)")")")"; fi
 export LESS='-R' CLICOLOR=1
 
-# --- zplug plugin manager -----------------------------------------------------
-export ZPLUG_HOME="${ZPLUG_HOME:-$HOME/.zplug}"
-source "$ZPLUG_HOME/init.zsh"
-# Self-update zplug weekly in background
-zplug "zplug/zplug", hook-build:'zplug --self-manage', from:github
-
-# --- Theme --------------------------------------------------------------------
-zplug "romkatv/powerlevel10k", as:theme, depth:1
-
-# --- Oh-My-Zsh core plugins ---------------------------------------------------
-zplug "plugins/git",               from:oh-my-zsh, as:plugin, defer:2
-zplug "plugins/history",           from:oh-my-zsh, as:plugin, defer:2
-zplug "plugins/colored-man-pages", from:oh-my-zsh, as:plugin, defer:3
-zplug "plugins/command-not-found", from:oh-my-zsh, as:plugin, defer:3
-zplug "plugins/python",            from:oh-my-zsh, as:plugin, defer:2
-
-# --- Community plugins --------------------------------------------------------
-zplug "mafredri/zsh-async",                         defer:2
-zplug "zsh-users/zsh-autosuggestions",              defer:3
-zplug "zsh-users/zsh-completions",                  defer:3
-zplug "zdharma-continuum/fast-syntax-highlighting", defer:3
-
-# --- Install & load plugins ---------------------------------------------------
-if ! zplug check; then
-  echo "→ Installing missing zplug plugins…"
-  zplug install
+# --- Starship prompt ----------------------------------------------------------
+if have starship; then
+    export STARSHIP_CONFIG="$HOME/.config/starship.toml"
+    eval "$(starship init zsh)"
 fi
-zplug load
+
+# --- Plugin management with manual sourcing -----------------------------------
+# Zsh autosuggestions
+if [[ -f $HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]]; then
+    source $HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+fi
+
+# Fast syntax highlighting
+if [[ -f $HOMEBREW_PREFIX/share/zsh-fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh ]]; then
+    source $HOMEBREW_PREFIX/share/zsh-fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh
+fi
+
+# Zsh completions
+if type brew &>/dev/null; then
+    FPATH="$(brew --prefix)/share/zsh-completions:$FPATH"
+fi
 
 # --- Completion & prompt init -------------------------------------------------
 mkdir -p "$XDG_CACHE_HOME/zsh"
@@ -166,6 +163,3 @@ venv() {
 alias v='${EDITOR:-vi}'
 PROMPT_DIRTRIM=3
 [ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"
-
-# --- Powerlevel10k configuration ----------------------------------------------
-[[ -f "${XDG_CONFIG_HOME}/.p10k.zsh" ]] && source "${XDG_CONFIG_HOME}/.p10k.zsh"
