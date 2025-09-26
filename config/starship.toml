@@ -1,5 +1,5 @@
 # Left prompt: path + languages + prompt char
-format = "$directory $python$nodejs$go$rust$zig$lua $character"
+format = "$directory$python$nodejs$go$rust$zig$lua$character"
 add_newline = false
 # Right prompt: git + time
 right_format = "$git_branch$git_status$time"
