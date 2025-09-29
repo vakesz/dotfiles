@@ -225,9 +225,6 @@ main() {
 
         # Install packages from Brewfile
         install_packages "$REPO_DIR/Brewfile"
-
-        # Install Node.js using nvm
-        install_nodejs_with_nvm
     fi
 
     # Set up shell environment

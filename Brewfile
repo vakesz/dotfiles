@@ -53,6 +53,7 @@ brew "docker"
 brew "docker-compose"
 
 # Version control and development utilities
+brew "node@22"
 brew "pre-commit"
 
 # Language-specific package managers and tools
