@@ -96,6 +96,44 @@ setup_shell_environment() {
     esac
 }
 
+install_nodejs_with_nvm() {
+    log "Installing nvm using official installer..."
+    
+    # Check if nvm is already installed
+    if [[ -s "$HOME/.nvm/nvm.sh" ]]; then
+        log "nvm is already installed, skipping installation"
+    else
+        # Install nvm using the official curl method
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+        
+        # Source nvm for the current session
+        export NVM_DIR="$HOME/.nvm"
+        # shellcheck source=/dev/null
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+        # shellcheck source=/dev/null
+        [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+    fi
+
+    # Uninstall existing Node.js from Homebrew to prevent conflicts
+    if brew list --formula | grep -q "node"; then
+        log "Removing conflicting Node.js installation from Homebrew..."
+        brew uninstall node
+    fi
+
+    # Source nvm if not already loaded
+    export NVM_DIR="$HOME/.nvm"
+    # shellcheck source=/dev/null
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+    # Install the latest LTS version of Node.js
+    log "Installing latest LTS Node.js version..."
+    nvm install --lts
+    nvm alias default 'lts/*'
+    nvm use default
+    
+    success "nvm and Node.js LTS installed successfully"
+}
+
 post_install_setup() {
     log "Running post-installation setup..."
 
@@ -187,6 +225,9 @@ main() {
 
         # Install packages from Brewfile
         install_packages "$REPO_DIR/Brewfile"
+
+        # Install Node.js using nvm
+        install_nodejs_with_nvm
     fi
 
     # Set up shell environment
