@@ -31,7 +31,6 @@ brew "shellcheck"
 brew "clang-format"
 
 # Programming languages and runtimes
-brew "node"
 brew "go"
 brew "python"
 brew "rust"
