@@ -75,6 +75,54 @@ export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
 # Enable Corepack to manage Yarn/Pnpm that ship with Node
 have corepack && corepack enable --install-directory "$NPM_CONFIG_PREFIX/bin"
 
+# --- Zsh Plugins (Homebrew) --------------------------------------------------
+# Command autosuggestions from history (like Fish)
+if [[ -f /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]]; then
+    source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+fi
+
+# Syntax highlighting (must be loaded after autosuggestions)
+if [[ -f /opt/homebrew/share/zsh-fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh ]]; then
+    source /opt/homebrew/share/zsh-fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh
+fi
+
+# Additional completions
+if [[ -d /opt/homebrew/share/zsh-completions ]]; then
+    FPATH="/opt/homebrew/share/zsh-completions:$FPATH"
+fi
+
+# --- Completions Setup -------------------------------------------------------
+autoload -Uz compinit
+# Only regenerate compdump once a day for faster startup
+if [[ -n ${ZDOTDIR:-$HOME}/.zcompdump(#qN.mh+24) ]]; then
+    compinit
+else
+    compinit -C
+fi
+
+# Completion options for better UX
+setopt AUTO_LIST              # Automatically list choices on ambiguous completion
+setopt AUTO_MENU              # Use menu completion after second tab press
+setopt COMPLETE_IN_WORD       # Complete from both ends of a word
+setopt ALWAYS_TO_END          # Move cursor to end if word had one match
+
+# Better completion matching
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*' menu select
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*' rehash true
+
+# --- Key Bindings ------------------------------------------------------------
+# Emacs-style bindings (Ctrl+A/E for line start/end, etc.)
+bindkey -e
+
+# Better word navigation
+bindkey '^[[1;5C' forward-word      # Ctrl+Right
+bindkey '^[[1;5D' backward-word     # Ctrl+Left
+bindkey '^[[3~' delete-char         # Delete key
+bindkey '^[[H' beginning-of-line    # Home key
+bindkey '^[[F' end-of-line          # End key
+
 # --- Starship Prompt ---------------------------------------------------------
 export STARSHIP_CONFIG="$HOME/.config/starship.toml"
     eval "$(starship init zsh)"
