@@ -64,8 +64,8 @@ venv() {
 if [[ -n "$HOMEBREW_PREFIX" && -x "$HOMEBREW_PREFIX/opt/node@22/bin/node" ]]; then
   export PATH="$HOMEBREW_PREFIX/opt/node@22/bin:$PATH"
   # Helpful when building native addons
-  export LDFLAGS="-L$HOMEBREW_PREFIX/opt/node@22/lib${LDFLAGS:+:$LDFLAGS}"
-  export CPPFLAGS="-I$HOMEBREW_PREFIX/opt/node@22/include${CPPFLAGS:+:$CPPFLAGS}"
+  export LDFLAGS="-L$HOMEBREW_PREFIX/opt/node@22/lib${LDFLAGS:+ $LDFLAGS}"
+  export CPPFLAGS="-I$HOMEBREW_PREFIX/opt/node@22/include${CPPFLAGS:+ $CPPFLAGS}"
 fi
 
 # --- Ruby (Homebrew keg-only) ------------------------------------------------
@@ -73,8 +73,8 @@ fi
 if [[ -n "$HOMEBREW_PREFIX" && -x "$HOMEBREW_PREFIX/opt/ruby/bin/ruby" ]]; then
   export PATH="$HOMEBREW_PREFIX/opt/ruby/bin:$PATH"
   # Helpful when building gems with native extensions
-  export LDFLAGS="-L$HOMEBREW_PREFIX/opt/ruby/lib${LDFLAGS:+:$LDFLAGS}"
-  export CPPFLAGS="-I$HOMEBREW_PREFIX/opt/ruby/include${CPPFLAGS:+:$CPPFLAGS}"
+  export LDFLAGS="-L$HOMEBREW_PREFIX/opt/ruby/lib${LDFLAGS:+ $LDFLAGS}"
+  export CPPFLAGS="-I$HOMEBREW_PREFIX/opt/ruby/include${CPPFLAGS:+ $CPPFLAGS}"
   export PKG_CONFIG_PATH="$HOMEBREW_PREFIX/opt/ruby/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
 fi
 
