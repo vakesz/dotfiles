@@ -61,11 +61,27 @@ venv() {
 
 # --- Node.js (Homebrew keg-only) ---------------------------------------------
 # Put Node 22 first in PATH so `node`, `npm`, `npx`, `corepack` resolve.
-if [[ -x /opt/homebrew/opt/node@22/bin/node ]]; then
-  export PATH="/opt/homebrew/opt/node@22/bin:$PATH"
+if [[ -n "$HOMEBREW_PREFIX" && -x "$HOMEBREW_PREFIX/opt/node@22/bin/node" ]]; then
+  export PATH="$HOMEBREW_PREFIX/opt/node@22/bin:$PATH"
   # Helpful when building native addons
-  export LDFLAGS="-L/opt/homebrew/opt/node@22/lib${LDFLAGS:+:$LDFLAGS}"
-  export CPPFLAGS="-I/opt/homebrew/opt/node@22/include${CPPFLAGS:+:$CPPFLAGS}"
+  export LDFLAGS="-L$HOMEBREW_PREFIX/opt/node@22/lib${LDFLAGS:+:$LDFLAGS}"
+  export CPPFLAGS="-I$HOMEBREW_PREFIX/opt/node@22/include${CPPFLAGS:+:$CPPFLAGS}"
+fi
+
+# --- Ruby (Homebrew keg-only) ------------------------------------------------
+# Put Homebrew Ruby first in PATH so `ruby`, `gem`, `bundle`, etc. resolve.
+if [[ -n "$HOMEBREW_PREFIX" && -x "$HOMEBREW_PREFIX/opt/ruby/bin/ruby" ]]; then
+  export PATH="$HOMEBREW_PREFIX/opt/ruby/bin:$PATH"
+  # Helpful when building gems with native extensions
+  export LDFLAGS="-L$HOMEBREW_PREFIX/opt/ruby/lib${LDFLAGS:+:$LDFLAGS}"
+  export CPPFLAGS="-I$HOMEBREW_PREFIX/opt/ruby/include${CPPFLAGS:+:$CPPFLAGS}"
+  export PKG_CONFIG_PATH="$HOMEBREW_PREFIX/opt/ruby/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+fi
+
+# --- Make (Homebrew keg-only) ------------------------------------------------
+# Put Homebrew Make first in PATH so `make`, `gmake` resolve.
+if [[ -n "$HOMEBREW_PREFIX" && -x "$HOMEBREW_PREFIX/opt/make/libexec/gnubin/make" ]]; then
+  export PATH="$HOMEBREW_PREFIX/opt/make/libexec/gnubin:$PATH"
 fi
 
 # Keep npm/pnpm/yarn global installs in XDG dir (no /usr/local pollution)
@@ -126,3 +142,4 @@ bindkey '^[[F' end-of-line          # End key
 # --- Starship Prompt ---------------------------------------------------------
 export STARSHIP_CONFIG="$HOME/.config/starship.toml"
     eval "$(starship init zsh)"
+export THEOS=~/theos
