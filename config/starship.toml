@@ -15,8 +15,6 @@ $rust\
 $zig\
 $lua\
 $ruby\
-$docker_context\
-$package\
 $character"""
 
 right_format = "$git_branch$git_status$time"
@@ -85,24 +83,6 @@ format = "[$symbol]($style)"
 style = "bold red"
 detect_extensions = ["rb"]
 detect_files = ["Gemfile", ".ruby-version"]
-
-# ============================================================================
-# Development Tools
-# ============================================================================
-
-[docker_context]
-symbol = "🐳 "
-format = "[$symbol]($style)"
-style = "bold blue"
-only_with_files = true
-detect_files = ["docker-compose.yml", "docker-compose.yaml", "Dockerfile"]
-detect_folders = []
-
-[package]
-symbol = "📦 "
-format = "[$symbol]($style)"
-style = "208 bold"
-display_private = false
 
 # ============================================================================
 # System Information
