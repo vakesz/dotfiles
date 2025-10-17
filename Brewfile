@@ -52,6 +52,8 @@ brew "llvm"
 # Container and deployment tools
 brew "docker"
 brew "docker-buildx"
+brew "docker-compose"
+brew "colima"
 
 # Version control and development utilities
 brew "git-delta"

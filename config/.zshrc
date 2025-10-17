@@ -99,9 +99,6 @@ fi
 export NPM_CONFIG_PREFIX="${XDG_DATA_HOME:-$HOME/.local/share}/npm"
 export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
 
-# Enable Corepack (Yarn/Pnpm manager)
-have corepack && corepack enable --install-directory "$NPM_CONFIG_PREFIX/bin" 2>/dev/null
-
 # ============================================================================
 # Modern CLI Tools Aliases
 # ============================================================================
