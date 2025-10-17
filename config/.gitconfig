@@ -9,6 +9,7 @@
 	repositoryformatversion = 0
 	bare       = false
 	excludesfile = ~/.gitignore_global
+	pager      = delta
 
 [pull]
 	rebase = true
@@ -34,9 +35,23 @@
 	
 [diff]
 	tool = vimdiff
+	colorMoved = default
 
 [difftool]
 	prompt = false
+
+[interactive]
+	diffFilter = delta --color-only
+
+[delta]
+	navigate = true    # use n and N to move between diff sections
+	light = false      # set to true if you're in a terminal w/ a light background color
+	side-by-side = true
+	line-numbers = true
+	syntax-theme = GitHub
+
+[merge]
+	conflictstyle = diff3
 
 [credential]
 	helper = store

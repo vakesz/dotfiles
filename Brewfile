@@ -24,6 +24,7 @@ brew "tldr"
 brew "tig"
 brew "httpie"
 brew "nmap"
+brew "zoxide"
 
 # Text editors and IDE tools
 brew "neovim"
@@ -50,9 +51,10 @@ brew "llvm"
 
 # Container and deployment tools
 brew "docker"
-brew "docker-compose"
+brew "docker-buildx"
 
 # Version control and development utilities
+brew "git-delta"
 brew "node@22"
 brew "pre-commit"
 

@@ -1,14 +1,40 @@
-# Left prompt: path + languages + prompt char
-format = "$directory$python$nodejs$go$rust$zig$lua$character"
-add_newline = false
-# Right prompt: git + time
+# ============================================================================
+# Starship Prompt Configuration
+# A minimal, fast, and cross-platform prompt
+# ============================================================================
+
+# Main prompt format
+format = """
+$username\
+$hostname\
+$directory\
+$python\
+$nodejs\
+$go\
+$rust\
+$zig\
+$lua\
+$ruby\
+$docker_context\
+$package\
+$character"""
+
 right_format = "$git_branch$git_status$time"
 
+add_newline = false
+
+# ============================================================================
+# Directory
+# ============================================================================
 [directory]
-truncation_length = 0
+truncation_length = 3
 truncate_to_repo = false
 home_symbol = "~"
+read_only = " 🔒"
 
+# ============================================================================
+# Git Configuration
+# ============================================================================
 [git_branch]
 format = "git:$branch"
 style = "bold purple"
@@ -22,33 +48,81 @@ symbol = "Py"
 format = "[$symbol]($style)"
 version_format = ""
 pyenv_version_name = false
-detect_extensions = []
-detect_files = []
+style = "yellow bold"
+detect_extensions = ["py"]
+detect_files = [".python-version", "Pipfile", "requirements.txt", "pyproject.toml", "setup.py"]
 detect_folders = []
 
 [nodejs]
 symbol = "Node"
 format = "[$symbol]($style)"
+detect_extensions = ["js", "mjs", "cjs", "ts", "tsx"]
+detect_files = ["package.json", ".node-version", ".nvmrc"]
 
 [golang]
 symbol = "Go"
 format = "[$symbol]($style)"
+style = "bold cyan"
 
 [rust]
 symbol = "Rust"
 format = "[$symbol]($style)"
+style = "bold red"
 
 [zig]
 symbol = "Zig"
 format = "[$symbol]($style)"
+style = "bold yellow"
 
 [lua]
 symbol = "Lua"
 format = "[$symbol]($style)"
+style = "bold blue"
+
+[ruby]
+symbol = "Rb"
+format = "[$symbol]($style)"
+style = "bold red"
+detect_extensions = ["rb"]
+detect_files = ["Gemfile", ".ruby-version"]
+
+# ============================================================================
+# Development Tools
+# ============================================================================
+
+[docker_context]
+symbol = "🐳 "
+format = "[$symbol]($style)"
+style = "bold blue"
+only_with_files = true
+detect_files = ["docker-compose.yml", "docker-compose.yaml", "Dockerfile"]
+detect_folders = []
+
+[package]
+symbol = "📦 "
+format = "[$symbol]($style)"
+style = "208 bold"
+display_private = false
+
+# ============================================================================
+# System Information
+# ============================================================================
+
+[username]
+show_always = false
+format = "[$user]($style)@"
+style_user = "bold yellow"
+style_root = "bold red"
+
+[hostname]
+ssh_only = true
+format = "[$hostname]($style) in "
+style = "bold green"
+disabled = false
 
 [time]
 disabled = false
 format = "[ $time]($style)"
 time_format = "%R"
-utc_time_offset = "local"
-style = "italic dimmed white"
+style = "dimmed white"
+use_12hr = false
