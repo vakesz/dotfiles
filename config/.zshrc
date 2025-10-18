@@ -296,6 +296,13 @@ if have delta; then
     export GIT_PAGER='delta'
 fi
 
+if have nvim; then
+    alias vi='nvim'
+    alias vim='nvim'
+    export EDITOR='nvim'
+    export VISUAL='nvim'
+fi
+
 # ============================================================================
 # Starship Prompt
 # ============================================================================

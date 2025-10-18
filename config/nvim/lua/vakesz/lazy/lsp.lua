@@ -55,6 +55,8 @@ return {
                 "pyright",
                 "clangd",
                 "vue_ls",
+                "ts_ls",      -- TypeScript/JavaScript LSP
+                "sourcekit",  -- Swift LSP (requires Xcode)
             }, -- automatically install these servers
             handlers = {
                 function(server_name) -- default handler
@@ -130,9 +132,15 @@ return {
                                     autoSearchPaths = true,
                                     useLibraryCodeForTypes = true,
                                     diagnosticMode = "workspace",
+                                    typeCheckingMode = "basic", -- Enable type checking
                                 },
+                                pythonPath = vim.fn.exepath("python3"), -- Use system Python
                             },
                         },
+                        on_attach = function(client, bufnr)
+                            -- Disable Pyright's formatting in favor of ruff
+                            client.server_capabilities.documentFormattingProvider = false
+                        end,
                     })
                 end,
 
@@ -164,6 +172,56 @@ return {
                         init_options = {
                             vue = {
                                 hybridMode = false,
+                            },
+                        },
+                    })
+                end,
+
+                -- Swift language server (sourcekit-lsp)
+                ["sourcekit"] = function()
+                    local lspconfig = require("lspconfig")
+                    lspconfig.sourcekit.setup({
+                        capabilities = capabilities,
+                        cmd = {
+                            "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"
+                        },
+                        root_dir = lspconfig.util.root_pattern(
+                            "Package.swift",
+                            ".git",
+                            "*.xcodeproj",
+                            "*.xcworkspace"
+                        ),
+                        filetypes = { "swift", "objective-c", "objective-cpp" },
+                    })
+                end,
+
+                -- TypeScript/JavaScript language server
+                ["ts_ls"] = function()
+                    local lspconfig = require("lspconfig")
+                    lspconfig.ts_ls.setup({
+                        capabilities = capabilities,
+                        settings = {
+                            typescript = {
+                                inlayHints = {
+                                    includeInlayParameterNameHints = "all",
+                                    includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+                                    includeInlayFunctionParameterTypeHints = true,
+                                    includeInlayVariableTypeHints = true,
+                                    includeInlayPropertyDeclarationTypeHints = true,
+                                    includeInlayFunctionLikeReturnTypeHints = true,
+                                    includeInlayEnumMemberValueHints = true,
+                                },
+                            },
+                            javascript = {
+                                inlayHints = {
+                                    includeInlayParameterNameHints = "all",
+                                    includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+                                    includeInlayFunctionParameterTypeHints = true,
+                                    includeInlayVariableTypeHints = true,
+                                    includeInlayPropertyDeclarationTypeHints = true,
+                                    includeInlayFunctionLikeReturnTypeHints = true,
+                                    includeInlayEnumMemberValueHints = true,
+                                },
                             },
                         },
                     })
