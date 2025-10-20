@@ -1,45 +1,63 @@
 # Brewfile for dotfiles setup
 # Install with: brew bundle
 
-# Core development tools
+# ============================================================================
+# Core Development Tools
+# ============================================================================
 brew "git"
+brew "git-delta"           # Better git diff viewer
 brew "curl"
 brew "wget"
 brew "jq"
+brew "tree-sitter"         # Parser generator for syntax highlighting
 
-
-# Shell and terminal tools
+# ============================================================================
+# Shell and Terminal Tools
+# ============================================================================
 brew "zsh"
-brew "starship"
+brew "starship"            # Cross-shell prompt
 brew "zsh-autosuggestions"
 brew "zsh-fast-syntax-highlighting"
 brew "zsh-completions"
 brew "tmux"
-brew "fzf"
-brew "ripgrep"
-brew "fd"
-brew "lsd"
-brew "bat"
-brew "tldr"
-brew "tig"
-brew "httpie"
-brew "nmap"
-brew "zoxide"
+brew "fzf"                 # Fuzzy finder
+brew "ripgrep"             # Fast grep alternative
+brew "fd"                  # Fast find alternative
+brew "lsd"                 # Modern ls
+brew "bat"                 # Cat with syntax highlighting
+brew "tldr"                # Simplified man pages
+brew "tig"                 # Text-mode interface for git
+brew "httpie"              # HTTP client
+brew "nmap"                # Network mapper
+brew "zoxide"              # Smart cd command
 
-# Text editors and IDE tools
+# ============================================================================
+# Text Editors and IDE Tools
+# ============================================================================
 brew "neovim"
-brew "shellcheck"
-brew "clang-format"
+brew "shellcheck"          # Shell script analyzer
 
-# Programming languages and runtimes
+# ============================================================================
+# Programming Languages and Runtimes
+# ============================================================================
 brew "go"
 brew "python"
 brew "rust"
 brew "zig"
 brew "lua"
 brew "ruby"
+brew "node@22"
+brew "deno"                # TypeScript/JavaScript runtime (for peek.nvim)
 
-# Build tools and compilers
+# ============================================================================
+# Language-Specific Package Managers
+# ============================================================================
+brew "pnpm"                # Fast npm alternative
+brew "pipx"                # Install Python apps in isolated environments
+
+# ============================================================================
+# Build Tools and Compilers
+# ============================================================================
 brew "cmake"
 brew "make"
 brew "ninja"
@@ -49,44 +67,53 @@ brew "automake"
 brew "gcc"
 brew "llvm"
 
-# Container and deployment tools
+# ============================================================================
+# Code Formatters and Linters
+# ============================================================================
+brew "stylua"              # Lua formatter
+brew "prettier"            # JavaScript/TypeScript/JSON/YAML/Markdown formatter
+brew "clang-format"        # C/C++/Objective-C formatter
+brew "black"               # Python formatter (backup - ruff_format is preferred)
+brew "ruff"                # Fast Python linter and formatter
+
+# ============================================================================
+# Testing Tools
+# ============================================================================
+brew "pytest"              # Python testing framework
+
+# ============================================================================
+# Debuggers and Analyzers
+# ============================================================================
+brew "gdb"                 # GNU debugger
+brew "cppcheck"            # C/C++ static analyzer
+
+# ============================================================================
+# Container and Deployment Tools
+# ============================================================================
 brew "docker"
 brew "docker-buildx"
 brew "docker-compose"
-brew "colima"
+brew "colima"              # Container runtime for macOS/Linux
 
-# Version control and development utilities
-brew "git-delta"
-brew "tree-sitter"
-brew "node@22"
-brew "pre-commit"
-brew "cppcheck"            # C/C++ static analyzer
-brew "gdb"                 # GNU debugger
-
-# iOS Development Tools
+# ============================================================================
+# iOS Development Tools (macOS only)
+# ============================================================================
 brew "xcodegen" if OS.mac?
-brew "swiftlint"           # Swift linter
-brew "swiftformat"         # Swift formatter
-brew "xcbeautify"          # Beautify xcodebuild output
+brew "swiftlint" if OS.mac?           # Swift linter
+brew "swiftformat" if OS.mac?         # Swift formatter
+brew "xcbeautify" if OS.mac?          # Beautify xcodebuild output
+brew "xcinfo" if OS.mac?              # Simulator management
 
-# iOS Simulator management
-brew "xcinfo" if OS.mac?              # Get info about simulators
-
-# Language-specific package managers and tools
-brew "pnpm"
-brew "pipx"
-
-# Additional utilities
-brew "mc"
-brew "hugo"
+# ============================================================================
+# Additional Utilities
+# ============================================================================
+brew "mc"                  # Midnight Commander
+brew "hugo"                # Static site generator
 brew "fontconfig"
+brew "pre-commit"          # Git pre-commit hook framework
+brew "topgrade"            # Update everything
 
-# macOS specific applications (will be ignored on Linux)
+# ============================================================================
+# macOS Applications
+# ============================================================================
 cask "font-jetbrains-mono-nerd-font" if OS.mac?
-
-# VSCode extensions and tools
-brew "prettier"
-brew "black"
-brew "ruff"
-brew "pytest"
-brew "topgrade"

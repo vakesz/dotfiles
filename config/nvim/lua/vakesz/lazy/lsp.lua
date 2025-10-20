@@ -56,7 +56,6 @@ return {
                 "clangd",
                 "vue_ls",
                 "ts_ls",      -- TypeScript/JavaScript LSP
-                "sourcekit",  -- Swift LSP (requires Xcode)
             }, -- automatically install these servers
             handlers = {
                 function(server_name) -- default handler

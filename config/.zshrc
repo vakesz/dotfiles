@@ -99,6 +99,35 @@ fi
 export NPM_CONFIG_PREFIX="${XDG_DATA_HOME:-$HOME/.local/share}/npm"
 export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
 
+# Go
+export GOPATH="${GOPATH:-$HOME/go}"
+export PATH="$GOPATH/bin:$PATH"
+
+# Rust/Cargo
+export CARGO_HOME="${CARGO_HOME:-$HOME/.cargo}"
+export PATH="$CARGO_HOME/bin:$PATH"
+
+# Python (pipx global binaries)
+export PATH="${XDG_DATA_HOME:-$HOME/.local/share}/pipx/venvs/bin:$PATH"
+
+# Zig
+if [[ -n "$HOMEBREW_PREFIX" && -x "$HOMEBREW_PREFIX/bin/zig" ]]; then
+    export PATH="$HOMEBREW_PREFIX/bin:$PATH"
+fi
+
+# LLVM (Homebrew keg-only) - Useful for clang, clang-format, etc.
+if [[ -n "$HOMEBREW_PREFIX" && -d "$HOMEBREW_PREFIX/opt/llvm/bin" ]]; then
+    export PATH="$HOMEBREW_PREFIX/opt/llvm/bin:$PATH"
+    export LDFLAGS="-L$HOMEBREW_PREFIX/opt/llvm/lib${LDFLAGS:+ $LDFLAGS}"
+    export CPPFLAGS="-I$HOMEBREW_PREFIX/opt/llvm/include${CPPFLAGS:+ $CPPFLAGS}"
+fi
+
+# Deno (for peek.nvim and other Deno tools)
+if [[ -n "$HOMEBREW_PREFIX" && -x "$HOMEBREW_PREFIX/bin/deno" ]]; then
+    export DENO_INSTALL="${XDG_DATA_HOME:-$HOME/.local/share}/deno"
+    export PATH="$DENO_INSTALL/bin:$PATH"
+fi
+
 # ============================================================================
 # Modern CLI Tools Aliases
 # ============================================================================
@@ -179,27 +208,6 @@ alias pip='pip3'
 venv() {
     [ -d .venv ] || python3 -m venv .venv
     source .venv/bin/activate
-}
-
-# ============================================================================
-# Development Utilities
-# ============================================================================
-
-# Quick server (Python)
-alias serve='python3 -m http.server'
-
-# Find and kill process by port
-killport() {
-    if [[ -z "$1" ]]; then
-        echo "Usage: killport <port>"
-        return 1
-    fi
-    lsof -ti:$1 | xargs kill -9
-}
-
-# Make directory and cd into it
-mkcd() {
-    mkdir -p "$1" && cd "$1"
 }
 
 # ============================================================================
@@ -296,12 +304,42 @@ if have delta; then
     export GIT_PAGER='delta'
 fi
 
+# ============================================================================
+# Ripgrep Configuration
+# ============================================================================
+if have rg; then
+    # Use ripgrep config file if it exists
+    export RIPGREP_CONFIG_PATH="$XDG_CONFIG_HOME/ripgrep/ripgreprc"
+fi
+
+# ============================================================================
+# Editor Configuration
+# ============================================================================
 if have nvim; then
     alias vi='nvim'
     alias vim='nvim'
     export EDITOR='nvim'
     export VISUAL='nvim'
+    export MANPAGER='nvim +Man!'  # Use nvim as man pager
 fi
+
+# ============================================================================
+# Less/Pager Configuration
+# ============================================================================
+export LESS='-R -F -X -i'  # Raw color codes, quit if one screen, no init, case-insensitive search
+export LESSHISTFILE="$XDG_STATE_HOME/less/history"
+
+# ============================================================================
+# Python Configuration
+# ============================================================================
+export PYTHONSTARTUP="${XDG_CONFIG_HOME:-$HOME/.config}/python/pythonrc"
+export PYTHON_HISTORY="${XDG_STATE_HOME:-$HOME/.local/state}/python/history"
+export PYTHONPYCACHEPREFIX="${XDG_CACHE_HOME:-$HOME/.cache}/python"
+export PYTHONUSERBASE="${XDG_DATA_HOME:-$HOME/.local/share}/python"
+
+# pip - use XDG directories
+export PIP_CONFIG_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/pip/pip.conf"
+export PIP_LOG_FILE="${XDG_STATE_HOME:-$HOME/.local/state}/pip/log"
 
 # ============================================================================
 # Starship Prompt
