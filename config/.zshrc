@@ -107,6 +107,14 @@ export PATH="$GOPATH/bin:$PATH"
 export CARGO_HOME="${CARGO_HOME:-$HOME/.cargo}"
 export PATH="$CARGO_HOME/bin:$PATH"
 
+# Python 3.13 (Homebrew keg-only) - Force this to be the only Python
+if [[ -n "$HOMEBREW_PREFIX" && -x "$HOMEBREW_PREFIX/opt/python@3.13/bin/python3.13" ]]; then
+    export PATH="$HOMEBREW_PREFIX/opt/python@3.13/bin:$PATH"
+    export LDFLAGS="-L$HOMEBREW_PREFIX/opt/python@3.13/lib${LDFLAGS:+ $LDFLAGS}"
+    export CPPFLAGS="-I$HOMEBREW_PREFIX/opt/python@3.13/include${CPPFLAGS:+ $CPPFLAGS}"
+    export PKG_CONFIG_PATH="$HOMEBREW_PREFIX/opt/python@3.13/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+fi
+
 # Python (pipx global binaries)
 export PATH="${XDG_DATA_HOME:-$HOME/.local/share}/pipx/venvs/bin:$PATH"
 
@@ -201,12 +209,16 @@ fi
 # ============================================================================
 # Python Aliases & Functions
 # ============================================================================
-alias py='python3'
-alias pip='pip3'
+# Ensure python and python3 always point to Python 3.13
+alias python='python3.13'
+alias python3='python3.13'
+alias py='python3.13'
+alias pip='pip3.13'
+alias pip3='pip3.13'
 
 # Quick virtual environment activation
 venv() {
-    [ -d .venv ] || python3 -m venv .venv
+    [ -d .venv ] || python3.13 -m venv .venv
     source .venv/bin/activate
 }
 
