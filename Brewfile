@@ -41,7 +41,7 @@ brew "shellcheck"          # Shell script analyzer
 # Programming Languages and Runtimes
 # ============================================================================
 brew "go"
-brew "python"
+brew "python@3.13"
 brew "rust"
 brew "zig"
 brew "lua"
