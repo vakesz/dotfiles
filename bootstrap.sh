@@ -100,7 +100,7 @@ PACKAGES=(
 for package in "${PACKAGES[@]}"; do
     if [[ -d "$package" ]]; then
         log "  Stowing $package..."
-        if stow -v "$package" 2>&1 | grep -q "LINK"; then
+        if stow -v -t "$HOME" "$package" 2>&1 | grep -q "LINK"; then
             success "  Linked $package"
         else
             success "  $package already linked"
