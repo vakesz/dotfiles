@@ -1,19 +1,31 @@
 #!/usr/bin/env bash
 
-# Platform detection utilities
+# Platform detection utilities with caching for performance
+
+# Cache OS detection result to avoid repeated filesystem access
+_DETECTED_OS=""
 
 detect_os() {
+    # Return cached value if already detected
+    if [[ -n "$_DETECTED_OS" ]]; then
+        echo "$_DETECTED_OS"
+        return 0
+    fi
+
+    # Detect OS and cache result
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        echo "macos"
+        _DETECTED_OS="macos"
     elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
         if grep -qi microsoft /proc/sys/kernel/osrelease 2>/dev/null; then
-            echo "wsl"
+            _DETECTED_OS="wsl"
         else
-            echo "linux"
+            _DETECTED_OS="linux"
         fi
     else
-        echo "unknown"
+        _DETECTED_OS="unknown"
     fi
+
+    echo "$_DETECTED_OS"
 }
 
 is_macos() {

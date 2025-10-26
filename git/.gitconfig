@@ -53,8 +53,10 @@
 [merge]
 	conflictstyle = diff3
 
-[credential]
-	helper = store
+# Platform-specific configurations (credential storage)
+# These are symlinked during installation based on detected OS
+[include]
+	path = ~/.gitconfig.platform
 
 [color]
 	ui = auto

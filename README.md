@@ -1,45 +1,48 @@
-# Dotfiles Setup
+# Dotfiles
 
-Cross-platform dotfiles that bootstrap a productive development environment using Homebrew. Works seamlessly on macOS, Linux, and WSL2.
+Personal dotfiles for macOS and Linux development environments, managed with GNU Stow.
 
-## ✨ Features
-
-- **Cross-Platform**: Single setup works on macOS, Linux, and WSL2
-- **Homebrew-Powered**: Unified package management across all platforms
-- **Symlinked Configs**: Live-updating dotfiles - changes sync automatically
-- **Idempotent**: Safe to re-run anytime for updates
-- **Modular Design**: Clean, maintainable architecture
+Cross-platform setup using Homebrew for package management and GNU Stow for symlink management. Works seamlessly on macOS, Linux, and WSL2.
 
 ## 🚀 Quick Start
 
 ```bash
-git clone https://github.com/vakesz/dotfiles.git ~/.dotfiles
-cd ~/.dotfiles
-chmod +x install.sh
-./install.sh
+git clone https://github.com/vakesz/dotfiles.git ~/dotfiles
+cd ~/dotfiles
+./bootstrap.sh
 ```
-
-Restart your shell: `exec $SHELL`
 
 ## 📁 Repository Structure
 
 ```text
 dotfiles/
+├── zsh/                        # Zsh shell configuration
+│   ├── .zshrc                 # Main zsh config
+│   └── .zshrc.d/              # Modular config directory (add custom modules here)
+├── git/                        # Git configuration
+│   ├── .gitconfig             # Main git config
+│   ├── .gitconfig.macos       # macOS-specific (Keychain credentials)
+│   ├── .gitconfig.linux       # Linux-specific (cache credentials)
+│   └── .gitignore_global      # Global gitignore
+├── nvim/                       # Neovim configuration
+│   └── .config/nvim/          # Neovim config directory
+├── tmux/                       # Tmux configuration
+│   └── .tmux.conf
+├── starship/                   # Starship prompt
+│   └── .config/starship.toml
+├── shell-profile/              # Shell profile
+│   └── .profile
+├── lib/                        # Helper libraries
+│   ├── platform.sh            # Platform detection
+│   ├── brew.sh                # Homebrew utilities
+│   ├── symlink.sh             # Symlink management
+│   └── permissions.sh         # Security utilities
 ├── Brewfile                    # All packages via Homebrew
-├── install.sh                  # Main installer script
-├── lib/                        # Modular utilities
-│   ├── brew.sh                 # Homebrew management
-│   ├── platform.sh             # OS detection & logging
-│   └── symlink.sh              # Symlinking logic
-├── config/                     # Dotfiles (symlinked to ~/)
-│   ├── .gitconfig
-│   ├── .zshrc
-│   ├── .tmux.conf
-│   └── .config/
-│       ├── nvim/               # Neovim configuration
-│       └── .p10k.zsh           # Powerlevel10k theme
+├── bootstrap.sh                # Simple installer
 └── README.md
 ```
+
+Each top-level directory (`zsh`, `git`, `nvim`, etc.) is a **Stow package** that can be installed independently.
 
 ## 🛠 Development Stack
 
@@ -68,57 +71,28 @@ dotfiles/
 - Various linters: shellcheck, prettier, eslint, black, ruff
 - Build tools: cmake, make, ninja, gcc, llvm
 
-### CLI Utilities
-
-- Modern replacements: `lsd`, `bat`, `fd`, `ripgrep`
-- System tools: `htop`, `tree`, `jq`, `httpie`, `nmap`
-- Development: `fzf`, `tig`, `tldr`, `pre-commit`
-
 ## 💻 Usage
 
-### Installation Options
+### Installation
 
 ```bash
 # Full installation (recommended)
-./install.sh
+./bootstrap.sh
 
-# Update existing setup
-./install.sh --update
+# Or install packages individually with Stow
+cd ~/dotfiles
+stow zsh git nvim tmux starship shell-profile
 
-# Skip package installation (configs only)
-./install.sh --skip-packages
+# Install only specific packages
+stow zsh git  # Just shell and git configs
 
-# Skip symlinking (packages only)
-./install.sh --skip-symlinks
-
-# Clean up broken symlinks
-./install.sh --cleanup
-
-# Show help
-./install.sh --help
+# Uninstall/remove symlinks
+stow -D zsh   # Remove zsh config symlinks
 ```
-
-### Adding New Packages
-
-Simply edit `Brewfile` and add your package:
-
-```ruby
-# Add a CLI tool
-brew "your-package"
-
-# Add a desktop app (macOS only)
-cask "your-app" if OS.mac?
-
-# Add from a tap
-tap "owner/repo"
-brew "special-package"
-```
-
-Then run: `./install.sh --update`
 
 ### Customizing Configs
 
-All configs are in `config/` and automatically symlinked to your home directory. Make changes directly in the repo - they'll be reflected immediately since they're symlinked.
+All configs are in Stow packages and automatically symlinked to your home directory. Make changes directly in the repo - they'll be reflected immediately since they're symlinked.
 
 ## 🔧 Platform-Specific Notes
 
@@ -134,63 +108,6 @@ All configs are in `config/` and automatically symlinked to your home directory.
 - Sets up proper locale configuration for WSL2
 - Handles font installation via fontconfig
 - Installs build essentials automatically
-
-## 🔄 Maintenance
-
-### Keep Everything Updated
-
-```bash
-cd ~/.dotfiles
-git pull
-./install.sh --update
-```
-
-### Manage Homebrew
-
-```bash
-# Update package list
-brew bundle dump --force
-
-# Check what would be installed/removed
-brew bundle --dry-run
-
-# Clean up
-brew cleanup
-```
-
-## 🗂 Migration Guide
-
-If migrating from the old apt-based setup:
-
-1. **Backup**: The installer automatically backs up existing configs
-2. **Run**: Execute `./install.sh` - it handles the migration
-3. **Verify**: Check that symlinks are working: `ls -la ~/ | grep -E '\->'`
-4. **Cleanup**: Remove old installation files when satisfied
-
-## 🆘 Troubleshooting
-
-### Broken Symlinks
-
-```bash
-./install.sh --cleanup
-```
-
-### Permission Issues
-
-```bash
-# Fix Homebrew permissions
-sudo chown -R $(whoami) $(brew --prefix)/*
-```
-
-### Missing Dependencies
-
-```bash
-# Reinstall Homebrew
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
-./install.sh
-```
-
-## 📝 License
 
 Personal configuration repository. Fork and adapt as needed.
 
