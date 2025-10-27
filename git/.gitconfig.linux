@@ -1,7 +1,0 @@
-# Linux-specific Git configuration
-[credential]
-	# Use libsecret for secure credential storage
-	# Install with: sudo apt-get install libsecret-1-0 libsecret-1-dev
-	# Then build: sudo make --directory=/usr/share/doc/git/contrib/credential/libsecret
-	# Or fallback to cache with 1 hour timeout
-	helper = cache --timeout=3600

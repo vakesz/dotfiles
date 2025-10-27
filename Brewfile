@@ -10,7 +10,6 @@ brew "curl"
 brew "wget"
 brew "jq"
 brew "tree-sitter"         # Parser generator for syntax highlighting
-brew "stow"                # Symlink farm manager
 brew "gpg"                 # GNU Privacy Guard for signing commits
 
 # ============================================================================

@@ -11,41 +11,14 @@ install_homebrew() {
         return 0
     fi
 
-    log "Homebrew package manager needs to be installed"
-    log ""
-    log "Homebrew will be installed from: https://brew.sh"
-    log "Installation script: https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
-    log ""
-    log "Note: This will download and execute the official Homebrew installation script."
-    log "You can review the script at: https://github.com/Homebrew/install"
-    log ""
-
-    # Ask for confirmation
-    read -p "Proceed with Homebrew installation? [y/N]: " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        error "Homebrew installation cancelled by user"
-        error "Homebrew is required for package management"
-        error "Please install manually from https://brew.sh"
-        return 1
-    fi
-
     log "Installing Homebrew..."
-
-    local install_url="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
 
     if is_macos; then
         # macOS installation
-        if ! /bin/bash -c "$(curl -fsSL "$install_url")"; then
-            error "Homebrew installation failed"
-            return 1
-        fi
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     else
         # Linux/WSL installation
-        if ! /bin/bash -c "$(curl -fsSL "$install_url")"; then
-            error "Homebrew installation failed"
-            return 1
-        fi
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
         # Add Homebrew to PATH for Linux/WSL
         if [[ -d /home/linuxbrew/.linuxbrew ]]; then
@@ -58,12 +31,8 @@ install_homebrew() {
     # Verify installation
     if command -v brew >/dev/null 2>&1; then
         success "Homebrew installed successfully"
-
-        # Run brew doctor to verify installation
-        log "Verifying Homebrew installation..."
-        brew doctor || warn "Homebrew installation may have issues (run 'brew doctor' for details)"
     else
-        error "Homebrew installation verification failed"
+        error "Homebrew installation failed"
         return 1
     fi
 }
