@@ -27,6 +27,12 @@ set_secure_permissions() {
     for file in "${sensitive_files[@]}"; do
         local target="$HOME/$file"
         if [[ -f "$target" || -L "$target" ]]; then
+            # Skip broken symlinks
+            if [[ -L "$target" ]] && ! readlink -e "$target" >/dev/null 2>&1; then
+                warn "Skipping broken symlink: $file"
+                continue
+            fi
+            
             # Get current permissions
             local current_perms
             if is_macos; then

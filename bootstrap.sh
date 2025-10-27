@@ -74,14 +74,16 @@ else
     warn "Brewfile not found, skipping package installation"
 fi
 
-# Install GNU Stow if not present
-if ! command -v stow >/dev/null 2>&1; then
-    log "Installing GNU Stow..."
-    brew install stow
-    success "GNU Stow installed"
-else
-    success "GNU Stow already installed"
-fi
+# Clean up old broken symlinks from previous installation methods
+log "Cleaning up old broken symlinks..."
+for link in "$HOME/.gitconfig" "$HOME/.zshrc" "$HOME/.profile" "$HOME/.tmux.conf" \
+            "$HOME/.gitignore_global" "$HOME/.gitconfig.platform" \
+            "$HOME/.config/starship.toml"; do
+    if [[ -L "$link" ]] && ! readlink -e "$link" >/dev/null 2>&1; then
+        log "  Removing broken symlink: $(basename "$link")"
+        rm -f "$link"
+    fi
+done
 
 # Stow packages
 log "Creating symlinks with GNU Stow..."
@@ -110,12 +112,20 @@ done
 
 # Set up platform-specific Git config
 log "Setting up platform-specific Git configuration..."
-if [[ "$OS" == "macos" && -f "$HOME/.gitconfig.macos" ]]; then
-    ln -sf "$HOME/.gitconfig.macos" "$HOME/.gitconfig.platform"
-    success "Linked Git config for macOS"
-elif [[ -f "$HOME/.gitconfig.linux" ]]; then
-    ln -sf "$HOME/.gitconfig.linux" "$HOME/.gitconfig.platform"
-    success "Linked Git config for Linux"
+if [[ "$OS" == "macos" ]]; then
+    if [[ -f "$HOME/.gitconfig.macos" ]]; then
+        ln -sf "$HOME/.gitconfig.macos" "$HOME/.gitconfig.platform"
+        success "Linked Git config for macOS"
+    else
+        warn "macOS Git config not found"
+    fi
+elif [[ "$OS" == "linux" || "$OS" == "wsl" ]]; then
+    if [[ -f "$HOME/.gitconfig.linux" ]]; then
+        ln -sf "$HOME/.gitconfig.linux" "$HOME/.gitconfig.platform"
+        success "Linked Git config for Linux/WSL"
+    else
+        warn "Linux Git config not found"
+    fi
 fi
 
 # Source security/permissions library and set secure permissions
