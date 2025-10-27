@@ -1,8 +1,8 @@
-# Neovim Keymaps & Plugin Commands
+# Neovim Keymaps Reference
 
 `<leader>` = Space
 
-This document is generated from actual config under `lua/vakesz/` (lazy specs + remaps + LSP attach). Keep it in sync when adding/removing plugins or mappings.
+Quick reference for all keymaps in this Neovim configuration. Generated from `config/nvim/lua/vakesz/`.
 
 ---
 
@@ -13,13 +13,13 @@ This document is generated from actual config under `lua/vakesz/` (lazy specs + 
 | `<leader>pv` | n | Open netrw (`:Ex`) file explorer |
 | `J` | n | Join line below, keep cursor in place |
 | `J` / `K` | v | Move selected lines down / up |
-| `<C-d>` / `<C-u>` | n | Half‑page down / up & center view |
+| `<C-d>` / `<C-u>` | n | Half-page down / up & center view |
 | `n` / `N` | n | Next / previous search result centered |
 | `=ap` | n | Reindent paragraph (restores cursor) |
 | `<leader>zig` | n | Restart all LSP clients (`:LspRestart`) |
 | `<leader>p` | x | Paste over selection without yanking (blackhole) |
 | `<leader>y` / `<leader>Y` | n,v / n | Yank to system clipboard (linewise for `Y`) |
-| `<leader>d` | n,v | Delete without yanking |
+| `<leader>d` | n,v | Delete without yanking (blackhole) |
 | `<C-c>` | i | Escape to Normal mode |
 | `Q` | n | Disabled (no-op) |
 | `<leader>tp` | n | Run Plenary test file (`<Plug>PlenaryTestFile`) |
@@ -32,7 +32,7 @@ This document is generated from actual config under `lua/vakesz/` (lazy specs + 
 | `<leader>ea` | n | Insert `assert.NoError(err, "")` snippet |
 | `<leader>ef` | n | Insert `log.Fatalf` error snippet |
 | `<leader>el` | n | Insert structured logger error snippet |
-| `<leader>ca` | n | Cellular Automaton “make it rain” animation |
+| `<leader>ca` | n | Cellular Automaton "make it rain" animation |
 | `<leader><leader>` | n | Source current file (`:so`) |
 
 ## Basic Vim Operations (Essentials)
@@ -132,19 +132,28 @@ Tip: If you accidentally yank something over your unnamed register but wanted to
 | `<M-h>` | Open project in vertical split (sessionizer) |
 | `<M-H>` | Open project in new tmux window (sessionizer) |
 
-## LSP (buffer‑local, set on `LspAttach`)
+## LSP (buffer-local, set on `LspAttach`)
 
 | Keys | Mode | Action |
 |------|------|--------|
 | `gd` | n | Go to definition |
-| `K` | n | Hover docs |
+| `K` | n | Hover documentation |
 | `<leader>vws` | n | Workspace symbol search |
-| `<leader>vd` | n | Line diagnostics float |
+| `<leader>vd` | n | Show line diagnostics in float |
 | `<leader>vca` | n | Code actions |
-| `<leader>vrr` | n | References |
+| `<leader>vrr` | n | Show references |
 | `<leader>vrn` | n | Rename symbol |
 | `<C-h>` | i | Signature help |
 | `[d` / `]d` | n | Next / previous diagnostic |
+
+### Completion (nvim-cmp)
+
+| Keys | Mode | Action |
+|------|------|--------|
+| `<C-p>` | i | Select previous completion item |
+| `<C-n>` | i | Select next completion item |
+| `<C-y>` | i | Confirm selection |
+| `<C-Space>` | i | Trigger completion manually |
 
 ## Telescope (fuzzy finding)
 
@@ -156,22 +165,33 @@ Tip: If you accidentally yank something over your unnamed register but wanted to
 | `<leader>pWs` | Grep WORD under cursor |
 | `<leader>ps` | Grep with prompt input |
 | `<leader>vh` | Help tags |
+| `<leader>ft` | Find TODO comments in project |
 
-## Testing (neotest + Go adapter)
+## Testing (neotest)
+
+Supports Go, Python, Zig, and PHP test adapters.
 
 | Keys | Action |
 |------|--------|
 | `<leader>tc` | Run nearest test |
 | `<leader>tf` | Run all tests in current file |
+| `<leader>td` | Debug nearest test (with DAP) |
+| `<leader>ts` | Toggle test summary panel |
+| `<leader>to` | Open test output window |
+| `<leader>tS` | Stop running tests |
 
 ## Debugging (nvim-dap + dap-ui)
+
+Supports Go (delve), Python (debugpy), C/C++/Rust/Swift (codelldb) debuggers.
 
 | Keys | Action |
 |------|--------|
 | `<leader>dt` | Toggle breakpoint |
-| `<leader>dc` | Start / Continue |
-| `<leader>dx` | Terminate session |
+| `<leader>dc` | Start / Continue debugging |
+| `<leader>dx` | Terminate debugging session |
 | `<leader>do` | Step over |
+
+UI automatically opens/closes with debug sessions.
 
 ## Diagnostics & Lists (Trouble.nvim)
 
@@ -192,6 +212,16 @@ Trouble provides multiple toggles (each opens/closes its dedicated view):
 |------|--------|
 | `<leader>u` | Toggle Undotree panel |
 
+## TODO Comments
+
+Highlights and navigates TODO, FIXME, HACK, WARN, PERF, NOTE, TEST comments in code.
+
+| Keys | Action |
+|------|--------|
+| `]t` | Jump to next TODO comment |
+| `[t` | Jump to previous TODO comment |
+| `<leader>ft` | Find all TODOs with Telescope |
+
 ## Git (vim-fugitive)
 
 | Keys | Context | Action |
@@ -203,46 +233,32 @@ Trouble provides multiple toggles (each opens/closes its dedicated view):
 | `gu` | merge diff | Accept OURS (diffget //2) |
 | `gh` | merge diff | Accept THEIRS (diffget //3) |
 
-## Markdown Preview (peek.nvim)
-
-| Command | Action |
-|---------|--------|
-| `:PeekOpen` | Open browser live preview |
-| `:PeekClose` | Close preview |
-
 ## Misc / Aesthetics
 
-| Aspect | Command / Notes |
-|--------|-----------------|
-| Colorscheme | `rose-pine-moon` (default) / auto-switch to `rose-pine-dawn` for Zig buffers |
-| Treesitter | Auto install & highlight (some large/html exclusions) |
-| Clipboard | Uses system clipboard for `<leader>y` / `<leader>Y` |
+| Aspect | Notes |
+|--------|-------|
+| Colorscheme | `rose-pine-moon` (default), auto-switches to `rose-pine-dawn` for Zig files |
+| Treesitter | Auto-install & syntax highlighting for all languages |
+| Clipboard | System clipboard integration via `<leader>y` / `<leader>Y` |
+| Auto-trim | Trailing whitespace removed on save |
+| Yank highlight | Briefly highlights yanked text |
 
 ## Plugin Commands & Entrypoints
 
 | Plugin | Primary Commands / Notes |
 |--------|--------------------------|
-| lazy.nvim | `:Lazy` (manage plugins) |
-| trouble.nvim | `:Trouble diagnostics toggle`, `:Trouble symbols toggle` etc. (mappings above) |
+| lazy.nvim | `:Lazy` - Manage plugins (install, update, clean) |
+| trouble.nvim | `:Trouble diagnostics toggle`, `:Trouble symbols toggle` |
 | vim-fugitive | `:Git`, `:Gdiffsplit`, `:Gblame`, `:Git commit` |
-| undotree | `:UndotreeToggle` (mapped) |
-| vim-be-good | `:VimBeGood` (launch mini-games) |
-| peek.nvim | `:PeekOpen`, `:PeekClose` |
-| nvim-dap / dap-ui | Programmatic (see keymaps); also `:lua require'dap'.repl.open()` |
+| undotree | `:UndotreeToggle` (mapped to `<leader>u`) |
+| nvim-dap / dap-ui | Use keymaps; `:lua require'dap'.repl.open()` for REPL |
 | conform.nvim | Format via `<leader>f` or `:lua require'conform'.format()` |
-| gitsigns.nvim | Inline signs & blame (no custom keymaps yet) |
-| which-key.nvim | `<leader>?` (buffer local keymaps popup) |
-| neotest | No default cmd; use keymaps or `:lua require('neotest').summary.toggle()` |
-| telescope.nvim | `:Telescope` plus mapped pickers |
-| mason.nvim | `:Mason` (manage external tools) |
-| nvim-treesitter-context | Auto context window (no keymaps) |
-| friendly-snippets / LuaSnip | Used through completion/snippets integration |
-
-## Which-Key Helper
-
-| Keys | Action |
-|------|--------|
-| `<leader>?` | Show buffer-local mappings via which-key |
+| which-key.nvim | `<leader>?` - Show buffer-local keymaps |
+| neotest | Use keymaps; `:lua require('neotest').summary.toggle()` |
+| telescope.nvim | `:Telescope` - Browse all pickers |
+| mason.nvim | `:Mason` - Manage LSP servers, DAP adapters, linters |
+| todo-comments.nvim | `:TodoTelescope`, `:TodoQuickFix`, `:TodoLocList` |
+| GitHub Copilot | Auto-completion integration via nvim-cmp |
 
 ## Built-In Essentials (Reference)
 
@@ -258,19 +274,36 @@ Trouble provides multiple toggles (each opens/closes its dedicated view):
 | Start / End of line | `0` / `$` |
 | Clear search highlight | `:noh` |
 
-## Discovering / Auditing Keymaps
+## Installed LSP Servers
+
+Auto-installed via mason-lspconfig:
+
+- **Lua**: `lua_ls` (with stylua formatting)
+- **Rust**: `rust_analyzer`
+- **Go**: `gopls` (with gofumpt)
+- **Zig**: `zls`
+- **Python**: `pyright` (formatting disabled, use ruff)
+- **C/C++**: `clangd`
+- **Vue**: `vue_ls`
+- **TypeScript/JavaScript**: `ts_ls`
+- **Swift**: `sourcekit` (via Xcode toolchain)
+
+## Discovering Keymaps
 
 | Task | Command |
 |------|---------|
-| List leader maps | `:verbose map <leader>` |
-| All mappings (normal) | `:nmap` |
-| Telescope keymaps picker | `:Telescope keymaps` |
+| Show all leader mappings | `:verbose map <leader>` |
+| Show all normal mode mappings | `:nmap` |
+| Browse keymaps with Telescope | `:Telescope keymaps` |
+| Show buffer-local keymaps | `<leader>?` (which-key) |
 
-## Maintenance Notes
+## Maintenance
 
-- When adding a plugin keymap, place it in its lazy spec or an LspAttach autocmd and update this file.
-- No explicit keymaps defined yet for: gitsigns (consider adding hunk navigation), treesitter-context toggle, peek auto-refresh, etc.
-- `:Gold` command requested in brief but not present in config (no matching plugin/command). Add the relevant plugin or remove mention if unneeded.
+When adding plugin keymaps:
+1. Define them in the plugin's lazy spec file (`lua/vakesz/lazy/*.lua`)
+2. For LSP keymaps, add to the `LspAttach` autocmd in `lua/vakesz/init.lua`
+3. Update this KEYMAPS.md file
 
 ---
-Happy hacking.
+
+Happy hacking!
