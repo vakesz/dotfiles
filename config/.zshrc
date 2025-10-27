@@ -173,7 +173,11 @@ alias gf='git fetch'
 # ============================================================================
 
 # Python virtual environment helper
-alias py='python3'
+alias python='python3.13'
+alias python3='python3.13'
+alias pip='pip3.13'
+alias pip3='pip3.13'
+alias py='python3.13'
 
 # Quick virtual environment activation
 venv() {
