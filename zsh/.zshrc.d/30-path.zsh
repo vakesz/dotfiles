@@ -38,8 +38,9 @@ export PATH="$GOPATH/bin:$PATH"
 export CARGO_HOME="${CARGO_HOME:-$HOME/.cargo}"
 export PATH="$CARGO_HOME/bin:$PATH"
 
-# Python 3.13 (Homebrew keg-only) - Force this to be the only Python
-if [[ -n "$HOMEBREW_PREFIX" && -x "$HOMEBREW_PREFIX/opt/python@3.13/bin/python3.13" ]]; then
+# Python 3.13 (Homebrew keg-only) - Only on macOS
+# On Linux, use system Python to avoid issues with missing ensurepip wheels
+if [[ "$OSTYPE" == "darwin"* ]] && [[ -n "$HOMEBREW_PREFIX" && -x "$HOMEBREW_PREFIX/opt/python@3.13/bin/python3.13" ]]; then
     export PATH="$HOMEBREW_PREFIX/opt/python@3.13/bin:$PATH"
     export LDFLAGS="-L$HOMEBREW_PREFIX/opt/python@3.13/lib${LDFLAGS:+ $LDFLAGS}"
     export CPPFLAGS="-I$HOMEBREW_PREFIX/opt/python@3.13/include${CPPFLAGS:+ $CPPFLAGS}"
