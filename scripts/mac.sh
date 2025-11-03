@@ -47,6 +47,9 @@ configure_macos_defaults() {
     # Finder: use list view in all Finder windows by default
     defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
 
+    # Finder: always open folders in list view (overrides per-folder settings)
+    defaults write com.apple.finder AlwaysOpenInListView -bool true
+
     # Finder: keep folders on top when sorting by name
     defaults write com.apple.finder _FXSortFoldersFirst -bool true
 
@@ -55,6 +58,9 @@ configure_macos_defaults() {
 
     # Disable .DS_Store files on USB volumes
     defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
+
+    # Disable .DS_Store files creation globally (requires disabling metadata writing)
+    defaults write com.apple.desktopservices DSDontWriteStores -bool true
 
     # Disable the warning when changing a file extension
     defaults write com.apple.finder FXEnableExtensionChangeWarning -bool false
@@ -155,6 +161,23 @@ install_macos_apps() {
 }
 
 # ============================================================================
+# Clean Finder View Preferences
+# ============================================================================
+
+clean_finder_views() {
+    log_info "Cleaning .DS_Store files to reset Finder view preferences..."
+
+    # Remove .DS_Store files from home directory (these store per-folder view settings)
+    find ~ -name ".DS_Store" -type f -delete 2>/dev/null || true
+
+    # Clear Finder preferences cache
+    rm -f ~/Library/Preferences/com.apple.finder.plist.lockfile 2>/dev/null || true
+
+    log_success "Finder view preferences cleaned"
+}
+
+
+# ============================================================================
 # Restart Services
 # ============================================================================
 
@@ -187,6 +210,7 @@ main() {
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         configure_macos_defaults
+        clean_finder_views
         restart_services
     else
         log_info "Skipping macOS defaults configuration"
