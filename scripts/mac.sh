@@ -43,6 +43,18 @@ configure_macos_defaults() {
     # Finder: show path bar
     defaults write com.apple.finder ShowPathbar -bool true
 
+    # Finder: use list view in all Finder windows by default
+    defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
+
+    # Finder: keep folders on top when sorting by name
+    defaults write com.apple.finder _FXSortFoldersFirst -bool true
+
+    # Disable .DS_Store files on network volumes
+    defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
+
+    # Disable .DS_Store files on USB volumes
+    defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
+
     # Disable the warning when changing a file extension
     defaults write com.apple.finder FXEnableExtensionChangeWarning -bool false
 
@@ -61,6 +73,16 @@ configure_macos_defaults() {
 
     # Disable auto-correct
     defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
+
+    # Enable tap to click for this user and for the login screen
+    defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
+    defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+    defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+
+    # Safari: enable developer menu
+    defaults write com.apple.Safari IncludeDevelopMenu -bool true
+    defaults write com.apple.Safari WebKitDeveloperExtrasEnabledPreferenceKey -bool true
+    defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2DeveloperExtrasEnabled -bool true
 
     # Require password immediately after sleep or screen saver begins
     defaults write com.apple.screensaver askForPassword -int 1
