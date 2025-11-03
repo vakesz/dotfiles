@@ -60,7 +60,7 @@ export NPM_CONFIG_PREFIX="$XDG_DATA_HOME/npm"
 export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
 
 # Go
-export GOPATH="${GOPATH:-$HOME/go}"
+export GOPATH="${XDG_DATA_HOME:-$HOME/.local/share}/go"
 export PATH="$GOPATH/bin:$PATH"
 
 # Rust/Cargo

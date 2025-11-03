@@ -13,18 +13,6 @@ else
   export GPG_TTY="$TTY"
 fi
 
-PATH="$HOME/.go/bin:$PATH"
-if [[ -f "/opt/homebrew/bin/brew" ]] then
-  # If you're using macOS, you'll want this enabled
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-fi
-
-export EDITOR=nvim
-
-# SSH_AUTH_SOCK set to GPG to enable using gpgagent as the ssh agent.
-export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
-gpgconf --launch gpg-agent
-
 # Set the directory we want to store zinit and plugins
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 
@@ -56,12 +44,12 @@ autoload -Uz compinit && compinit
 
 zinit cdreplay -q
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# To customize prompt, run `p10k configure` or edit $XDG_CONFIG_HOME/zsh/p10k.zsh.
+[[ ! -f "$XDG_CONFIG_HOME/zsh/.p10k.zsh" ]] || source "$XDG_CONFIG_HOME/zsh/.p10k.zsh"
 
 # History
 HISTSIZE=5000
-HISTFILE=~/.zsh_history
+HISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history"
 SAVEHIST=$HISTSIZE
 HISTDUP=erase
 setopt appendhistory

@@ -1,0 +1,37 @@
+# Global gitignore file
+# Managed via dotfiles repository
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Vim
+*.swp
+*.swo
+*~
+.vim/
+
+# Neovim
+.nvim/
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# Build artifacts
+*.o
+*.a
+*.so
+*.dylib
+*.exe
+*.out
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+temp/

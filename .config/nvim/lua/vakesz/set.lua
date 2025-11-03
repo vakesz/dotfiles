@@ -21,12 +21,12 @@ vim.opt.smartindent = true
 -- Don’t wrap long lines; let them scroll off-screen instead
 vim.opt.wrap = false
 
--- Don’t create a swapfile (avoid `.swp` files)
+-- Don't create a swapfile (avoid `.swp` files)
 vim.opt.swapfile = false
--- Don’t keep a backup file before overwriting (avoid `file~`)
+-- Don't keep a backup file before overwriting (avoid `file~`)
 vim.opt.backup = false
--- Directory to store persistent undo history
-vim.opt.undodir = os.getenv("HOME") .. "/.vim/undodir"
+-- Directory to store persistent undo history (XDG compliant)
+vim.opt.undodir = (os.getenv("XDG_STATE_HOME") or os.getenv("HOME") .. "/.local/state") .. "/nvim/undo"
 -- Enable persistent undo so you can undo across Vim sessions
 vim.opt.undofile = true
 
