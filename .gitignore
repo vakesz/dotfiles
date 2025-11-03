@@ -1,2 +1,4 @@
-config/nvim/lazy-lock.json
 .claude/
+.config/zsh/.zcompdump
+.config/nvim/lazy-lock.json
+CLAUDE.md
