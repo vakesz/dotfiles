@@ -16,3 +16,11 @@
 
 # Claude Code configuration
 ^/\.claude
+
+# Cache directories and files (regex patterns)
+\.DS_Store$
+.*\.zwc$
+.*\.log$
+cache
+Cache
+registry

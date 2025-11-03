@@ -65,6 +65,13 @@
         "description": "Cat with syntax highlighting"
       },
       {
+        "name": "tldr",
+        "brew": "tealdeer",
+        "apt": null,
+        "cargo": "tealdeer",
+        "description": "Simplified man pages (tealdeer implementation)"
+      },
+      {
         "name": "zoxide",
         "brew": "zoxide",
         "apt": null,
@@ -122,6 +129,13 @@
       }
     ],
     "tools": [
+      {
+        "name": "xdg-ninja",
+        "brew": "xdg-ninja",
+        "apt": null,
+        "manual": "git clone https://github.com/b3nj5m1n/xdg-ninja.git ~/.local/share/xdg-ninja",
+        "description": "Check HOME for unwanted files/directories that should use XDG"
+      },
       {
         "name": "jq",
         "brew": "jq",

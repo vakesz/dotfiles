@@ -40,3 +40,40 @@
 
 # Log files
 *.log
+
+# Cargo cache and registry (keep config.toml but ignore downloaded packages)
+.config/cargo/registry/
+.config/cargo/git/
+.config/cargo/.package-cache
+.config/cargo/.package-cache-mutate
+.config/cargo/.global-cache
+
+# NPM/Node cache
+.config/npm/
+.config/node/
+node_modules/
+
+# Python cache
+.config/python/
+__pycache__/
+*.pyc
+*.pyo
+
+# Homebrew
+.config/homebrew/
+
+# Cache directories (general)
+.cache/
+**/cache/
+**/Cache/
+
+# VSCode
+.config/Code/
+.config/VSCodium/
+.vscode/
+
+# Other common cache/state directories
+.local/share/
+.local/state/
+.local/lib/
+

@@ -30,7 +30,7 @@ fi
 export GPG_TTY=$(tty 2>/dev/null || echo "not a tty")
 
 # ----------------------------------------------------------------------------
-# Development Tools
+# Development Tools (XDG-Compliant)
 # ----------------------------------------------------------------------------
 
 # Less: Better default options
@@ -39,6 +39,57 @@ export LESSHISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/less/history"
 
 # Ripgrep config
 export RIPGREP_CONFIG_PATH="${XDG_CONFIG_HOME:-$HOME/.config}/ripgrep/config"
+
+# Wget config (use XDG location for wgetrc)
+export WGETRC="${XDG_CONFIG_HOME:-$HOME/.config}/wget/wgetrc"
+
+# Python: Use XDG for pycache (Python 3.8+)
+export PYTHONPYCACHEPREFIX="${XDG_CACHE_HOME:-$HOME/.cache}/python"
+
+# Elixir Mix: Enable XDG support
+export MIX_XDG=1
+
+# ----------------------------------------------------------------------------
+# Application-Specific XDG Compliance
+# ----------------------------------------------------------------------------
+# These prevent individual apps from polluting HOME
+
+# Claude Code CLI (official XDG location as of 2025)
+export CLAUDE_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/claude"
+
+# OpenAI Codex (supports CODEX_HOME)
+export CODEX_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/codex"
+
+# Node.js version managers
+export N_PREFIX="${XDG_DATA_HOME:-$HOME/.local/share}/node"
+export NVM_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/nvm"
+
+# Ruby bundler
+export BUNDLE_USER_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/bundle"
+export BUNDLE_USER_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/bundle"
+export BUNDLE_USER_PLUGIN="${XDG_DATA_HOME:-$HOME/.local/share}/bundle"
+
+# AWS CLI
+export AWS_CONFIG_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/aws/config"
+export AWS_SHARED_CREDENTIALS_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/aws/credentials"
+
+# Jupyter
+export JUPYTER_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/jupyter"
+
+# PostgreSQL
+export PSQLRC="${XDG_CONFIG_HOME:-$HOME/.config}/pg/psqlrc"
+export PSQL_HISTORY="${XDG_STATE_HOME:-$HOME/.local/state}/psql_history"
+export PGPASSFILE="${XDG_CONFIG_HOME:-$HOME/.config}/pg/pgpass"
+export PGSERVICEFILE="${XDG_CONFIG_HOME:-$HOME/.config}/pg/pg_service.conf"
+
+# MySQL/MariaDB
+export MYSQL_HISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/mysql_history"
+
+# SQLite
+export SQLITE_HISTORY="${XDG_STATE_HOME:-$HOME/.local/state}/sqlite_history"
+
+# GnuPG
+export GNUPGHOME="${XDG_DATA_HOME:-$HOME/.local/share}/gnupg"
 
 # FZF default options
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'

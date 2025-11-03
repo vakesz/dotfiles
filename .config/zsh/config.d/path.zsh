@@ -60,11 +60,10 @@ if [[ "$OS_TYPE" == "macos" ]]; then
   fi
 
 elif [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
-  # Linux/WSL Rust/Cargo
-  if [[ -f "$HOME/.cargo/env" ]]; then
-    source "$HOME/.cargo/env"
-  fi
-  export PATH="$HOME/.cargo/bin:$PATH"
+  # Linux/WSL Rust/Cargo (XDG compliant)
+  export CARGO_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/cargo"
+  export RUSTUP_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/rustup"
+  export PATH="$CARGO_HOME/bin:$PATH"
 
   # Local binaries (oh-my-posh, custom scripts, etc.)
   export PATH="$HOME/.local/bin:$PATH"
@@ -79,19 +78,24 @@ elif [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
 fi
 
 # ----------------------------------------------------------------------------
-# Cross-Platform Development Tools
+# Cross-Platform Development Tools (XDG-Compliant)
 # ----------------------------------------------------------------------------
 
 # Go
 export GOPATH="${XDG_DATA_HOME:-$HOME/.local/share}/go"
 export PATH="$GOPATH/bin:$PATH"
 
-# Rust/Cargo
+# Rust/Cargo + Rustup
 export CARGO_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/cargo"
+export RUSTUP_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/rustup"
 export PATH="$CARGO_HOME/bin:$PATH"
 
-# Node.js - npm/pnpm
+# Node.js - npm (full XDG compliance)
 export NPM_CONFIG_PREFIX="${XDG_DATA_HOME:-$HOME/.local/share}/npm"
+export NPM_CONFIG_USERCONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/npm/npmrc"
+export NPM_CONFIG_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/npm"
+
+# Node.js - pnpm
 export PNPM_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/pnpm"
 export PATH="$NPM_CONFIG_PREFIX/bin:$PNPM_HOME:$PATH"
 
@@ -102,5 +106,12 @@ export PATH="${XDG_DATA_HOME:-$HOME/.local/share}/pipx/venvs/bin:$PATH"
 export DENO_INSTALL="${XDG_DATA_HOME:-$HOME/.local/share}/deno"
 export PATH="$DENO_INSTALL/bin:$PATH"
 
-# Swift Package Manager
-export PATH="$HOME/.config/swiftpm/bin:$PATH"
+# Swift Package Manager (XDG compliant)
+export SWIFTPM_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/swiftpm"
+export PATH="$SWIFTPM_HOME/bin:$PATH"
+
+# Docker (XDG compliant)
+export DOCKER_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/docker"
+
+# tldr / tealdeer (XDG compliant)
+export TEALDEER_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/tealdeer"
