@@ -70,10 +70,3 @@ if have fzf; then
   # Key bindings
   source <(fzf --zsh) 2>/dev/null || true
 fi
-
-# ----------------------------------------------------------------------------
-# Replay Zinit Completions
-# ----------------------------------------------------------------------------
-
-# Replay cached completions for faster startup
-zinit cdreplay -q

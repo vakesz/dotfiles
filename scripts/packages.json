@@ -202,6 +202,40 @@
         "apt": null,
         "pip": "ruff",
         "description": "Python linter and formatter"
+      },
+      {
+        "name": "swift-format",
+        "brew": "swift-format",
+        "apt": null,
+        "description": "Swift formatter (Apple's official Swift formatter)"
+      },
+      {
+        "name": "goimports",
+        "brew": "goimports",
+        "apt": null,
+        "manual": "go install golang.org/x/tools/cmd/goimports@latest",
+        "description": "Go imports formatter (gofmt is included with go)"
+      },
+      {
+        "name": "clang-format",
+        "brew": "clang-format",
+        "apt": "clang-format",
+        "description": "C/C++/Objective-C formatter"
+      }
+    ],
+    "optional": [
+      {
+        "name": "elixir",
+        "brew": "elixir",
+        "apt": "elixir",
+        "description": "Elixir programming language (includes mix formatter)"
+      },
+      {
+        "name": "zig",
+        "brew": "zig",
+        "apt": null,
+        "manual": "brew install zig (macOS) or download from https://ziglang.org",
+        "description": "Zig programming language (includes zigfmt)"
       }
     ]
   }

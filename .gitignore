@@ -1,4 +1,42 @@
+# Claude Code configuration (user-specific)
 .claude/
-.config/zsh/.zcompdump
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+
+# Zsh
+.config/zsh/.zcompdump*
+.config/zsh/.zsh_history
+*.zwc
+*.zwc.old
+
+# Neovim
 .config/nvim/lazy-lock.json
-CLAUDE.md
+.config/nvim/.netrwhist
+
+# Local overrides (not tracked in git)
+.config/zsh/.zshrc.local
+.config/zsh/config.d/*.local.zsh
+*.local
+
+# Backup files
+*.backup
+*.bak
+*~
+\#*\#
+.#*
+
+# Editor swap/temp files
+*.swp
+*.swo
+.*.swp
+.*.swo
+
+# Log files
+*.log

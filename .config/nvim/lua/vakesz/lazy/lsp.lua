@@ -179,11 +179,14 @@ return {
                 -- Swift language server (sourcekit-lsp)
                 ["sourcekit"] = function()
                     local lspconfig = require("lspconfig")
+                    -- Try to find sourcekit-lsp in PATH first, fallback to Xcode path
+                    local sourcekit_cmd = vim.fn.executable("sourcekit-lsp") == 1
+                        and { "sourcekit-lsp" }
+                        or { "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp" }
+
                     lspconfig.sourcekit.setup({
                         capabilities = capabilities,
-                        cmd = {
-                            "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp"
-                        },
+                        cmd = sourcekit_cmd,
                         root_dir = lspconfig.util.root_pattern(
                             "Package.swift",
                             ".git",

@@ -14,7 +14,13 @@ local autocmd = vim.api.nvim_create_autocmd
 local yank_group = augroup('HighlightYank', {})
 
 function R(name)
-    require("plenary.reload").reload_module(name)
+    -- Safely reload module using plenary if available
+    local has_plenary, plenary_reload = pcall(require, "plenary.reload")
+    if has_plenary then
+        plenary_reload.reload_module(name)
+    else
+        vim.notify("Plenary not loaded yet, cannot reload module", vim.log.levels.WARN)
+    end
 end
 
 vim.filetype.add({

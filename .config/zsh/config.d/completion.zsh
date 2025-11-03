@@ -17,6 +17,12 @@ else
   compinit -C
 fi
 
+# Replay Zinit completions after compinit is loaded
+# This must come after compinit to avoid errors
+if (( ${+functions[zinit]} )); then
+  zinit cdreplay -q
+fi
+
 # ----------------------------------------------------------------------------
 # Completion Options
 # ----------------------------------------------------------------------------
