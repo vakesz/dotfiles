@@ -16,10 +16,8 @@ brew "gpg"                 # GNU Privacy Guard for signing commits
 # Shell and Terminal Tools
 # ============================================================================
 brew "zsh"
-brew "starship"            # Cross-shell prompt
-brew "zsh-autosuggestions"
-brew "zsh-fast-syntax-highlighting"
-brew "zsh-completions"
+brew "oh-my-posh"          # Cross-platform prompt engine
+brew "stow"                # Symlink farm manager for dotfiles
 brew "tmux"
 brew "fzf"                 # Fuzzy finder
 brew "ripgrep"             # Fast grep alternative
