@@ -113,7 +113,7 @@ install_wsl_tools() {
         sudo apt install -y \
             x11-apps \
             mesa-utils \
-            libgl1-mesa-glx
+            libgl1
         log_success "GUI support packages installed"
     fi
 }

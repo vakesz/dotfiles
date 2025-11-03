@@ -184,13 +184,22 @@ install_packages() {
                 log_success "Cargo packages installed"
             fi
 
-            # Install pip packages
+            # Install pip packages via pipx (for Ubuntu 24.04+ with PEP 668)
             local pip_packages=$(get_packages_for_manager "pip")
-            if [[ -n "$pip_packages" ]] && command_exists pip3; then
-                log_info "Installing pip packages from packages.json..."
-                log_info "Installing: $pip_packages"
-                pip3 install --user $pip_packages || log_warning "Some pip packages failed to install"
-                log_success "Pip packages installed"
+            if [[ -n "$pip_packages" ]]; then
+                if command_exists pipx; then
+                    log_info "Installing pip packages via pipx from packages.json..."
+                    log_info "Installing: $pip_packages"
+                    for pkg in $pip_packages; do
+                        pipx install "$pkg" 2>/dev/null || log_warning "Failed to install $pkg"
+                    done
+                    log_success "Pip packages installed via pipx"
+                elif command_exists pip3; then
+                    log_info "Installing pip packages from packages.json..."
+                    log_info "Installing: $pip_packages"
+                    pip3 install --user $pip_packages 2>/dev/null || log_warning "Some pip packages failed to install (consider installing pipx)"
+                    log_success "Pip packages installed"
+                fi
             fi
 
             # Install npm packages

@@ -97,7 +97,7 @@
       {
         "name": "python",
         "brew": "python@3.13",
-        "apt": "python3 python3-pip",
+        "apt": "python3 python3-pip pipx",
         "description": "Python programming language"
       },
       {
