@@ -170,7 +170,9 @@ install_packages() {
             local cargo_packages=$(get_packages_for_manager "cargo")
             if [[ -n "$cargo_packages" ]] && ! command_exists cargo; then
                 log_info "Installing Rust (needed for cargo packages)..."
-                curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+                # Use --no-modify-path to prevent rustup from modifying shell config files
+                # We handle cargo env sourcing in .zshenv instead
+                curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
                 source "$HOME/.cargo/env" 2>/dev/null || export PATH="$HOME/.cargo/bin:$PATH"
             fi
 

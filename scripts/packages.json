@@ -117,7 +117,7 @@
         "name": "rust",
         "brew": "rust",
         "apt": null,
-        "manual": "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh",
+        "manual": "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path",
         "description": "Rust programming language"
       }
     ],

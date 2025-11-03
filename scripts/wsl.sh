@@ -25,6 +25,39 @@ log_warning() {
 }
 
 # ============================================================================
+# Detect Windows Username
+# ============================================================================
+
+detect_windows_username() {
+    # Try to get Windows username using cmd.exe
+    local win_user
+    if command -v cmd.exe &>/dev/null; then
+        win_user=$(cmd.exe /c "echo %USERNAME%" 2>/dev/null | tr -d '\r\n')
+        if [[ -n "$win_user" ]] && [[ -d "/mnt/c/Users/$win_user" ]]; then
+            echo "$win_user"
+            return 0
+        fi
+    fi
+
+    # Fallback: try to find a writable user directory in /mnt/c/Users
+    for user_dir in /mnt/c/Users/*/; do
+        local username=$(basename "$user_dir")
+        # Skip system directories
+        if [[ "$username" =~ ^(Public|Default|All Users|Default User)$ ]]; then
+            continue
+        fi
+        # Check if directory is writable
+        if [[ -w "$user_dir" ]]; then
+            echo "$username"
+            return 0
+        fi
+    done
+
+    # Last resort: use WSL username
+    echo "$USER"
+}
+
+# ============================================================================
 # WSL Configuration
 # ============================================================================
 
@@ -67,8 +100,9 @@ EOF
 setup_windows_integration() {
     log_info "Setting up Windows integration..."
 
-    # Common Windows paths
-    WIN_HOME="/mnt/c/Users/$USER"
+    # Detect Windows username
+    local WIN_USER=$(detect_windows_username)
+    WIN_HOME="/mnt/c/Users/$WIN_USER"
 
     if [[ -d "$WIN_HOME" ]]; then
         log_info "Windows home directory found: $WIN_HOME"
@@ -125,9 +159,15 @@ install_wsl_tools() {
 configure_performance() {
     log_info "Configuring WSL performance settings..."
 
-    # Create .wslconfig in Windows home directory
-    WIN_HOME="/mnt/c/Users/$USER"
+    # Detect Windows username and create .wslconfig in Windows home directory
+    local WIN_USER=$(detect_windows_username)
+    WIN_HOME="/mnt/c/Users/$WIN_USER"
     WSLCONFIG="$WIN_HOME/.wslconfig"
+
+    if [[ ! -d "$WIN_HOME" ]]; then
+        log_warning "Windows home directory not found at $WIN_HOME, skipping .wslconfig creation"
+        return 0
+    fi
 
     if [[ ! -f "$WSLCONFIG" ]]; then
         log_info "Creating .wslconfig for performance tuning..."
