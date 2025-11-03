@@ -12,16 +12,6 @@
 #   6. aliases.zsh   - Aliases and functions
 #   7. prompt        - Oh My Posh prompt
 
-# ----------------------------------------------------------------------------
-# Prevent Double-Sourcing
-# ----------------------------------------------------------------------------
-
-# Guard against sourcing this file multiple times in the same shell session -- topgrade
-if [[ -n "$_ZSHRC_LOADED" ]]; then
-  return 0
-fi
-export _ZSHRC_LOADED=1
-
 # Configuration directory
 CONFIG_DIR="${ZDOTDIR:-$HOME/.config/zsh}/config.d"
 
