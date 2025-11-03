@@ -25,12 +25,27 @@ fi
 # ----------------------------------------------------------------------------
 # Python Aliases
 # ----------------------------------------------------------------------------
+# Prefer Python 3.13 (widely supported), fallback to system python3
+# Note: Python 3.14+ may not be fully supported by all tools yet
 
-alias python='python3.13'
-alias python3='python3.13'
-alias pip='pip3.13'
-alias pip3='pip3.13'
-alias py='python3.13'
+if have python3.13; then
+  alias python='python3.13'
+  alias python3='python3.13'
+  alias pip='pip3.13'
+  alias pip3='pip3.13'
+  alias py='python3.13'
+elif have python3.12; then
+  alias python='python3.12'
+  alias python3='python3.12'
+  alias pip='pip3.12'
+  alias pip3='pip3.12'
+  alias py='python3.12'
+elif have python3; then
+  # Fallback to whatever python3 is available
+  alias python='python3'
+  alias pip='pip3'
+  alias py='python3'
+fi
 
 # Python virtual environment helper
 venv() {

@@ -13,13 +13,21 @@ ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 if [[ ! -d "$ZINIT_HOME" ]]; then
   print -P "%F{33}▓▒░ %F{220}Installing ZINIT (zdharma-continuum/zinit)…%f"
   command mkdir -p "$(dirname $ZINIT_HOME)"
-  command git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME" && \
-    print -P "%F{33}▓▒░ %F{34}Installation successful.%f%b" || \
-    print -P "%F{160}▓▒░ The clone has failed.%f%b"
+  if command git clone --depth=1 https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME" 2>/dev/null; then
+    print -P "%F{33}▓▒░ %F{34}Installation successful.%f%b"
+  else
+    print -P "%F{160}▓▒░ Zinit installation failed. Plugins disabled.%f%b" >&2
+    return 0  # Exit gracefully, continue without plugins
+  fi
 fi
 
-# Source Zinit
-source "${ZINIT_HOME}/zinit.zsh"
+# Source Zinit with error handling
+if [[ -f "${ZINIT_HOME}/zinit.zsh" ]]; then
+  source "${ZINIT_HOME}/zinit.zsh"
+else
+  print -P "%F{160}▓▒░ Zinit not found. Plugins disabled.%f%b" >&2
+  return 0  # Exit gracefully
+fi
 
 # ----------------------------------------------------------------------------
 # Zinit Plugins

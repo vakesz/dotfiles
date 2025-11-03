@@ -40,8 +40,16 @@ if [[ "$OS_TYPE" == "macos" ]]; then
 
   # macOS Homebrew keg-only packages
   add_keg_only "curl"
-  add_keg_only "node@22"
-  add_keg_only "python@3.13"
+
+  # Dynamically detect latest installed Node version
+  if [[ -n "$HOMEBREW_PREFIX" ]] && [[ -d "$HOMEBREW_PREFIX/opt" ]]; then
+    local node_keg=$(ls -d "$HOMEBREW_PREFIX/opt/node@"* 2>/dev/null | sort -V | tail -1)
+    [[ -n "$node_keg" ]] && add_keg_only "$(basename "$node_keg")"
+
+    local python_keg=$(ls -d "$HOMEBREW_PREFIX/opt/python@"* 2>/dev/null | sort -V | tail -1)
+    [[ -n "$python_keg" ]] && add_keg_only "$(basename "$python_keg")"
+  fi
+
   add_keg_only "llvm"
   add_keg_only "ruby"
   add_keg_only "make" "libexec/gnubin"

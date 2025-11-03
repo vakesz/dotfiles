@@ -26,11 +26,8 @@ fi
 # ----------------------------------------------------------------------------
 # GPG
 # ----------------------------------------------------------------------------
-if [[ -n "$TTY" ]]; then
-  export GPG_TTY=$(tty)
-else
-  export GPG_TTY="$TTY"
-fi
+# Always set GPG_TTY to current terminal
+export GPG_TTY=$(tty 2>/dev/null || echo "not a tty")
 
 # ----------------------------------------------------------------------------
 # Development Tools

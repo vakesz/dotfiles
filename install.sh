@@ -6,33 +6,12 @@
 
 set -e
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
 # Script directory
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPTS_DIR="$DOTFILES_DIR/scripts"
 
-# Logging functions
-log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-}
-
-log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
-
-log_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
+# Source common functions
+source "$SCRIPTS_DIR/common.sh"
 
 # Detect OS
 detect_os() {
@@ -54,6 +33,36 @@ detect_os() {
 # Check if command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
+}
+
+# Validate packages.json
+validate_packages_json() {
+    local packages_json="$SCRIPTS_DIR/packages.json"
+
+    if [[ ! -f "$packages_json" ]]; then
+        log_error "packages.json not found"
+        return 1
+    fi
+
+    if ! command_exists jq; then
+        log_warning "jq not available, skipping JSON validation"
+        return 0
+    fi
+
+    # Validate JSON syntax
+    if ! jq empty "$packages_json" 2>/dev/null; then
+        log_error "packages.json contains invalid JSON"
+        return 1
+    fi
+
+    # Validate structure
+    if ! jq -e '.packages | type == "object"' "$packages_json" >/dev/null 2>&1; then
+        log_error "packages.json missing 'packages' object"
+        return 1
+    fi
+
+    log_info "packages.json validated successfully"
+    return 0
 }
 
 # Install Homebrew (macOS only)
@@ -121,6 +130,127 @@ get_manual_packages() {
     ' "$packages_json"
 }
 
+# Helper functions for package installation
+install_brew_packages() {
+    if ! command_exists brew; then
+        return 0
+    fi
+
+    log_info "Installing packages via Homebrew from packages.json..."
+    local brew_packages=$(get_packages_for_manager "brew")
+
+    if [[ -n "$brew_packages" ]]; then
+        log_info "Installing: $brew_packages"
+        brew install "${brew_packages}" || log_warning "Some packages failed to install"
+        log_success "Homebrew packages installed"
+    else
+        log_warning "No packages found in packages.json"
+    fi
+}
+
+install_apt_packages() {
+    if ! command_exists apt; then
+        return 0
+    fi
+
+    log_info "Installing packages via apt from packages.json..."
+    local apt_packages=$(get_packages_for_manager "apt")
+
+    if [[ -n "$apt_packages" ]]; then
+        log_info "Installing: $apt_packages"
+        sudo apt install -y "${apt_packages}" || log_warning "Some packages failed to install"
+        log_success "APT packages installed"
+    fi
+}
+
+install_cargo_packages() {
+    local cargo_packages=$(get_packages_for_manager "cargo")
+
+    if [[ -z "$cargo_packages" ]]; then
+        return 0
+    fi
+
+    # Install Rust if needed
+    if ! command_exists cargo; then
+        log_info "Installing Rust (needed for cargo packages)..."
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+        source "$HOME/.cargo/env" 2>/dev/null || export PATH="$HOME/.cargo/bin:$PATH"
+    fi
+
+    if command_exists cargo; then
+        log_info "Installing cargo packages from packages.json..."
+        log_info "Installing: $cargo_packages"
+        for pkg in $cargo_packages; do
+            cargo install "$pkg" 2>/dev/null || log_warning "Failed to install $pkg"
+        done
+        log_success "Cargo packages installed"
+    fi
+}
+
+install_pip_packages() {
+    local pip_packages=$(get_packages_for_manager "pip")
+
+    if [[ -z "$pip_packages" ]]; then
+        return 0
+    fi
+
+    if command_exists pipx; then
+        log_info "Installing pip packages via pipx from packages.json..."
+        log_info "Installing: $pip_packages"
+        for pkg in $pip_packages; do
+            pipx install "$pkg" 2>/dev/null || log_warning "Failed to install $pkg"
+        done
+        log_success "Pip packages installed via pipx"
+    elif command_exists pip3; then
+        log_info "Installing pip packages from packages.json..."
+        log_info "Installing: $pip_packages"
+        pip3 install --user "${pip_packages}" 2>/dev/null || log_warning "Some pip packages failed to install (consider installing pipx)"
+        log_success "Pip packages installed"
+    fi
+}
+
+install_npm_packages() {
+    if ! command_exists npm; then
+        return 0
+    fi
+
+    local npm_packages=$(get_packages_for_manager "npm")
+
+    if [[ -z "$npm_packages" ]]; then
+        return 0
+    fi
+
+    log_info "Installing npm packages from packages.json..."
+    log_info "Installing: $npm_packages"
+    npm install -g "${npm_packages}" || log_warning "Some npm packages failed to install"
+    log_success "NPM packages installed"
+}
+
+install_manual_packages() {
+    log_info "Checking for packages requiring manual installation..."
+    while IFS=: read -r pkg_name install_cmd; do
+        if [[ -n "$pkg_name" ]] && ! command_exists "$pkg_name"; then
+            case "$pkg_name" in
+                oh-my-posh)
+                    log_info "Installing oh-my-posh..."
+                    curl -s https://ohmyposh.dev/install.sh | bash -s || log_warning "Failed to install oh-my-posh"
+                    ;;
+                goimports)
+                    if command_exists go; then
+                        log_info "Installing goimports..."
+                        go install golang.org/x/tools/cmd/goimports@latest || log_warning "Failed to install goimports"
+                    else
+                        log_warning "Go not installed, skipping goimports"
+                    fi
+                    ;;
+                *)
+                    log_info "Manual installation required for $pkg_name: $install_cmd"
+                    ;;
+            esac
+        fi
+    done < <(get_manual_packages)
+}
+
 # Install packages based on OS
 install_packages() {
     if ! command_exists jq; then
@@ -137,90 +267,15 @@ install_packages() {
 
     case "$OS" in
         macos)
-            if command_exists brew; then
-                log_info "Installing packages via Homebrew from packages.json..."
-
-                local brew_packages=$(get_packages_for_manager "brew")
-
-                if [[ -n "$brew_packages" ]]; then
-                    log_info "Installing: $brew_packages"
-                    brew install $brew_packages || log_warning "Some packages failed to install"
-                    log_success "Homebrew packages installed"
-                else
-                    log_warning "No packages found in packages.json"
-                fi
-            fi
+            install_brew_packages
             ;;
 
         linux|wsl)
-            # Install via apt
-            if command_exists apt; then
-                log_info "Installing packages via apt from packages.json..."
-
-                local apt_packages=$(get_packages_for_manager "apt")
-
-                if [[ -n "$apt_packages" ]]; then
-                    log_info "Installing: $apt_packages"
-                    sudo apt install -y $apt_packages || log_warning "Some packages failed to install"
-                    log_success "APT packages installed"
-                fi
-            fi
-
-            # Install Rust if needed (for cargo packages)
-            local cargo_packages=$(get_packages_for_manager "cargo")
-            if [[ -n "$cargo_packages" ]] && ! command_exists cargo; then
-                log_info "Installing Rust (needed for cargo packages)..."
-                # Use --no-modify-path to prevent rustup from modifying shell config files
-                # We handle cargo env sourcing in .zshenv instead
-                curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
-                source "$HOME/.cargo/env" 2>/dev/null || export PATH="$HOME/.cargo/bin:$PATH"
-            fi
-
-            # Install cargo packages
-            if [[ -n "$cargo_packages" ]] && command_exists cargo; then
-                log_info "Installing cargo packages from packages.json..."
-                log_info "Installing: $cargo_packages"
-                for pkg in $cargo_packages; do
-                    cargo install "$pkg" 2>/dev/null || log_warning "Failed to install $pkg"
-                done
-                log_success "Cargo packages installed"
-            fi
-
-            # Install pip packages via pipx (for Ubuntu 24.04+ with PEP 668)
-            local pip_packages=$(get_packages_for_manager "pip")
-            if [[ -n "$pip_packages" ]]; then
-                if command_exists pipx; then
-                    log_info "Installing pip packages via pipx from packages.json..."
-                    log_info "Installing: $pip_packages"
-                    for pkg in $pip_packages; do
-                        pipx install "$pkg" 2>/dev/null || log_warning "Failed to install $pkg"
-                    done
-                    log_success "Pip packages installed via pipx"
-                elif command_exists pip3; then
-                    log_info "Installing pip packages from packages.json..."
-                    log_info "Installing: $pip_packages"
-                    pip3 install --user $pip_packages 2>/dev/null || log_warning "Some pip packages failed to install (consider installing pipx)"
-                    log_success "Pip packages installed"
-                fi
-            fi
-
-            # Install npm packages
-            local npm_packages=$(get_packages_for_manager "npm")
-            if [[ -n "$npm_packages" ]] && command_exists npm; then
-                log_info "Installing npm packages from packages.json..."
-                log_info "Installing: $npm_packages"
-                npm install -g $npm_packages || log_warning "Some npm packages failed to install"
-                log_success "NPM packages installed"
-            fi
-
-            # Handle manual installation packages
-            log_info "Checking for packages requiring manual installation..."
-            while IFS=: read -r pkg_name install_cmd; do
-                if [[ -n "$pkg_name" ]] && ! command_exists "$pkg_name"; then
-                    log_info "Installing $pkg_name..."
-                    eval "$install_cmd" || log_warning "Failed to install $pkg_name"
-                fi
-            done < <(get_manual_packages)
+            install_apt_packages
+            install_cargo_packages
+            install_pip_packages
+            install_npm_packages
+            install_manual_packages
             ;;
     esac
 
@@ -369,6 +424,12 @@ main() {
     fi
 
     echo ""
+
+    # Validate packages.json before proceeding
+    if ! validate_packages_json; then
+        log_error "Package configuration validation failed"
+        exit 1
+    fi
 
     # Installation steps
     if [[ "$OS" == "macos" ]]; then

@@ -6,12 +6,13 @@
 
 set -e
 
-# Colors
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
+# Script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Source common functions
+source "$SCRIPT_DIR/common.sh"
+
+# Override logging functions with macOS prefix
 log_info() {
     echo -e "${BLUE}[macOS]${NC} $1"
 }
