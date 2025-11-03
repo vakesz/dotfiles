@@ -1,0 +1,184 @@
+#!/usr/bin/env bash
+#
+# macOS-specific setup script
+# Run after main installation to configure macOS-specific settings
+#
+
+set -e
+
+# Colors
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+log_info() {
+    echo -e "${BLUE}[macOS]${NC} $1"
+}
+
+log_success() {
+    echo -e "${GREEN}[macOS]${NC} $1"
+}
+
+log_warning() {
+    echo -e "${YELLOW}[macOS]${NC} $1"
+}
+
+# ============================================================================
+# macOS System Preferences
+# ============================================================================
+
+configure_macos_defaults() {
+    log_info "Configuring macOS defaults..."
+
+    # Finder: show hidden files by default
+    defaults write com.apple.finder AppleShowAllFiles -bool true
+
+    # Finder: show all filename extensions
+    defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+
+    # Finder: show status bar
+    defaults write com.apple.finder ShowStatusBar -bool true
+
+    # Finder: show path bar
+    defaults write com.apple.finder ShowPathbar -bool true
+
+    # Disable the warning when changing a file extension
+    defaults write com.apple.finder FXEnableExtensionChangeWarning -bool false
+
+    # Save screenshots to Desktop
+    defaults write com.apple.screencapture location -string "${HOME}/Desktop"
+
+    # Save screenshots in PNG format
+    defaults write com.apple.screencapture type -string "png"
+
+    # Enable full keyboard access for all controls
+    defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
+
+    # Set fast key repeat rate
+    defaults write NSGlobalDomain KeyRepeat -int 2
+    defaults write NSGlobalDomain InitialKeyRepeat -int 15
+
+    # Disable auto-correct
+    defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
+
+    # Require password immediately after sleep or screen saver begins
+    defaults write com.apple.screensaver askForPassword -int 1
+    defaults write com.apple.screensaver askForPasswordDelay -int 0
+
+    # Dock: set icon size to 24px
+    defaults write com.apple.dock tilesize -int 24
+
+    # Dock: position on bottom
+    defaults write com.apple.dock orientation -string "bottom"
+
+    # Dock: minimize windows into application icon
+    defaults write com.apple.dock minimize-to-application -bool true
+
+    # Dock: show indicator lights for open applications
+    defaults write com.apple.dock show-process-indicators -bool true
+
+    log_success "macOS defaults configured"
+}
+
+# ============================================================================
+# Development Tools Setup
+# ============================================================================
+
+setup_xcode_tools() {
+    if ! xcode-select -p &>/dev/null; then
+        log_info "Installing Xcode Command Line Tools..."
+        xcode-select --install
+        log_warning "Please complete Xcode Command Line Tools installation and re-run this script"
+        exit 0
+    else
+        log_info "Xcode Command Line Tools already installed"
+    fi
+}
+
+# ============================================================================
+# Font Setup
+# ============================================================================
+
+install_fonts() {
+    log_info "Checking for Nerd Fonts..."
+
+    if brew list --cask font-jetbrains-mono-nerd-font &>/dev/null; then
+        log_info "JetBrains Mono Nerd Font already installed"
+    else
+        log_info "Installing JetBrains Mono Nerd Font..."
+        brew install --cask font-jetbrains-mono-nerd-font
+    fi
+
+    log_success "Fonts setup complete"
+}
+
+# ============================================================================
+# macOS-specific Applications
+# ============================================================================
+
+install_macos_apps() {
+    log_info "Checking for macOS-specific tools..."
+
+    local tools=("xcodegen" "swiftlint" "swiftformat" "xcbeautify")
+
+    for tool in "${tools[@]}"; do
+        if brew list "$tool" &>/dev/null; then
+            log_info "$tool already installed"
+        else
+            log_info "Consider installing $tool: brew install $tool"
+        fi
+    done
+}
+
+# ============================================================================
+# Restart Services
+# ============================================================================
+
+restart_services() {
+    log_info "Restarting affected applications..."
+
+    # Restart Finder
+    killall Finder
+
+    # Restart Dock (if any dock settings were changed)
+    killall Dock
+
+    log_success "Services restarted"
+}
+
+# ============================================================================
+# Main
+# ============================================================================
+
+main() {
+    log_info "Running macOS-specific setup..."
+    echo ""
+
+    setup_xcode_tools
+    install_fonts
+    install_macos_apps
+
+    echo ""
+    read -p "Do you want to configure macOS system defaults? (y/N) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        configure_macos_defaults
+        restart_services
+    else
+        log_info "Skipping macOS defaults configuration"
+    fi
+
+    echo ""
+    log_success "macOS-specific setup complete!"
+    echo ""
+    log_info "Recommended next steps:"
+    echo "  1. Install additional apps from Setapp/App Store"
+    echo "  2. Configure System Settings > Keyboard > Shortcuts"
+    echo "  3. Review and customize macOS defaults in this script"
+}
+
+# Only run if executed directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

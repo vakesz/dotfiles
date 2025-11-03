@@ -1,69 +1,52 @@
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
+# ============================================================================
+# .zshrc - Zsh Configuration for Interactive Shells
+# ============================================================================
+# This file loads modular configuration from config.d/
+#
+# Load order:
+#   1. platform.zsh  - OS detection and helper functions
+#   2. path.zsh      - PATH configuration
+#   3. env.zsh       - Environment variables
+#   4. plugins.zsh   - Zinit plugins
+#   5. completion.zsh - Completion system
+#   6. aliases.zsh   - Aliases and functions
+#   7. prompt        - Oh My Posh prompt
 
-# Set the GPG_TTY to be the same as the TTY, either via the env var
-# or via the tty command.
-if [ -n "$TTY" ]; then
-  export GPG_TTY=$(tty)
+# Configuration directory
+CONFIG_DIR="${ZDOTDIR:-$HOME/.config/zsh}/config.d"
+
+# ----------------------------------------------------------------------------
+# Source Configuration Modules
+# ----------------------------------------------------------------------------
+
+# Helper function to source files
+source_if_exists() {
+  [[ -f "$1" ]] && source "$1"
+}
+
+# Load modules in order
+source_if_exists "$CONFIG_DIR/platform.zsh"
+source_if_exists "$CONFIG_DIR/path.zsh"
+source_if_exists "$CONFIG_DIR/env.zsh"
+source_if_exists "$CONFIG_DIR/plugins.zsh"
+source_if_exists "$CONFIG_DIR/completion.zsh"
+source_if_exists "$CONFIG_DIR/aliases.zsh"
+
+# ----------------------------------------------------------------------------
+# Oh My Posh Prompt
+# ----------------------------------------------------------------------------
+
+# Initialize Oh My Posh with zen theme
+if have oh-my-posh; then
+  eval "$(oh-my-posh init zsh --config ${XDG_CONFIG_HOME:-$HOME/.config}/oh-my-posh/zen.toml)"
 else
-  export GPG_TTY="$TTY"
+  # Fallback to simple prompt if oh-my-posh not installed
+  PROMPT='%F{blue}%~%f %F{magenta}❯%f '
 fi
 
-# Set the directory we want to store zinit and plugins
-ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
+# ----------------------------------------------------------------------------
+# Local Customizations
+# ----------------------------------------------------------------------------
 
-# Download Zinit, if it's not there yet
-if [ ! -d "$ZINIT_HOME" ]; then
-   mkdir -p "$(dirname $ZINIT_HOME)"
-   git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
-fi
-
-# Source/Load zinit
-source "${ZINIT_HOME}/zinit.zsh"
-
-# Add in Powerlevel10k
-zinit ice depth=1; zinit light romkatv/powerlevel10k
-
-# Add in zsh plugins
-zinit light zsh-users/zsh-syntax-highlighting
-zinit light zsh-users/zsh-completions
-zinit light zsh-users/zsh-autosuggestions
-zinit light Aloxaf/fzf-tab
-
-# Add in snippets
-zinit snippet OMZP::git
-zinit snippet OMZP::sudo
-zinit snippet OMZP::command-not-found
-
-# Load completions
-autoload -Uz compinit && compinit
-
-zinit cdreplay -q
-
-# To customize prompt, run `p10k configure` or edit $XDG_CONFIG_HOME/zsh/p10k.zsh.
-[[ ! -f "$XDG_CONFIG_HOME/zsh/.p10k.zsh" ]] || source "$XDG_CONFIG_HOME/zsh/.p10k.zsh"
-
-# History
-HISTSIZE=5000
-HISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history"
-SAVEHIST=$HISTSIZE
-HISTDUP=erase
-setopt appendhistory
-setopt sharehistory
-setopt hist_ignore_space
-setopt hist_ignore_all_dups
-setopt hist_save_no_dups
-setopt hist_ignore_dups
-setopt hist_find_no_dups
-
-# Completion styling
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
-zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
-zstyle ':completion:*' menu no
-
-# Shell integrations
-eval "$(zoxide init --cmd cd zsh)"
+# Source local customizations (not tracked in git)
+source_if_exists "${ZDOTDIR:-$HOME/.config/zsh}/.zshrc.local"

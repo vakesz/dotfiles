@@ -1,0 +1,208 @@
+{
+  "description": "Cross-platform package mapping for dotfiles setup",
+  "packages": {
+    "core": [
+      {
+        "name": "git",
+        "brew": "git",
+        "apt": "git",
+        "description": "Version control system"
+      },
+      {
+        "name": "curl",
+        "brew": "curl",
+        "apt": "curl",
+        "description": "Data transfer tool"
+      },
+      {
+        "name": "wget",
+        "brew": "wget",
+        "apt": "wget",
+        "description": "Network downloader"
+      },
+      {
+        "name": "stow",
+        "brew": "stow",
+        "apt": "stow",
+        "description": "Symlink farm manager"
+      }
+    ],
+    "shell": [
+      {
+        "name": "zsh",
+        "brew": "zsh",
+        "apt": "zsh",
+        "description": "Z shell"
+      },
+      {
+        "name": "tmux",
+        "brew": "tmux",
+        "apt": "tmux",
+        "description": "Terminal multiplexer"
+      },
+      {
+        "name": "fzf",
+        "brew": "fzf",
+        "apt": "fzf",
+        "description": "Fuzzy finder"
+      },
+      {
+        "name": "ripgrep",
+        "brew": "ripgrep",
+        "apt": "ripgrep",
+        "description": "Fast grep alternative"
+      },
+      {
+        "name": "fd",
+        "brew": "fd",
+        "apt": "fd-find",
+        "description": "Fast find alternative"
+      },
+      {
+        "name": "bat",
+        "brew": "bat",
+        "apt": "bat",
+        "description": "Cat with syntax highlighting"
+      },
+      {
+        "name": "zoxide",
+        "brew": "zoxide",
+        "apt": null,
+        "cargo": "zoxide",
+        "description": "Smart cd command"
+      },
+      {
+        "name": "oh-my-posh",
+        "brew": "oh-my-posh",
+        "apt": null,
+        "manual": "curl -s https://ohmyposh.dev/install.sh | bash -s",
+        "description": "Cross-platform prompt engine"
+      }
+    ],
+    "editors": [
+      {
+        "name": "neovim",
+        "brew": "neovim",
+        "apt": "neovim",
+        "description": "Hyperextensible Vim-based text editor"
+      },
+      {
+        "name": "shellcheck",
+        "brew": "shellcheck",
+        "apt": "shellcheck",
+        "description": "Shell script analyzer"
+      }
+    ],
+    "languages": [
+      {
+        "name": "python",
+        "brew": "python@3.13",
+        "apt": "python3 python3-pip",
+        "description": "Python programming language"
+      },
+      {
+        "name": "node",
+        "brew": "node@22",
+        "apt": null,
+        "manual": "Use nvm or nodesource",
+        "description": "Node.js runtime"
+      },
+      {
+        "name": "go",
+        "brew": "go",
+        "apt": "golang-go",
+        "description": "Go programming language"
+      },
+      {
+        "name": "rust",
+        "brew": "rust",
+        "apt": null,
+        "manual": "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh",
+        "description": "Rust programming language"
+      }
+    ],
+    "tools": [
+      {
+        "name": "jq",
+        "brew": "jq",
+        "apt": "jq",
+        "description": "JSON processor"
+      },
+      {
+        "name": "tree-sitter",
+        "brew": "tree-sitter",
+        "apt": null,
+        "npm": "tree-sitter-cli",
+        "description": "Parser generator"
+      },
+      {
+        "name": "git-delta",
+        "brew": "git-delta",
+        "apt": "git-delta",
+        "description": "Better git diff viewer"
+      },
+      {
+        "name": "tig",
+        "brew": "tig",
+        "apt": "tig",
+        "description": "Text-mode git interface"
+      },
+      {
+        "name": "httpie",
+        "brew": "httpie",
+        "apt": "httpie",
+        "description": "HTTP client"
+      },
+      {
+        "name": "pre-commit",
+        "brew": "pre-commit",
+        "apt": null,
+        "pip": "pre-commit",
+        "description": "Git pre-commit framework"
+      }
+    ],
+    "build": [
+      {
+        "name": "cmake",
+        "brew": "cmake",
+        "apt": "cmake",
+        "description": "Cross-platform build system"
+      },
+      {
+        "name": "make",
+        "brew": "make",
+        "apt": "build-essential",
+        "description": "Build automation tool"
+      },
+      {
+        "name": "gcc",
+        "brew": "gcc",
+        "apt": "gcc",
+        "description": "GNU Compiler Collection"
+      }
+    ],
+    "formatters": [
+      {
+        "name": "prettier",
+        "brew": "prettier",
+        "apt": null,
+        "npm": "prettier",
+        "description": "Code formatter"
+      },
+      {
+        "name": "stylua",
+        "brew": "stylua",
+        "apt": null,
+        "cargo": "stylua",
+        "description": "Lua formatter"
+      },
+      {
+        "name": "ruff",
+        "brew": "ruff",
+        "apt": null,
+        "pip": "ruff",
+        "description": "Python linter and formatter"
+      }
+    ]
+  }
+}
