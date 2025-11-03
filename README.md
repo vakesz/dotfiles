@@ -30,7 +30,6 @@ Cross-platform dotfiles for macOS, Linux, and WSL. Managed with [GNU Stow](https
 ```txt
 ~/dotfiles/
 ├── .config/              # Application configurations
-│   ├── alacritty/       # Terminal emulator
 │   ├── git/             # Git config
 │   ├── nvim/            # Neovim config
 │   ├── oh-my-posh/      # Prompt theme
