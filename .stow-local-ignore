@@ -1,0 +1,18 @@
+# Stow ignore file - patterns for files NOT to symlink
+# See: man stow
+
+# Documentation files
+^/README\.md$
+^/KEYMAPS\.md$
+^/CLAUDE\.md$
+
+# Installation and setup scripts
+^/scripts
+^/install\.sh$
+
+# Git metadata
+^/\.git
+^/\.gitignore$
+
+# Claude Code configuration
+^/\.claude

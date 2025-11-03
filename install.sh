@@ -1,258 +1,400 @@
 #!/usr/bin/env bash
-set -euo pipefail
+#
+# Dotfiles installation script
+# Supports macOS (brew), Linux (apt), and WSL
+#
 
-# Dotfiles installer - cross-platform setup using Homebrew
+set -e
 
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
-# Source utilities
-# shellcheck source=lib/platform.sh
-source "$REPO_DIR/lib/platform.sh"
-# shellcheck source=lib/brew.sh
-source "$REPO_DIR/lib/brew.sh"
-# shellcheck source=lib/symlink.sh
-source "$REPO_DIR/lib/symlink.sh"
+# Script directory
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPTS_DIR="$DOTFILES_DIR/scripts"
 
-show_usage() {
-    cat << EOF
-Usage: $0 [OPTIONS]
-
-OPTIONS:
-    -h, --help          Show this help message
-    -u, --update        Update existing installation
-    --skip-packages     Skip package installation
-    --skip-symlinks     Skip symlinking dotfiles
-    --cleanup           Clean up broken symlinks only
-
-EXAMPLES:
-    $0                  Full installation
-    $0 --update         Update packages and refresh symlinks
-    $0 --skip-packages  Only symlink dotfiles
-EOF
+# Logging functions
+log_info() {
+    echo -e "${BLUE}[INFO]${NC} $1"
 }
 
-check_requirements() {
-    log "Checking system requirements..."
-
-    local os
-    os="$(detect_os)"
-
-    log "Detected OS: $os"
-
-    case "$os" in
-        macos)
-            # macOS should have curl by default
-            if ! command -v curl >/dev/null 2>&1; then
-                error "curl is required but not found"
-                return 1
-            fi
-            ;;
-        linux|wsl)
-            # Linux systems need curl and basic tools
-            if ! command -v curl >/dev/null 2>&1; then
-                log "Installing curl and basic requirements..."
-                if command -v apt-get >/dev/null 2>&1; then
-                    sudo apt-get update && sudo apt-get install -y curl build-essential
-                elif command -v yum >/dev/null 2>&1; then
-                    sudo yum install -y curl gcc gcc-c++ make
-                elif command -v dnf >/dev/null 2>&1; then
-                    sudo dnf install -y curl gcc gcc-c++ make
-                else
-                    error "No supported package manager found"
-                    return 1
-                fi
-            fi
-            ;;
-        *)
-            error "Unsupported operating system: $os"
-            return 1
-            ;;
-    esac
-
-    success "System requirements satisfied"
+log_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
 }
 
-setup_shell_environment() {
-    log "Setting up shell environment..."
-
-    # Ensure Homebrew is in PATH for current session
-    setup_brew_environment
-
-    # Set up shell-specific configurations
-    local shell_name
-    shell_name="$(basename "$SHELL")"
-
-    case "$shell_name" in
-        zsh)
-            # Zsh will be configured via dotfiles
-            log "Zsh detected - configuration will be handled by dotfiles"
-            ;;
-        bash)
-            log "Bash detected - consider switching to zsh for better experience"
-            ;;
-        *)
-            warn "Unknown shell: $shell_name"
-            ;;
-    esac
+log_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1"
 }
 
-install_nodejs_with_nvm() {
-    log "Installing nvm using official installer..."
-    
-    # Check if nvm is already installed
-    if [[ -s "$HOME/.nvm/nvm.sh" ]]; then
-        log "nvm is already installed, skipping installation"
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+# Detect OS
+detect_os() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        OS="macos"
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        if grep -qi microsoft /proc/version 2>/dev/null; then
+            OS="wsl"
+        else
+            OS="linux"
+        fi
     else
-        # Install nvm using the official curl method
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
-        
-        # Source nvm for the current session
-        export NVM_DIR="$HOME/.nvm"
-        # shellcheck source=/dev/null
-        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-        # shellcheck source=/dev/null
-        [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+        OS="unknown"
     fi
 
-    # Uninstall existing Node.js from Homebrew to prevent conflicts
-    if brew list --formula | grep -q "node"; then
-        log "Removing conflicting Node.js installation from Homebrew..."
-        brew uninstall node
-    fi
-
-    # Source nvm if not already loaded
-    export NVM_DIR="$HOME/.nvm"
-    # shellcheck source=/dev/null
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-
-    # Install the latest LTS version of Node.js
-    log "Installing latest LTS Node.js version..."
-    nvm install --lts
-    nvm alias default 'lts/*'
-    nvm use default
-    
-    success "nvm and Node.js LTS installed successfully"
+    log_info "Detected OS: $OS"
 }
 
-post_install_setup() {
-    log "Running post-installation setup..."
-
-    # Platform-specific post-install tasks
-    if is_linux || is_wsl; then
-        # Install recommended fonts for Linux/WSL
-        if command -v fc-cache >/dev/null 2>&1; then
-            log "Refreshing font cache..."
-            fc-cache -fv >/dev/null 2>&1 || true
-        fi
-
-        # WSL-specific setup
-        if is_wsl; then
-            log "Applying WSL-specific configurations..."
-
-            # Set up locale if needed
-            if ! locale -a 2>/dev/null | grep -q "en_US.utf8"; then
-                if [[ -f /etc/locale.gen ]]; then
-                    sudo sed -i 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen 2>/dev/null || true
-                    sudo locale-gen >/dev/null 2>&1 || true
-                fi
-            fi
-        fi
-    fi
-
-    # Set up development directories
-    mkdir -p "$HOME/workspace" "$HOME/bin"
-
-    success "Post-installation setup completed"
+# Check if command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
 }
 
-main() {
-    local skip_packages=false
-    local skip_symlinks=false
-    local update_mode=false
-    local cleanup_only=false
+# Install Homebrew (macOS only)
+install_homebrew() {
+    if [[ "$OS" != "macos" ]]; then
+        return
+    fi
 
-    # Parse arguments
-    while [[ $# -gt 0 ]]; do
-        case $1 in
-            -h|--help)
-                show_usage
-                exit 0
+    if ! command_exists brew; then
+        log_info "Installing Homebrew..."
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+        # Add brew to PATH for current session
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+
+        log_success "Homebrew installed"
+    else
+        log_info "Homebrew already installed"
+    fi
+}
+
+# Update package manager
+update_package_manager() {
+    log_info "Skipping package manager updates (use 'topgrade' to update everything)"
+    # Package updates are handled by topgrade, not during installation
+    return 0
+}
+
+# Parse packages.json and extract package names for a specific package manager
+get_packages_for_manager() {
+    local manager="$1"
+    local packages_json="$SCRIPTS_DIR/packages.json"
+
+    if [[ ! -f "$packages_json" ]]; then
+        log_warning "packages.json not found"
+        return
+    fi
+
+    # Extract packages for the specified manager using jq
+    if command_exists jq; then
+        jq -r --arg mgr "$manager" '
+            .packages
+            | to_entries[]
+            | .value[]
+            | select(.[$mgr] != null and .[$mgr] != "")
+            | .[$mgr]
+        ' "$packages_json" | tr '\n' ' '
+    fi
+}
+
+# Get packages that need manual installation
+get_manual_packages() {
+    local packages_json="$SCRIPTS_DIR/packages.json"
+
+    if [[ ! -f "$packages_json" ]] || ! command_exists jq; then
+        return
+    fi
+
+    jq -r '
+        .packages
+        | to_entries[]
+        | .value[]
+        | select(.manual != null)
+        | "\(.name):\(.manual)"
+    ' "$packages_json"
+}
+
+# Install packages based on OS
+install_packages() {
+    if ! command_exists jq; then
+        log_warning "jq not found, installing it first..."
+        case "$OS" in
+            macos)
+                brew install jq
                 ;;
-            -u|--update)
-                update_mode=true
-                shift
-                ;;
-            --skip-packages)
-                skip_packages=true
-                shift
-                ;;
-            --skip-symlinks)
-                skip_symlinks=true
-                shift
-                ;;
-            --cleanup)
-                cleanup_only=true
-                shift
-                ;;
-            *)
-                error "Unknown option: $1"
-                show_usage
-                exit 1
+            linux|wsl)
+                sudo apt install -y jq
                 ;;
         esac
+    fi
+
+    case "$OS" in
+        macos)
+            if command_exists brew; then
+                log_info "Installing packages via Homebrew from packages.json..."
+
+                local brew_packages=$(get_packages_for_manager "brew")
+
+                if [[ -n "$brew_packages" ]]; then
+                    log_info "Installing: $brew_packages"
+                    brew install $brew_packages || log_warning "Some packages failed to install"
+                    log_success "Homebrew packages installed"
+                else
+                    log_warning "No packages found in packages.json"
+                fi
+            fi
+            ;;
+
+        linux|wsl)
+            # Install via apt
+            if command_exists apt; then
+                log_info "Installing packages via apt from packages.json..."
+
+                local apt_packages=$(get_packages_for_manager "apt")
+
+                if [[ -n "$apt_packages" ]]; then
+                    log_info "Installing: $apt_packages"
+                    sudo apt install -y $apt_packages || log_warning "Some packages failed to install"
+                    log_success "APT packages installed"
+                fi
+            fi
+
+            # Install Rust if needed (for cargo packages)
+            local cargo_packages=$(get_packages_for_manager "cargo")
+            if [[ -n "$cargo_packages" ]] && ! command_exists cargo; then
+                log_info "Installing Rust (needed for cargo packages)..."
+                curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+                source "$HOME/.cargo/env" 2>/dev/null || export PATH="$HOME/.cargo/bin:$PATH"
+            fi
+
+            # Install cargo packages
+            if [[ -n "$cargo_packages" ]] && command_exists cargo; then
+                log_info "Installing cargo packages from packages.json..."
+                log_info "Installing: $cargo_packages"
+                for pkg in $cargo_packages; do
+                    cargo install "$pkg" 2>/dev/null || log_warning "Failed to install $pkg"
+                done
+                log_success "Cargo packages installed"
+            fi
+
+            # Install pip packages
+            local pip_packages=$(get_packages_for_manager "pip")
+            if [[ -n "$pip_packages" ]] && command_exists pip3; then
+                log_info "Installing pip packages from packages.json..."
+                log_info "Installing: $pip_packages"
+                pip3 install --user $pip_packages || log_warning "Some pip packages failed to install"
+                log_success "Pip packages installed"
+            fi
+
+            # Install npm packages
+            local npm_packages=$(get_packages_for_manager "npm")
+            if [[ -n "$npm_packages" ]] && command_exists npm; then
+                log_info "Installing npm packages from packages.json..."
+                log_info "Installing: $npm_packages"
+                npm install -g $npm_packages || log_warning "Some npm packages failed to install"
+                log_success "NPM packages installed"
+            fi
+
+            # Handle manual installation packages
+            log_info "Checking for packages requiring manual installation..."
+            while IFS=: read -r pkg_name install_cmd; do
+                if [[ -n "$pkg_name" ]] && ! command_exists "$pkg_name"; then
+                    log_info "Installing $pkg_name..."
+                    eval "$install_cmd" || log_warning "Failed to install $pkg_name"
+                fi
+            done < <(get_manual_packages)
+            ;;
+    esac
+
+    log_success "Package installation complete"
+}
+
+# Setup XDG directories
+setup_xdg_directories() {
+    log_info "Setting up XDG directories..."
+
+    mkdir -p "$HOME/.config"
+    mkdir -p "$HOME/.local/share"
+    mkdir -p "$HOME/.local/state"
+    mkdir -p "$HOME/.cache"
+
+    # Create zsh history directory
+    mkdir -p "$HOME/.local/state/zsh"
+
+    log_success "XDG directories created"
+}
+
+# Backup existing dotfiles
+backup_existing_files() {
+    log_info "Backing up existing dotfiles..."
+
+    local backup_dir="$HOME/.dotfiles_backup_$(date +%Y%m%d_%H%M%S)"
+    local files_to_backup=(
+        ".zshenv"
+        ".zshrc"
+        ".gitconfig"
+        ".config/nvim"
+        ".config/tmux"
+        ".config/zsh"
+    )
+
+    local backed_up=0
+    for file in "${files_to_backup[@]}"; do
+        if [[ -e "$HOME/$file" ]] && [[ ! -L "$HOME/$file" ]]; then
+            mkdir -p "$backup_dir/$(dirname "$file")"
+            mv "$HOME/$file" "$backup_dir/$file"
+            log_info "Backed up: $file"
+            backed_up=1
+        fi
     done
 
-    log "Starting dotfiles setup..."
-    log "Repository: $REPO_DIR"
+    if [[ $backed_up -eq 1 ]]; then
+        log_success "Backup created at: $backup_dir"
+    else
+        log_info "No files to backup"
+        rmdir "$backup_dir" 2>/dev/null || true
+    fi
+}
 
-    # Cleanup mode - just remove broken symlinks
-    if [[ "$cleanup_only" == true ]]; then
-        cleanup_broken_links "$REPO_DIR/config"
+# Setup dotfiles with stow
+setup_stow() {
+    log_info "Setting up dotfiles with stow..."
+
+    cd "$DOTFILES_DIR"
+
+    # Stow the main dotfiles
+    if command_exists stow; then
+        # Remove existing symlinks first
+        stow -D . 2>/dev/null || true
+
+        # Create new symlinks
+        stow -v --adopt .
+
+        log_success "Dotfiles symlinked with stow"
+    else
+        log_error "Stow not installed. Cannot setup dotfiles."
+        return 1
+    fi
+}
+
+# Setup Zsh as default shell
+setup_zsh() {
+    if ! command_exists zsh; then
+        log_warning "Zsh not installed"
+        return
+    fi
+
+    local zsh_path=$(which zsh)
+
+    # Check if zsh is in /etc/shells
+    if ! grep -q "$zsh_path" /etc/shells; then
+        log_info "Adding zsh to /etc/shells..."
+        echo "$zsh_path" | sudo tee -a /etc/shells
+    fi
+
+    # Change default shell to zsh
+    if [[ "$SHELL" != "$zsh_path" ]]; then
+        log_info "Changing default shell to zsh..."
+        chsh -s "$zsh_path"
+        log_success "Default shell changed to zsh (restart terminal to apply)"
+    else
+        log_info "Zsh is already the default shell"
+    fi
+}
+
+# Run platform-specific setup
+run_platform_setup() {
+    case "$OS" in
+        macos)
+            if [[ -f "$SCRIPTS_DIR/mac.sh" ]]; then
+                log_info "Running macOS-specific setup..."
+                bash "$SCRIPTS_DIR/mac.sh"
+            fi
+            ;;
+        wsl)
+            if [[ -f "$SCRIPTS_DIR/wsl.sh" ]]; then
+                log_info "Running WSL-specific setup..."
+                bash "$SCRIPTS_DIR/wsl.sh"
+            fi
+            ;;
+    esac
+}
+
+# Main installation flow
+main() {
+    log_info "Starting dotfiles installation..."
+    echo ""
+
+    detect_os
+
+    if [[ "$OS" == "unknown" ]]; then
+        log_error "Unsupported operating system"
+        exit 1
+    fi
+
+    echo ""
+    log_info "This script will:"
+    echo "  1. Install/update package manager"
+    echo "  2. Install essential packages"
+    echo "  3. Setup XDG directories"
+    echo "  4. Backup existing dotfiles"
+    echo "  5. Symlink dotfiles using stow"
+    echo "  6. Setup zsh as default shell"
+    echo "  7. Run platform-specific setup"
+    echo ""
+
+    read -p "Continue? (y/N) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        log_info "Installation cancelled"
         exit 0
     fi
 
-    # Check system requirements
-    check_requirements
+    echo ""
 
-    # Install or update Homebrew
-    if [[ "$skip_packages" == false ]]; then
+    # Installation steps
+    if [[ "$OS" == "macos" ]]; then
         install_homebrew
-        setup_brew_environment
-
-        if [[ "$update_mode" == true ]]; then
-            update_homebrew
-        fi
-
-        # Install packages from Brewfile
-        install_packages "$REPO_DIR/Brewfile"
     fi
 
-    # Set up shell environment
-    setup_shell_environment
+    update_package_manager
+    install_packages
+    setup_xdg_directories
+    backup_existing_files
+    setup_stow
+    setup_zsh
+    run_platform_setup
 
-    # Symlink dotfiles
-    if [[ "$skip_symlinks" == false ]]; then
-        link_dotfiles "$REPO_DIR/config"
-        cleanup_broken_links "$REPO_DIR/config"
+    echo ""
+    log_success "Dotfiles installation complete!"
+    echo ""
+    log_info "Next steps:"
+    echo "  1. Restart your terminal or run: exec zsh"
+    echo "  2. Your git config is already set via stow (.gitconfig)"
+
+    if [[ "$OS" == "macos" ]]; then
+        echo "  3. Review installed packages: brew list"
+        echo "  4. Update everything: topgrade"
     fi
 
-    # Post-installation setup
-    post_install_setup
-
-    success "Dotfiles setup completed!"
-
-    if [[ "$update_mode" == false ]]; then
-        log ""
-        log "Next steps:"
-        log "1. Restart your shell or run: exec \$SHELL"
-        log "2. For macOS: Install apps from Mac App Store if needed"
-        log "3. Configure Git with your name and email if needed"
-        log ""
-        log "To update in the future, run: $0 --update"
+    if [[ "$OS" == "linux" ]] || [[ "$OS" == "wsl" ]]; then
+        echo "  3. Verify PATH includes:"
+        echo "     - \$HOME/.cargo/bin (Rust)"
+        echo "     - \$HOME/.local/bin (local tools)"
+        echo "  4. Update everything: topgrade"
     fi
+
+    echo ""
+    log_info "Note: Package managers may install additional dependencies"
+    echo "  (e.g., Homebrew's 'rust' requires python@3.14 for build scripts)"
 }
 
-# Only run main if script is executed directly
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    main "$@"
-fi
+# Run main function
+main "$@"

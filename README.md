@@ -1,198 +1,112 @@
-# Dotfiles Setup
+# Dotfiles
 
-Cross-platform dotfiles that bootstrap a productive development environment using Homebrew. Works seamlessly on macOS, Linux, and WSL2.
+Cross-platform dotfiles for macOS, Linux, and WSL. Managed with [GNU Stow](https://www.gnu.org/software/stow/) and automated setup scripts.
 
-## ✨ Features
+## Features
 
-- **Cross-Platform**: Single setup works on macOS, Linux, and WSL2
-- **Homebrew-Powered**: Unified package management across all platforms
-- **Symlinked Configs**: Live-updating dotfiles - changes sync automatically
-- **Idempotent**: Safe to re-run anytime for updates
-- **Modular Design**: Clean, maintainable architecture
+- **Cross-platform**: Works on macOS, Linux, and WSL
+- **XDG Base Directory compliant**: Clean home directory
+- **Automated installation**: Single command setup
+- **Platform-specific configurations**: Optimized for each OS
+- **Version controlled**: Track and sync across machines
 
-## 🚀 Quick Start
+## What's Included
+
+### Shell Configuration
+
+- **Zsh** with XDG-compliant setup
+- **Oh My Posh** for cross-platform prompts
+- **Zinit** for plugin management
+- Platform-specific PATH and environment variables
+
+### Package Management
+
+- `packages.json` - Unified package mapping for all platforms
+- Automatic package installation via brew/apt/cargo/pip/npm
+- Platform-specific package resolution
+
+## Directory Structure
+
+```txt
+~/dotfiles/
+├── .config/              # Application configurations
+│   ├── alacritty/       # Terminal emulator
+│   ├── git/             # Git config
+│   ├── nvim/            # Neovim config
+│   ├── oh-my-posh/      # Prompt theme
+│   ├── tmux/            # Terminal multiplexer
+│   └── zsh/             # Zsh configuration
+├── scripts/             # Installation and setup scripts
+│   ├── packages.json    # Cross-platform package mapping (main source)
+│   ├── mac.sh          # macOS-specific setup
+│   └── wsl.sh          # WSL-specific setup
+├── .gitconfig          # Global git configuration
+├── .stow-local-ignore  # Stow ignore patterns
+├── .zshenv             # Zsh environment (XDG setup)
+├── install.sh          # Main installation script
+└── README.md           # This file
+```
+
+## XDG Base Directory
+
+This setup follows the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html):
+
+- `XDG_CONFIG_HOME`: `~/.config` - User-specific configurations
+- `XDG_DATA_HOME`: `~/.local/share` - User-specific data files
+- `XDG_STATE_HOME`: `~/.local/state` - User-specific state data
+- `XDG_CACHE_HOME`: `~/.cache` - User-specific cache files
+
+The `.zshenv` file sets `ZDOTDIR` to `~/.config/zsh`, keeping zsh configs out of `$HOME`.
+
+## Customization
+
+### Adding Packages
+
+All packages are managed in `scripts/packages.json`. Add entries like this:
+
+```json
+{
+  "name": "package-name",
+  "brew": "package-name",
+  "apt": "package-name",
+  "cargo": "package-name",
+  "pip": "package-name",
+  "npm": "package-name",
+  "manual": "curl -s https://example.com/install.sh | bash",
+  "description": "What this package does"
+}
+```
+
+## Troubleshooting
+
+### Stow conflicts
+
+If stow reports conflicts:
+
+1. Backup the conflicting files
+2. Remove or rename them
+3. Run `stow .` again
+
+The install script automatically backs up existing files to `~/.dotfiles_backup_<timestamp>/`.
+
+### Missing commands on Linux
+
+Some tools need manual installation:
 
 ```bash
-git clone https://github.com/vakesz/dotfiles.git ~/.dotfiles
-cd ~/.dotfiles
-chmod +x install.sh
-./install.sh
+# oh-my-posh
+curl -s https://ohmyposh.dev/install.sh | bash -s
+
+# Rust (for lsd, zoxide, etc.)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# Then install tools
+cargo install zoxide
 ```
 
-Restart your shell: `exec $SHELL`
+## Resources
 
-## 📁 Repository Structure
-
-```text
-dotfiles/
-├── Brewfile                    # All packages via Homebrew
-├── install.sh                  # Main installer script
-├── lib/                        # Modular utilities
-│   ├── brew.sh                 # Homebrew management
-│   ├── platform.sh             # OS detection & logging
-│   └── symlink.sh              # Symlinking logic
-├── config/                     # Dotfiles (symlinked to ~/)
-│   ├── .gitconfig
-│   ├── .zshrc
-│   ├── .tmux.conf
-│   └── .config/
-│       ├── nvim/               # Neovim configuration
-│       └── .p10k.zsh           # Powerlevel10k theme
-└── README.md
-```
-
-## 🛠 Development Stack
-
-### Core Tools
-
-- **Shell**: Zsh with Starship prompt + modern plugins
-- **Editor**: Neovim with extensive plugin setup
-- **Terminal**: tmux with custom configuration
-- **Version Control**: Git with helpful aliases
-
-### Languages & Runtimes
-
-- Node.js (with pnpm)
-- Python 3.11 (with pipx)
-- Rust (with cargo)
-- Go
-- Zig
-- Java (OpenJDK 21)
-- Ruby
-- Lua
-
-### Development Tools
-
-- Docker & Docker Compose
-- GitHub CLI (gh)
-- Various linters: shellcheck, prettier, eslint, black, ruff
-- Build tools: cmake, make, ninja, gcc, llvm
-
-### CLI Utilities
-
-- Modern replacements: `lsd`, `bat`, `fd`, `ripgrep`
-- System tools: `htop`, `tree`, `jq`, `httpie`, `nmap`
-- Development: `fzf`, `tig`, `tldr`, `pre-commit`
-
-## 💻 Usage
-
-### Installation Options
-
-```bash
-# Full installation (recommended)
-./install.sh
-
-# Update existing setup
-./install.sh --update
-
-# Skip package installation (configs only)
-./install.sh --skip-packages
-
-# Skip symlinking (packages only)
-./install.sh --skip-symlinks
-
-# Clean up broken symlinks
-./install.sh --cleanup
-
-# Show help
-./install.sh --help
-```
-
-### Adding New Packages
-
-Simply edit `Brewfile` and add your package:
-
-```ruby
-# Add a CLI tool
-brew "your-package"
-
-# Add a desktop app (macOS only)
-cask "your-app" if OS.mac?
-
-# Add from a tap
-tap "owner/repo"
-brew "special-package"
-```
-
-Then run: `./install.sh --update`
-
-### Customizing Configs
-
-All configs are in `config/` and automatically symlinked to your home directory. Make changes directly in the repo - they'll be reflected immediately since they're symlinked.
-
-## 🔧 Platform-Specific Notes
-
-### macOS
-
-- Uses `/opt/homebrew` on Apple Silicon, `/usr/local` on Intel
-- Installs GUI applications via Homebrew casks
-- Includes Nerd Font installation
-
-### Linux/WSL
-
-- Installs Homebrew to `/home/linuxbrew/.linuxbrew`
-- Sets up proper locale configuration for WSL2
-- Handles font installation via fontconfig
-- Installs build essentials automatically
-
-## 🔄 Maintenance
-
-### Keep Everything Updated
-
-```bash
-cd ~/.dotfiles
-git pull
-./install.sh --update
-```
-
-### Manage Homebrew
-
-```bash
-# Update package list
-brew bundle dump --force
-
-# Check what would be installed/removed
-brew bundle --dry-run
-
-# Clean up
-brew cleanup
-```
-
-## 🗂 Migration Guide
-
-If migrating from the old apt-based setup:
-
-1. **Backup**: The installer automatically backs up existing configs
-2. **Run**: Execute `./install.sh` - it handles the migration
-3. **Verify**: Check that symlinks are working: `ls -la ~/ | grep -E '\->'`
-4. **Cleanup**: Remove old installation files when satisfied
-
-## 🆘 Troubleshooting
-
-### Broken Symlinks
-
-```bash
-./install.sh --cleanup
-```
-
-### Permission Issues
-
-```bash
-# Fix Homebrew permissions
-sudo chown -R $(whoami) $(brew --prefix)/*
-```
-
-### Missing Dependencies
-
-```bash
-# Reinstall Homebrew
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
-./install.sh
-```
-
-## 📝 License
-
-Personal configuration repository. Fork and adapt as needed.
-
----
-Happy coding! 🎯
+- [GNU Stow](https://www.gnu.org/software/stow/)
+- [XDG Base Directory](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html)
+- [Oh My Posh](https://ohmyposh.dev/)
+- [Zinit](https://github.com/zdharma-continuum/zinit)

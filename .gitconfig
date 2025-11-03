@@ -8,7 +8,7 @@
 	whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
 	repositoryformatversion = 0
 	bare       = false
-	excludesfile = ~/.gitignore_global
+	excludesfile = ~/.config/git/ignore
 	pager      = delta
 
 [pull]
@@ -21,7 +21,7 @@
 [branch]
     autosetupmerge = simple
 
-[alias]    
+[alias]
     # Sync current branch from upstream to your fork (origin)
     sync-fork = "!sh -c '\
         branch=$(git symbolic-ref --short HEAD) && \
@@ -32,7 +32,7 @@
     # Optional shorthand
     sf = sync-fork
 	lol = log --graph --oneline --decorate --all
-	
+
 [diff]
 	tool = vimdiff
 	colorMoved = default
