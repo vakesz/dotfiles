@@ -205,20 +205,6 @@ EOF
 }
 
 # ============================================================================
-# Git Credential Manager
-# ============================================================================
-
-setup_git_credential_manager() {
-    log_info "Setting up Git Credential Manager..."
-
-    # Use Windows Git Credential Manager from WSL
-    if command -v git &>/dev/null; then
-        git config --global credential.helper "/mnt/c/Program\ Files/Git/mingw64/bin/git-credential-manager.exe"
-        log_success "Git Credential Manager configured"
-    fi
-}
-
-# ============================================================================
 # Main
 # ============================================================================
 
@@ -230,7 +216,6 @@ main() {
     setup_windows_integration
     install_wsl_tools
     configure_performance
-    setup_git_credential_manager
 
     echo ""
     log_success "WSL-specific setup complete!"
