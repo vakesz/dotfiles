@@ -128,6 +128,38 @@
         "description": "Rust programming language"
       }
     ],
+    "containers": [
+      {
+        "name": "colima",
+        "brew": "colima",
+        "apt": null,
+        "description": "Open source container runtime for macOS (runs Docker in VM, not needed on Linux)"
+      },
+      {
+        "name": "docker",
+        "brew": "docker",
+        "apt": "docker.io",
+        "description": "Docker CLI and engine (native on Linux, used with Colima on macOS)"
+      },
+      {
+        "name": "docker-compose",
+        "brew": "docker-compose",
+        "apt": "docker-compose",
+        "description": "Multi-container orchestration tool"
+      },
+      {
+        "name": "docker-buildx",
+        "brew": "docker-buildx",
+        "apt": "docker-buildx",
+        "description": "Docker CLI plugin for extended build capabilities"
+      },
+      {
+        "name": "docker-completion",
+        "brew": "docker-completion",
+        "apt": "bash-completion",
+        "description": "Shell completion for Docker commands"
+      }
+    ],
     "tools": [
       {
         "name": "xdg-ninja",
@@ -187,6 +219,13 @@
         "apt": null,
         "cargo": "cargo-update",
         "description": "Cargo subcommand to check and update installed binaries"
+      },
+      {
+        "name": "cargo-cache",
+        "brew": null,
+        "apt": null,
+        "cargo": "cargo-cache",
+        "description": "Cargo subcommand to inspect and clean the cargo cache"
       },
       {
         "name": "glow",
