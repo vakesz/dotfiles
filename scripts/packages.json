@@ -173,6 +173,27 @@
         "apt": null,
         "pip": "pre-commit",
         "description": "Git pre-commit framework"
+      },
+      {
+        "name": "topgrade",
+        "brew": "topgrade",
+        "apt": null,
+        "cargo": "topgrade",
+        "description": "Universal system upgrade tool"
+      },
+      {
+        "name": "cargo-update",
+        "brew": null,
+        "apt": null,
+        "cargo": "cargo-update",
+        "description": "Cargo subcommand to check and update installed binaries"
+      },
+      {
+        "name": "glow",
+        "brew": "glow",
+        "apt": null,
+        "cargo": null,
+        "description": "Render markdown in terminal"
       }
     ],
     "build": [
