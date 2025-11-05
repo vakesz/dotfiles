@@ -7,14 +7,17 @@
 # Completion System Initialization
 # ----------------------------------------------------------------------------
 
-# Load and initialize the completion system
-autoload -Uz compinit
+# Only initialize if not already done (prevents double initialization)
+if ! (( ${+_comps} )); then
+  # Load and initialize the completion system
+  autoload -Uz compinit
 
-# Only regenerate compdump once a day for faster startup
-if [[ -n ${ZDOTDIR}/.zcompdump(#qN.mh+24) ]]; then
-  compinit
-else
-  compinit -C
+  # Only regenerate compdump once a day for faster startup
+  if [[ -n ${ZDOTDIR}/.zcompdump(#qN.mh+24) ]]; then
+    compinit
+  else
+    compinit -C
+  fi
 fi
 
 # Replay Zinit completions after compinit is loaded
@@ -108,12 +111,8 @@ zstyle ':completion:*:git-checkout:*' sort false
 # Set descriptions format to enable group support
 zstyle ':completion:*:descriptions' format '[%d]'
 
-# Preview directory's content with lsd when completing cd
-if have lsd; then
-  zstyle ':fzf-tab:complete:cd:*' fzf-preview 'lsd -1 --color=always $realpath'
-elif have ls; then
-  zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -1 --color=always $realpath'
-fi
+# Preview directory's content with ls when completing cd
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -1 --color=always $realpath'
 
 # Switch group using `,` and `.`
 zstyle ':fzf-tab:*' switch-group ',' '.'

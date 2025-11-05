@@ -291,8 +291,13 @@ setup_xdg_directories() {
     mkdir -p "$HOME/.local/state"
     mkdir -p "$HOME/.cache"
 
-    # Create zsh history directory
+    # Create zsh-specific directories
     mkdir -p "$HOME/.local/state/zsh"
+    mkdir -p "$HOME/.cache/zsh"
+
+    # Create directories for XDG-compliant tools
+    mkdir -p "$HOME/.local/state/less"
+    mkdir -p "$HOME/.cache/python"
 
     log_success "XDG directories created"
 }

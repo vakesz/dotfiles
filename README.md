@@ -96,7 +96,7 @@ Some tools need manual installation:
 # oh-my-posh
 curl -s https://ohmyposh.dev/install.sh | bash -s
 
-# Rust (for lsd, zoxide, etc.)
+# Rust (for zoxide, etc.)
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # Then install tools

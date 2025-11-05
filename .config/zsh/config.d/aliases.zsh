@@ -71,21 +71,12 @@ alias ....='cd ../../..'
 alias .....='cd ../../../..'
 
 # List directory contents
-alias l='ls -lFh'     # size, show type, human readable
-alias la='ls -lAFh'   # long list, show almost all, show type, human readable
-alias lr='ls -tRFh'   # sorted by date, recursive, show type, human readable
-alias lt='ls -ltFh'   # long list, sorted by date, show type, human readable
-alias ll='ls -l'      # long list
-alias ldot='ls -ld .*'
-
-# Use lsd if available
-if have lsd; then
-  alias ls='lsd'
-  alias l='lsd -lFh'
-  alias la='lsd -lAFh'
-  alias lt='lsd -ltFh'
-  alias tree='lsd --tree'
-fi
+alias l='ls -lFh --color'     # size, show type, human readable
+alias la='ls -lAFh --color'   # long list, show almost all, show type, human readable
+alias lr='ls -tRFh --color'   # sorted by date, recursive, show type, human readable
+alias lt='ls -ltFh --color'   # long list, sorted by date, show type, human readable
+alias ll='ls -l --color'      # long list
+alias ldot='ls -ld .* --color' # list only hidden files
 
 # ----------------------------------------------------------------------------
 # Git Aliases (Supplementary to OMZ git plugin)
@@ -153,7 +144,7 @@ alias reload='source $ZDOTDIR/.zshrc'
 
 # Edit zsh config
 alias zshconfig='$EDITOR $ZDOTDIR/.zshrc'
-alias zshenv='$EDITOR $ZDOTDIR/.zshenv'
+alias zshenv='$EDITOR $HOME/.zshenv'
 
 # ----------------------------------------------------------------------------
 # Development Shortcuts
