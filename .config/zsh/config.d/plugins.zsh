@@ -76,7 +76,7 @@ fi
 # FZF - Fuzzy finder integration
 if have fzf; then
   # Key bindings - try new method first, fallback to old method
-  if source <(fzf --zsh) 2>/dev/null; then
+  if fzf --zsh &>/dev/null && source <(fzf --zsh) 2>/dev/null; then
     :
   elif [ -f /usr/share/fzf/key-bindings.zsh ]; then
     source /usr/share/fzf/key-bindings.zsh
