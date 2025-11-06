@@ -2,7 +2,7 @@
 decorations = "full"
 dynamic_title = true
 option_as_alt = "OnlyRight"
-dimensions = { columns = 160, lines = 60 }
+dimensions = { columns = 140, lines = 60 }
 padding = { x = 4, y = 4 }
 dynamic_padding = true
 startup_mode = "Windowed"
@@ -77,6 +77,9 @@ bindings = [
     
     # Search
     { key = "F", mods = "Command", action = "SearchForward" },
+    
+    # Fix Shift+Enter
+    { key = "Return", mods = "Shift", chars = "\u001b[13;2u" },
 ]
 
 [general]
