@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+CFG="$HOME/.config/alacritty"
+THEME="$CFG/theme.toml"
+LIGHT="$CFG/tokyo-night-light.toml"
+DARK="$CFG/tokyo-night-dark.toml"
+
+# Create theme.toml if it doesn't exist (default to dark)
+if [[ ! -f "$THEME" ]]; then
+  printf "[general]\n" > "$THEME"
+  printf 'import = [ "%s" ]\n' "$DARK" >> "$THEME"
+fi
+
+# Read currently imported file path from theme.toml
+current=$(grep -oE '"[^"]+"' "$THEME" | tr -d '"')
+
+if [[ "$current" == "$LIGHT" ]]; then
+  next="$DARK"; label="Dark"
+else
+  next="$LIGHT"; label="Light"
+fi
+
+# Switch import (Alacritty will live-reload this)
+printf "[general]\n" > "$THEME"  # Clear file
+printf 'import = [ "%s" ]\n' "$next" >> "$THEME"
+
+# Optional macOS notification
+/usr/bin/osascript -e 'display notification "Switched to '"$label"'" with title "Alacritty Theme"'

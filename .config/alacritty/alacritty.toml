@@ -1,9 +1,7 @@
 [general]
-
 live_config_reload = true
-
 import = [
-  "~/.config/alacritty/tokyo-night.toml"
+  "~/.config/alacritty/theme.toml"
 ]
 
 [env]
@@ -73,6 +71,9 @@ bindings = [
     
     # Fix Shift+Enter
     { key = "Return", mods = "Shift", chars = "\n" },
+    
+    # Toggle theme (Command+Option+Shift+T)
+    { key = "T", mods = "Command|Option|Shift", command = { program = "/bin/bash", args = ["-c", "~/.config/alacritty/toggle-theme.sh"] } },
 ]
 
 [scrolling]
