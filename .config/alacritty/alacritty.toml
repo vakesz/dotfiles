@@ -1,17 +1,17 @@
-[window]
-decorations = "full"
-dynamic_title = true
-option_as_alt = "OnlyRight"
-dimensions = { columns = 140, lines = 60 }
-padding = { x = 4, y = 4 }
-dynamic_padding = true
-startup_mode = "Windowed"
-opacity = 0.95
-decorations_theme_variant = "None"
+[general]
 
-[scrolling]
-history = 10000
-multiplier = 3
+live_config_reload = true
+
+import = [
+  "~/.config/alacritty/tokyo-night.toml"
+]
+
+[env]
+TERM = "xterm-256color"
+
+[bell]
+animation = "EaseOutExpo"
+duration = 0
 
 [font]
 normal = { family = "JetBrainsMono Nerd Font", style = "Regular" }
@@ -25,10 +25,6 @@ offset = { x = 0, y = 0 }
 glyph_offset = { x = 0, y = 0 }
 builtin_box_drawing = true
 
-[bell]
-animation = "EaseOutExpo"
-duration = 0
-
 [colors]
 draw_bold_text_with_bright_colors = true
 
@@ -41,9 +37,6 @@ blink_interval = 500
 blink_timeout = 5
 unfocused_hollow = true
 thickness = 0.15
-
-[env]
-TERM = "xterm-256color"
 
 [mouse]
 # Hide mouse cursor when typing
@@ -79,18 +72,25 @@ bindings = [
     { key = "F", mods = "Command", action = "SearchForward" },
     
     # Fix Shift+Enter
-    { key = "Return", mods = "Shift", chars = "\u001b[13;2u" },
+    { key = "Return", mods = "Shift", chars = "\n" },
 ]
 
-[general]
-
-live_config_reload = true
-
-import = [
-  "~/.config/alacritty/tokyo-night.toml"
-]
+[scrolling]
+history = 10000
+multiplier = 3
 
 [terminal]
 
 [terminal.shell]
 program = "/bin/zsh"
+
+[window]
+decorations = "full"
+dynamic_title = true
+option_as_alt = "OnlyRight"
+dimensions = { columns = 140, lines = 40 }
+padding = { x = 4, y = 4 }
+dynamic_padding = true
+startup_mode = "Windowed"
+opacity = 1.0
+decorations_theme_variant = "None"
