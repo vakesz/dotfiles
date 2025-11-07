@@ -3,25 +3,41 @@
 
 return {
     "nvim-telescope/telescope.nvim",
-
-    tag = "0.1.5", -- pin to stable release
+    branch = "0.1.x",
+    cmd = "Telescope",
 
     dependencies = {
-        "nvim-lua/plenary.nvim", -- required utility functions
-        { -- native fzf for performance
+        "nvim-lua/plenary.nvim",
+        {
             "nvim-telescope/telescope-fzf-native.nvim",
             build = "make",
             cond = function() return vim.fn.executable("make") == 1 end,
         },
-        { -- improve vim.ui.select
-            "nvim-telescope/telescope-ui-select.nvim",
-        },
+        "nvim-telescope/telescope-ui-select.nvim",
+        "nvim-telescope/telescope-file-browser.nvim",
+    },
+
+    keys = {
+        { "<leader>pf", "<cmd>Telescope find_files<cr>", desc = "Find files" },
+        { "<C-p>", "<cmd>Telescope git_files<cr>", desc = "Git files" },
+        { "<leader>ps", "<cmd>Telescope live_grep<cr>", desc = "Live grep" },
+        { "<leader>pb", "<cmd>Telescope buffers<cr>", desc = "Buffers" },
+        { "<leader>vh", "<cmd>Telescope help_tags<cr>", desc = "Help tags" },
+        { "<leader>pws", function()
+            require("telescope.builtin").grep_string({ search = vim.fn.expand("<cword>") })
+        end, desc = "Grep word under cursor" },
+        { "<leader>pWs", function()
+            require("telescope.builtin").grep_string({ search = vim.fn.expand("<cWORD>") })
+        end, desc = "Grep WORD under cursor" },
+        { "<leader>pv", "<cmd>Telescope file_browser path=%:p:h select_buffer=true<cr>", desc = "File browser" },
     },
 
     config = function()
-        local telescope = require('telescope')
+        local telescope = require("telescope")
         telescope.setup({
-            -- ...existing config (using defaults for core)
+            defaults = {
+                file_ignore_patterns = { "node_modules", ".git/" },
+            },
             extensions = {
                 fzf = {
                     fuzzy = true,
@@ -29,27 +45,16 @@ return {
                     override_file_sorter = true,
                     case_mode = "smart_case",
                 },
-                ["ui-select"] = require("telescope.themes").get_dropdown({})
+                ["ui-select"] = require("telescope.themes").get_dropdown({}),
+                file_browser = {
+                    hijack_netrw = true,
+                },
             },
         })
-        -- Load extensions (pcall to avoid errors if build skipped)
-        pcall(telescope.load_extension, 'fzf')
-        pcall(telescope.load_extension, 'ui-select')
 
-        local builtin = require('telescope.builtin')
-        vim.keymap.set('n', '<leader>pf', builtin.find_files, {}) -- search files
-        vim.keymap.set('n', '<C-p>', builtin.git_files, {}) -- search git tracked files
-        vim.keymap.set('n', '<leader>pws', function()
-            local word = vim.fn.expand("<cword>")
-            builtin.grep_string({ search = word }) -- grep current word
-        end)
-        vim.keymap.set('n', '<leader>pWs', function()
-            local word = vim.fn.expand("<cWORD>")
-            builtin.grep_string({ search = word }) -- grep WORD under cursor
-        end)
-        vim.keymap.set('n', '<leader>ps', function()
-            builtin.grep_string({ search = vim.fn.input("Grep > ") }) -- grep prompt
-        end)
-        vim.keymap.set('n', '<leader>vh', builtin.help_tags, {}) -- search help tags
-    end
+        -- Load extensions
+        pcall(telescope.load_extension, "fzf")
+        pcall(telescope.load_extension, "ui-select")
+        pcall(telescope.load_extension, "file_browser")
+    end,
 }

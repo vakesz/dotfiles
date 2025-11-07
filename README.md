@@ -19,6 +19,22 @@ Cross-platform dotfiles for macOS, Linux, and WSL. Managed with [GNU Stow](https
 - **Zinit** for plugin management
 - Platform-specific PATH and environment variables
 
+### Neovim Configuration
+
+Modern, fast, and minimal Neovim setup:
+- **Package Manager**: lazy.nvim with lazy-loading for fast startup
+- **LSP**: Mason + nvim-lspconfig with auto-configuration
+- **Completion**: nvim-cmp with GitHub Copilot integration
+- **Formatting**: conform.nvim with format-on-save
+- **Git**: fugitive + gitsigns for version control
+- **UI**: mini.nvim (statusline, surround, indent guides)
+- **Fuzzy Finding**: Telescope with file browser
+- **Testing**: neotest for Go, Python, Zig
+- **Debugging**: nvim-dap with UI for multiple languages
+- **Theme**: GitHub dark colorblind with transparent background
+
+See [KEYMAPS.md](KEYMAPS.md) for complete keybinding reference.
+
 ### Package Management
 
 - `packages.json` - Unified package mapping for all platforms
@@ -30,19 +46,21 @@ Cross-platform dotfiles for macOS, Linux, and WSL. Managed with [GNU Stow](https
 ```txt
 ~/dotfiles/
 ├── .config/              # Application configurations
+│   ├── alacritty/       # Terminal emulator config
 │   ├── git/             # Git config
-│   ├── nvim/            # Neovim config
+│   ├── nvim/            # Neovim config (see below)
 │   ├── oh-my-posh/      # Prompt theme
 │   ├── tmux/            # Terminal multiplexer
 │   └── zsh/             # Zsh configuration
 ├── scripts/             # Installation and setup scripts
-│   ├── packages.json    # Cross-platform package mapping (main source)
+│   ├── packages.json    # Cross-platform package mapping
 │   ├── mac.sh          # macOS-specific setup
 │   └── wsl.sh          # WSL-specific setup
 ├── .gitconfig          # Global git configuration
 ├── .stow-local-ignore  # Stow ignore patterns
 ├── .zshenv             # Zsh environment (XDG setup)
 ├── install.sh          # Main installation script
+├── KEYMAPS.md          # Neovim keybindings reference
 └── README.md           # This file
 ```
 

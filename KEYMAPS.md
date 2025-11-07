@@ -10,7 +10,6 @@ Quick reference for all keymaps in this Neovim configuration. Generated from `co
 
 | Keys | Mode | Action |
 |------|------|--------|
-| `<leader>pv` | n | Open netrw (`:Ex`) file explorer |
 | `J` | n | Join line below, keep cursor in place |
 | `J` / `K` | v | Move selected lines down / up |
 | `<C-d>` / `<C-u>` | n | Half-page down / up & center view |
@@ -23,16 +22,11 @@ Quick reference for all keymaps in this Neovim configuration. Generated from `co
 | `<C-c>` | i | Escape to Normal mode |
 | `Q` | n | Disabled (no-op) |
 | `<leader>tp` | n | Run Plenary test file (`<Plug>PlenaryTestFile`) |
-| `<leader>f` | n | Format current buffer via conform.nvim |
+| `<leader>f` | n,v | Format current buffer/selection via conform.nvim |
 | `<C-k>` / `<C-j>` | n | Next / previous quickfix item (center) |
 | `<leader>k` / `<leader>j` | n | Next / previous location list item (center) |
 | `<leader>s` | n | Substitute word under cursor across file (pre-fills command) |
 | `<leader>x` | n | Make current file executable (`chmod +x`) |
-| `<leader>ee` | n | Insert Go `if err != nil {}` + `return err` snippet |
-| `<leader>ea` | n | Insert `assert.NoError(err, "")` snippet |
-| `<leader>ef` | n | Insert `log.Fatalf` error snippet |
-| `<leader>el` | n | Insert structured logger error snippet |
-| `<leader>ca` | n | Cellular Automaton "make it rain" animation |
 | `<leader><leader>` | n | Source current file (`:so`) |
 
 ## Basic Vim Operations (Essentials)
@@ -124,14 +118,6 @@ Prefix any motion with a number: `10w` (10 words forward), `5j` (down 5), `3f,` 
 
 Tip: If you accidentally yank something over your unnamed register but wanted to preserve earlier content, use registers (`"0p` re-pastes last yanked text not from a delete/change).
 
-## Tmux / External Integration
-
-| Keys | Action |
-|------|--------|
-| `<C-f>` | Open project picker in new tmux window (`tmux-sessionizer`) |
-| `<M-h>` | Open project in vertical split (sessionizer) |
-| `<M-H>` | Open project in new tmux window (sessionizer) |
-
 ## LSP (buffer-local, set on `LspAttach`)
 
 | Keys | Mode | Action |
@@ -161,9 +147,11 @@ Tip: If you accidentally yank something over your unnamed register but wanted to
 |------|--------|
 | `<leader>pf` | Find files (respecting `.gitignore`) |
 | `<C-p>` | Git tracked files |
+| `<leader>ps` | Live grep (search text in files) |
+| `<leader>pb` | Browse open buffers |
 | `<leader>pws` | Grep word under cursor |
 | `<leader>pWs` | Grep WORD under cursor |
-| `<leader>ps` | Grep with prompt input |
+| `<leader>pv` | File browser (in current directory) |
 | `<leader>vh` | Help tags |
 | `<leader>ft` | Find TODO comments in project |
 
@@ -212,6 +200,35 @@ Trouble provides multiple toggles (each opens/closes its dedicated view):
 |------|--------|
 | `<leader>u` | Toggle Undotree panel |
 
+## Mini.nvim Utilities
+
+### Buffer Management
+
+| Keys | Action |
+|------|--------|
+| `<leader>bd` | Delete current buffer (preserves window layout) |
+| `<leader>bD` | Force delete current buffer |
+
+### Surround Operations
+
+Mini.surround provides easy manipulation of surrounding characters.
+
+| Keys | Mode | Action | Example |
+|------|------|--------|---------|
+| `sa{motion}{char}` | n | Add surrounding | `saiw"` = surround word with " |
+| `sd{char}` | n | Delete surrounding | `sd"` = delete surrounding " |
+| `sr{old}{new}` | n | Replace surrounding | `sr"'` = replace " with ' |
+
+Common examples:
+- `saiw"` - Surround inner word with quotes
+- `sa)` - Add parentheses around selection
+- `sd]` - Delete surrounding brackets
+- `sr"'` - Change double quotes to single quotes
+
+### Indent Guides
+
+Automatic visual indent guides with scope highlighting (always visible).
+
 ## TODO Comments
 
 Highlights and navigates TODO, FIXME, HACK, WARN, PERF, NOTE, TEST comments in code.
@@ -227,21 +244,54 @@ Highlights and navigates TODO, FIXME, HACK, WARN, PERF, NOTE, TEST comments in c
 | Keys | Context | Action |
 |------|---------|--------|
 | `<leader>gs` | any | Open Git status (fugitive) |
-| `<leader>p` | fugitive status buffer | Git push |
-| `<leader>P` | fugitive status buffer | Git pull --rebase |
-| `<leader>t` | fugitive status buffer | Prepare `Git push -u origin ...` |
+| `<leader>gp` | fugitive status buffer | Git push |
+| `<leader>gP` | fugitive status buffer | Git pull --rebase |
+| `<leader>gt` | fugitive status buffer | Prepare `Git push -u origin ...` |
 | `gu` | merge diff | Accept OURS (diffget //2) |
 | `gh` | merge diff | Accept THEIRS (diffget //3) |
+
+## Git Signs (gitsigns.nvim)
+
+Inline git change indicators in the gutter.
+
+| Keys | Mode | Action |
+|------|------|--------|
+| `]h` / `[h` | n | Next / previous git hunk |
+| `<leader>hs` | n,v | Stage hunk (or visual selection) |
+| `<leader>hr` | n,v | Reset hunk (or visual selection) |
+| `<leader>hp` | n | Preview hunk diff |
+| `<leader>hb` | n | Show git blame for current line |
+| `<leader>hd` | n | Diff this file |
+
+## Which-Key Leader Groups
+
+Press `<leader>` and wait to see available commands organized by category:
+
+| Prefix | Category |
+|--------|----------|
+| `<leader>c` | Code actions |
+| `<leader>d` | Debug operations |
+| `<leader>f` | Format buffer |
+| `<leader>g` | Git operations |
+| `<leader>h` | Git hunks (gitsigns) |
+| `<leader>p` | Project/Find (Telescope) |
+| `<leader>t` | Test operations |
+| `<leader>v` | LSP operations |
+| `<leader>x` | Diagnostics |
+| `<leader>b` | Buffer operations |
+| `<leader>?` | Show buffer-local keymaps |
 
 ## Misc / Aesthetics
 
 | Aspect | Notes |
 |--------|-------|
-| Colorscheme | `rose-pine-moon` (default), auto-switches to `rose-pine-dawn` for Zig files |
+| Colorscheme | `github_dark_colorblind` with transparent background |
+| Statusline | Mini.statusline with icons and git integration |
 | Treesitter | Auto-install & syntax highlighting for all languages |
 | Clipboard | System clipboard integration via `<leader>y` / `<leader>Y` |
 | Auto-trim | Trailing whitespace removed on save |
 | Yank highlight | Briefly highlights yanked text |
+| Indent guides | Visual indent scope with `│` character |
 
 ## Plugin Commands & Entrypoints
 
@@ -250,15 +300,17 @@ Highlights and navigates TODO, FIXME, HACK, WARN, PERF, NOTE, TEST comments in c
 | lazy.nvim | `:Lazy` - Manage plugins (install, update, clean) |
 | trouble.nvim | `:Trouble diagnostics toggle`, `:Trouble symbols toggle` |
 | vim-fugitive | `:Git`, `:Gdiffsplit`, `:Gblame`, `:Git commit` |
+| gitsigns.nvim | `:Gitsigns` - Git hunk operations |
 | undotree | `:UndotreeToggle` (mapped to `<leader>u`) |
 | nvim-dap / dap-ui | Use keymaps; `:lua require'dap'.repl.open()` for REPL |
-| conform.nvim | Format via `<leader>f` or `:lua require'conform'.format()` |
+| conform.nvim | Format via `<leader>f` or `:ConformInfo` |
 | which-key.nvim | `<leader>?` - Show buffer-local keymaps |
 | neotest | Use keymaps; `:lua require('neotest').summary.toggle()` |
 | telescope.nvim | `:Telescope` - Browse all pickers |
 | mason.nvim | `:Mason` - Manage LSP servers, DAP adapters, linters |
 | todo-comments.nvim | `:TodoTelescope`, `:TodoQuickFix`, `:TodoLocList` |
-| GitHub Copilot | Auto-completion integration via nvim-cmp |
+| mini.nvim | Multiple utilities (statusline, surround, indentscope, bufremove) |
+| GitHub Copilot | Auto-completion integration via nvim-cmp; `Alt+l` to accept |
 
 ## Built-In Essentials (Reference)
 
@@ -278,15 +330,12 @@ Highlights and navigates TODO, FIXME, HACK, WARN, PERF, NOTE, TEST comments in c
 
 Auto-installed via mason-lspconfig:
 
-- **Lua**: `lua_ls` (with stylua formatting)
-- **Rust**: `rust_analyzer`
-- **Go**: `gopls` (with gofumpt)
-- **Zig**: `zls`
-- **Python**: `pyright` (formatting disabled, use ruff)
+- **Lua**: `lua_ls` (workspace configured for Neovim)
+- **Python**: `pyright` (formatting disabled, use ruff via conform)
 - **C/C++**: `clangd`
-- **Vue**: `vue_ls`
 - **TypeScript/JavaScript**: `ts_ls`
-- **Swift**: `sourcekit` (via Xcode toolchain)
+
+Other servers can be added via `:Mason` and will be auto-configured.
 
 ## Discovering Keymaps
 

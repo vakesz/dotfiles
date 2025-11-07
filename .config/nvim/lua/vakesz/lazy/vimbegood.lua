@@ -3,11 +3,5 @@
 
 return {
     "theprimeagen/vim-be-good",
-
-    dependencies = {
-        "nvim-lua/plenary.nvim" -- utility dependency
-    },
-
-    config = function()
-    end
+    dependencies = { "nvim-lua/plenary.nvim" },
 }

@@ -3,11 +3,16 @@
 
 return {
     "tpope/vim-fugitive",
+    cmd = "Git",
+    keys = {
+        { "<leader>gs", "<cmd>Git<cr>", desc = "Git status" },
+        { "gu", "<cmd>diffget //2<cr>", desc = "Diffget ours (merge conflict)" },
+        { "gh", "<cmd>diffget //3<cr>", desc = "Diffget theirs (merge conflict)" },
+    },
     config = function()
-        vim.keymap.set("n", "<leader>gs", vim.cmd.Git) -- open Git status window
-
         local vakeszGrp_Fugitive = vim.api.nvim_create_augroup("vakeszGrp_Fugitive", {})
         local autocmd = vim.api.nvim_create_autocmd
+
         autocmd("BufWinEnter", {
             group = vakeszGrp_Fugitive,
             pattern = "*",
@@ -17,23 +22,18 @@ return {
                 end
 
                 local bufnr = vim.api.nvim_get_current_buf()
-                local opts = {buffer = bufnr, remap = false}
-                vim.keymap.set("n", "<leader>p", function()
-                    vim.cmd.Git('push') -- push current branch
+                local opts = { buffer = bufnr, remap = false }
+
+                vim.keymap.set("n", "<leader>gp", function()
+                    vim.cmd.Git("push")
                 end, opts)
 
-                -- rebase always
-                vim.keymap.set("n", "<leader>P", function()
-                    vim.cmd.Git({'pull',  '--rebase'}) -- pull with rebase
+                vim.keymap.set("n", "<leader>gP", function()
+                    vim.cmd.Git({ "pull", "--rebase" })
                 end, opts)
 
-                -- Allows specifying remote branch for push
-                vim.keymap.set("n", "<leader>t", ":Git push -u origin ", opts)
+                vim.keymap.set("n", "<leader>gt", ":Git push -u origin ", opts)
             end,
         })
-
-        -- Diffget shortcuts for resolving merges
-        vim.keymap.set("n", "gu", "<cmd>diffget //2<CR>") -- ours
-        vim.keymap.set("n", "gh", "<cmd>diffget //3<CR>") -- theirs
-    end
+    end,
 }

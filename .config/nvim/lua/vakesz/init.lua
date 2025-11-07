@@ -13,16 +13,6 @@ local vakeszGrp = augroup('vakesz', {})
 local autocmd = vim.api.nvim_create_autocmd
 local yank_group = augroup('HighlightYank', {})
 
-function R(name)
-    -- Safely reload module using plenary if available
-    local has_plenary, plenary_reload = pcall(require, "plenary.reload")
-    if has_plenary then
-        plenary_reload.reload_module(name)
-    else
-        vim.notify("Plenary not loaded yet, cannot reload module", vim.log.levels.WARN)
-    end
-end
-
 vim.filetype.add({
     extension = {
         templ = 'templ',
@@ -46,17 +36,6 @@ autocmd({"BufWritePre"}, {
     command = [[%s/\s\+$//e]],
 })
 
-autocmd('BufEnter', {
-    group = vakeszGrp,
-    callback = function()
-        if vim.bo.filetype == "zig" then
-            vim.cmd.colorscheme("rose-pine-dawn")
-        else
-            vim.cmd.colorscheme("rose-pine-moon")
-        end
-    end
-})
-
 
 autocmd('LspAttach', {
     group = vakeszGrp,
@@ -74,7 +53,3 @@ autocmd('LspAttach', {
         vim.keymap.set("n", "]d", function() vim.diagnostic.goto_prev() end, opts)
     end
 })
-
-vim.g.netrw_browse_split = 0
-vim.g.netrw_banner = 0
-vim.g.netrw_winsize = 25

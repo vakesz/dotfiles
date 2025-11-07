@@ -1,27 +1,30 @@
--- Configure the rose-pine colorscheme
--- Docs: https://github.com/rose-pine/neovim
-
-local function ColorMyPencils(color)
-    color = color or "rose-pine-moon" -- fallback colorscheme
-    vim.cmd.colorscheme(color)
-    vim.api.nvim_set_hl(0, "Normal", { bg = "none" }) -- keep background transparent
-    vim.api.nvim_set_hl(0, "NormalFloat", { bg = "none" }) -- floating windows transparency
-end
+-- GitHub colorscheme with transparent background
+-- Docs: https://github.com/projekt0n/github-nvim-theme
 
 return {
-    {
-        "rose-pine/neovim",
-        name = "rose-pine",
-        lazy = false, -- load during startup
-        priority = 1000, -- load before other colorschemes
-        config = function()
-            require('rose-pine').setup({
-                disable_background = false, -- use theme's background color
+    "projekt0n/github-nvim-theme",
+    name = "github-theme",
+    lazy = false,
+    priority = 1000,
+
+    config = function()
+        require('github-theme').setup({
+            options = {
+                transparent = true, -- transparent background
+                terminal_colors = true,
+                dim_inactive = false,
                 styles = {
-                    italic = false, -- disable italic styles
+                    comments = "italic",
+                    keywords = "bold",
+                    types = "italic,bold",
                 },
-            })
-            ColorMyPencils()
-        end
-    },
+            },
+        })
+
+        vim.cmd.colorscheme("github_dark_colorblind")
+
+        -- Ensure transparent background
+        vim.api.nvim_set_hl(0, "Normal", { bg = "none" })
+        vim.api.nvim_set_hl(0, "NormalFloat", { bg = "none" })
+    end,
 }

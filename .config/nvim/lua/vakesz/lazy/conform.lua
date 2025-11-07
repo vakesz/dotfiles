@@ -2,14 +2,25 @@
 -- Docs: https://github.com/stevearc/conform.nvim
 
 return {
-    'stevearc/conform.nvim',
-    opts = {}, -- default options
+    "stevearc/conform.nvim",
+    event = { "BufWritePre" },
+    cmd = { "ConformInfo" },
+    keys = {
+        {
+            "<leader>f",
+            function()
+                require("conform").format({ async = true, lsp_fallback = true })
+            end,
+            mode = { "n", "v" },
+            desc = "Format buffer",
+        },
+    },
     config = function()
         require("conform").setup({
             formatters_by_ft = {
-                lua = { "stylua" }, -- Lua formatter: https://github.com/JohnnyMorganz/StyLua
-                go = { "gofmt", "goimports" }, -- Go formatter: https://pkg.go.dev/cmd/gofmt
-                javascript = { "prettier" }, -- JS/TS formatter: https://prettier.io/
+                lua = { "stylua" },
+                go = { "gofmt", "goimports" },
+                javascript = { "prettier" },
                 typescript = { "prettier" },
                 javascriptreact = { "prettier" },
                 typescriptreact = { "prettier" },
@@ -20,17 +31,16 @@ return {
                 json = { "prettier" },
                 yaml = { "prettier" },
                 markdown = { "prettier" },
-                elixir = { "mix" }, -- Elixir formatter via mix format
-                python = { "ruff_fix", "ruff_format" }, -- Python: ruff is much faster than black
-                c = { "clang_format" }, -- C/C++ formatter
+                elixir = { "mix" },
+                python = { "ruff_fix", "ruff_format" },
+                c = { "clang_format" },
                 cpp = { "clang_format" },
                 objc = { "clang_format" },
                 objcpp = { "clang_format" },
-                swift = { "swift_format" }, -- Swift formatter (requires swift-format)
-                rust = { "rustfmt" }, -- Rust formatter
-                zig = { "zigfmt" }, -- Zig formatter
+                swift = { "swift_format" },
+                rust = { "rustfmt" },
+                zig = { "zigfmt" },
             },
-            -- Format on save configuration
             format_on_save = function(bufnr)
                 -- Disable format on save for certain filetypes
                 local disable_filetypes = { c = true, cpp = true }
@@ -40,5 +50,5 @@ return {
                 }
             end,
         })
-    end
+    end,
 }
