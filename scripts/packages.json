@@ -100,6 +100,22 @@
         "description": "Shell script analyzer"
       }
     ],
+    "terminal": [
+      {
+        "name": "alacritty",
+        "brew": "--cask alacritty",
+        "apt": "alacritty",
+        "description": "GPU-accelerated terminal emulator"
+      }
+    ],
+    "macos-apps": [
+      {
+        "name": "CotEditor",
+        "brew": "--cask coteditor",
+        "apt": null,
+        "description": "Lightweight plain-text editor for macOS"
+      }
+    ],
     "languages": [
       {
         "name": "python",

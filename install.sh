@@ -137,11 +137,15 @@ install_brew_packages() {
     fi
 
     log_info "Installing packages via Homebrew from packages.json..."
-    local brew_packages=$(get_packages_for_manager "brew")
+    local brew_packages_str=$(get_packages_for_manager "brew")
 
-    if [[ -n "$brew_packages" ]]; then
-        log_info "Installing: $brew_packages"
-        brew install "${brew_packages}" || log_warning "Some packages failed to install"
+    if [[ -n "$brew_packages_str" ]]; then
+        # Convert to array for proper word splitting
+        local -a brew_packages
+        read -ra brew_packages <<< "$brew_packages_str"
+
+        log_info "Installing: ${brew_packages[*]}"
+        brew install "${brew_packages[@]}" || log_warning "Some packages failed to install"
         log_success "Homebrew packages installed"
     else
         log_warning "No packages found in packages.json"
@@ -154,11 +158,15 @@ install_apt_packages() {
     fi
 
     log_info "Installing packages via apt from packages.json..."
-    local apt_packages=$(get_packages_for_manager "apt")
+    local apt_packages_str=$(get_packages_for_manager "apt")
 
-    if [[ -n "$apt_packages" ]]; then
-        log_info "Installing: $apt_packages"
-        sudo apt install -y "${apt_packages}" || log_warning "Some packages failed to install"
+    if [[ -n "$apt_packages_str" ]]; then
+        # Convert to array for proper word splitting
+        local -a apt_packages
+        read -ra apt_packages <<< "$apt_packages_str"
+
+        log_info "Installing: ${apt_packages[*]}"
+        sudo apt install -y "${apt_packages[@]}" || log_warning "Some packages failed to install"
         log_success "APT packages installed"
     fi
 }
@@ -203,8 +211,12 @@ install_pip_packages() {
         log_success "Pip packages installed via pipx"
     elif command_exists pip3; then
         log_info "Installing pip packages from packages.json..."
-        log_info "Installing: $pip_packages"
-        pip3 install --user "${pip_packages}" 2>/dev/null || log_warning "Some pip packages failed to install (consider installing pipx)"
+        # Convert to array for proper word splitting
+        local -a pip_packages_array
+        read -ra pip_packages_array <<< "$pip_packages"
+
+        log_info "Installing: ${pip_packages_array[*]}"
+        pip3 install --user "${pip_packages_array[@]}" 2>/dev/null || log_warning "Some pip packages failed to install (consider installing pipx)"
         log_success "Pip packages installed"
     fi
 }
@@ -214,15 +226,19 @@ install_npm_packages() {
         return 0
     fi
 
-    local npm_packages=$(get_packages_for_manager "npm")
+    local npm_packages_str=$(get_packages_for_manager "npm")
 
-    if [[ -z "$npm_packages" ]]; then
+    if [[ -z "$npm_packages_str" ]]; then
         return 0
     fi
 
+    # Convert to array for proper word splitting
+    local -a npm_packages
+    read -ra npm_packages <<< "$npm_packages_str"
+
     log_info "Installing npm packages from packages.json..."
-    log_info "Installing: $npm_packages"
-    npm install -g "${npm_packages}" || log_warning "Some npm packages failed to install"
+    log_info "Installing: ${npm_packages[*]}"
+    npm install -g "${npm_packages[@]}" || log_warning "Some npm packages failed to install"
     log_success "NPM packages installed"
 }
 
