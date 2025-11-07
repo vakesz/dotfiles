@@ -150,6 +150,13 @@ alias zshenv='$EDITOR $HOME/.zshenv'
 # Development Shortcuts
 # ----------------------------------------------------------------------------
 
+# Bat (a cat clone with syntax highlighting and Git integration)
+if have bat; then
+  alias cat='bat'
+  alias b='bat'
+  alias bdiff='bat --diff'
+fi
+
 # Docker
 if have docker; then
   alias d='docker'
