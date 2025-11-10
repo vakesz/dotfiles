@@ -82,6 +82,11 @@ cat > "$CONTENTS_DIR/Info.plist" << EOF
     <string>public.app-category.utilities</string>
     <key>CFBundleIconFile</key>
     <string>alacritty</string>
+    <key>LSArchitecturePriority</key>
+    <array>
+        <string>arm64</string>
+        <string>x86_64</string>
+    </array>
 </dict>
 </plist>
 EOF

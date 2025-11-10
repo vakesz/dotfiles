@@ -288,12 +288,15 @@ install_packages() {
 
         linux|wsl)
             install_apt_packages
-            install_cargo_packages
-            install_pip_packages
-            install_npm_packages
-            install_manual_packages
             ;;
     esac
+
+    # Install packages from additional package managers (cargo, pip, npm, manual)
+    # These are common across all platforms
+    install_cargo_packages
+    install_pip_packages
+    install_npm_packages
+    install_manual_packages
 
     log_success "Package installation complete"
 }
