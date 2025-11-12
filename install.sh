@@ -113,8 +113,8 @@ get_packages_for_manager() {
     fi
 }
 
-# Get packages that need manual installation
-get_manual_packages() {
+# Get packages that have install_script field
+get_install_script_packages() {
     local packages_json="$SCRIPTS_DIR/packages.json"
 
     if [[ ! -f "$packages_json" ]] || ! command_exists jq; then
@@ -125,8 +125,8 @@ get_manual_packages() {
         .packages
         | to_entries[]
         | .value[]
-        | select(.manual != null)
-        | "\(.name):\(.manual)"
+        | select(.install_script != null)
+        | "\(.name):\(.install_script)"
     ' "$packages_json"
 }
 
@@ -178,11 +178,21 @@ install_cargo_packages() {
         return 0
     fi
 
+    # Set XDG-compliant paths for Rust/Cargo
+    export CARGO_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/cargo"
+    export RUSTUP_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/rustup"
+    export PATH="$CARGO_HOME/bin:$PATH"
+
     # Install Rust if needed
     if ! command_exists cargo; then
         log_info "Installing Rust (needed for cargo packages)..."
+        log_info "Using XDG paths: CARGO_HOME=$CARGO_HOME, RUSTUP_HOME=$RUSTUP_HOME"
         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
-        source "$HOME/.cargo/env" 2>/dev/null || export PATH="$HOME/.cargo/bin:$PATH"
+
+        # Source cargo env with XDG path
+        if [[ -f "$CARGO_HOME/env" ]]; then
+            source "$CARGO_HOME/env"
+        fi
     fi
 
     if command_exists cargo; then
@@ -242,29 +252,58 @@ install_npm_packages() {
     log_success "NPM packages installed"
 }
 
-install_manual_packages() {
-    log_info "Checking for packages requiring manual installation..."
+install_script_packages() {
+    log_info "Installing additional tools..."
+    
     while IFS=: read -r pkg_name install_cmd; do
-        if [[ -n "$pkg_name" ]] && ! command_exists "$pkg_name"; then
-            case "$pkg_name" in
-                oh-my-posh)
-                    log_info "Installing oh-my-posh..."
-                    curl -s https://ohmyposh.dev/install.sh | bash -s || log_warning "Failed to install oh-my-posh"
-                    ;;
-                goimports)
-                    if command_exists go; then
-                        log_info "Installing goimports..."
-                        go install golang.org/x/tools/cmd/goimports@latest || log_warning "Failed to install goimports"
-                    else
-                        log_warning "Go not installed, skipping goimports"
-                    fi
-                    ;;
-                *)
-                    log_info "Manual installation required for $pkg_name: $install_cmd"
-                    ;;
-            esac
-        fi
-    done < <(get_manual_packages)
+        [[ -z "$pkg_name" ]] && continue
+        
+        # Skip if already installed
+        command_exists "$pkg_name" && continue
+        
+        # Handle special cases
+        case "$pkg_name" in
+            rust)
+                # Rust installation handled by install_cargo_packages
+                continue
+                ;;
+            node)
+                # Install Node.js via nvm on Linux/WSL only
+                [[ "$OS" == "macos" ]] && continue
+                
+                log_info "Installing Node.js via nvm..."
+                export NVM_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/nvm"
+                
+                if [[ ! -d "$NVM_DIR" ]]; then
+                    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+                fi
+                
+                if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+                    source "$NVM_DIR/nvm.sh"
+                    nvm install --lts && nvm use --lts
+                    log_success "Node.js installed via nvm"
+                else
+                    log_warning "Failed to install Node.js via nvm"
+                fi
+                ;;
+            goimports)
+                # Only install if Go is available
+                if command_exists go; then
+                    log_info "Installing goimports..."
+                    go install golang.org/x/tools/cmd/goimports@latest && log_success "goimports installed"
+                fi
+                ;;
+            oh-my-posh)
+                log_info "Installing oh-my-posh..."
+                bash -c "$install_cmd" && log_success "oh-my-posh installed"
+                ;;
+            *)
+                # Generic install for other packages
+                log_info "Installing $pkg_name..."
+                bash -c "$install_cmd" && log_success "$pkg_name installed"
+                ;;
+        esac
+    done < <(get_install_script_packages)
 }
 
 # Install packages based on OS
@@ -291,12 +330,12 @@ install_packages() {
             ;;
     esac
 
-    # Install packages from additional package managers (cargo, pip, npm, manual)
+    # Install packages from additional package managers
     # These are common across all platforms
     install_cargo_packages
     install_pip_packages
     install_npm_packages
-    install_manual_packages
+    install_script_packages
 
     log_success "Package installation complete"
 }

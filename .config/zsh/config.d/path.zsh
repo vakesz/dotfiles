@@ -94,10 +94,14 @@ export PATH="$CARGO_HOME/bin:$PATH"
 export NPM_CONFIG_PREFIX="${XDG_DATA_HOME:-$HOME/.local/share}/npm"
 export NPM_CONFIG_USERCONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/npm/npmrc"
 export NPM_CONFIG_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/npm"
+export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
+
+# Node.js - nvm (loaded if available, NVM_DIR set in env.zsh)
+[[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh" --no-use
 
 # Node.js - pnpm
 export PNPM_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/pnpm"
-export PATH="$NPM_CONFIG_PREFIX/bin:$PNPM_HOME:$PATH"
+export PATH="$PNPM_HOME:$PATH"
 
 # Python pipx
 export PATH="${XDG_DATA_HOME:-$HOME/.local/share}/pipx/venvs/bin:$PATH"
