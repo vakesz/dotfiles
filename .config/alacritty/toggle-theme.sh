@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CFG="$HOME/.config/alacritty"
+# Use XDG Base Directory specification
+CFG="${XDG_CONFIG_HOME:-$HOME/.config}/alacritty"
 THEME="$CFG/theme.toml"
 LIGHT="$CFG/_light.toml"
 DARK="$CFG/_dark.toml"

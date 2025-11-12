@@ -73,7 +73,7 @@ bindings = [
     { key = "Return", mods = "Shift", chars = "\n" },
     
     # Toggle theme (Command+Option+Shift+T)
-    { key = "T", mods = "Command|Option|Shift", command = { program = "/bin/bash", args = ["-c", "~/.config/alacritty/toggle-theme.sh"] } },
+    { key = "T", mods = "Command|Option|Shift", command = { program = "/bin/bash", args = ["-c", "${XDG_CONFIG_HOME:-$HOME/.config}/alacritty/toggle-theme.sh"] } },
 ]
 
 [scrolling]

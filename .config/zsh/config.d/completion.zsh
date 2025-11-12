@@ -12,11 +12,15 @@ if ! (( ${+_comps} )); then
   # Load and initialize the completion system
   autoload -Uz compinit
 
+  # Store completion dump in cache directory (XDG-compliant)
+  # This is a cache file, not configuration, so it belongs in XDG_CACHE_HOME
+  ZSH_COMPDUMP="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/.zcompdump"
+
   # Only regenerate compdump once a day for faster startup
-  if [[ -n ${ZDOTDIR}/.zcompdump(#qN.mh+24) ]]; then
-    compinit
+  if [[ -n ${ZSH_COMPDUMP}(#qN.mh+24) ]]; then
+    compinit -d "$ZSH_COMPDUMP"
   else
-    compinit -C
+    compinit -C -d "$ZSH_COMPDUMP"
   fi
 fi
 

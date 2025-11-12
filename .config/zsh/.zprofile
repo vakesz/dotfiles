@@ -37,4 +37,9 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   if [[ -f /usr/libexec/path_helper ]]; then
     eval "$(/usr/libexec/path_helper -s)"
   fi
+
+  # Disable macOS shell session restoration
+  # This prevents .zsh_sessions directory from cluttering $ZDOTDIR
+  # Session files are state data and don't belong in config directory
+  export SHELL_SESSIONS_DISABLE=1
 fi

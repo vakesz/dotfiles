@@ -41,9 +41,17 @@ mkdir -p "$MACOS_DIR"
 mkdir -p "$RESOURCES_DIR"
 
 # Create a wrapper script that ensures PATH includes cargo bin
-cat > "$MACOS_DIR/alacritty-wrapper" << EOF
+# Uses XDG Base Directory specification for cargo location
+cat > "$MACOS_DIR/alacritty-wrapper" << 'EOF'
 #!/bin/bash
-export PATH="$HOME/.cargo/bin:$HOME/.local/share/cargo/bin:\$PATH"
+# Set XDG_DATA_HOME if not already set
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+# Add cargo bin to PATH (XDG-compliant location)
+export PATH="$XDG_DATA_HOME/cargo/bin:$PATH"
+EOF
+
+# Append the exec line with the actual cargo bin path
+cat >> "$MACOS_DIR/alacritty-wrapper" << EOF
 exec "$CARGO_BIN" "\$@"
 EOF
 
