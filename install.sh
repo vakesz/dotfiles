@@ -117,32 +117,21 @@ install_toolchain_rust() {
         return 0
     fi
 
-    log_info "Installing Rust toolchain..."
+    log_info "Installing Rust toolchain via rustup..."
 
     # Set XDG-compliant paths
     export CARGO_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/cargo"
     export RUSTUP_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/rustup"
     export PATH="$CARGO_HOME/bin:$PATH"
 
-    case "$OS" in
-        macos)
-            # On macOS, prefer brew for better integration
-            brew install rust || {
-                log_warning "Homebrew install failed, using rustup"
-                curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
-            }
-            ;;
-        linux|wsl)
-            # On Linux, use rustup (not available in apt or outdated)
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
-            ;;
-    esac
+    # Use rustup on all platforms for consistent toolchain management
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
 
     # Source cargo env
     [[ -f "$CARGO_HOME/env" ]] && source "$CARGO_HOME/env"
 
     if command_exists cargo; then
-        log_success "Rust/Cargo installed"
+        log_success "Rust/Cargo installed via rustup"
     else
         log_warning "Failed to install Rust"
     fi
@@ -154,30 +143,26 @@ install_toolchain_node() {
         return 0
     fi
 
-    log_info "Installing Node.js toolchain..."
+    log_info "Installing Node.js toolchain via nvm..."
 
-    case "$OS" in
-        macos)
-            # On macOS, use brew
-            brew install node@22
-            ;;
-        linux|wsl)
-            # On Linux, prefer apt (system package manager)
-            if sudo apt install -y nodejs npm 2>/dev/null; then
-                log_success "Installed via apt"
-            else
-                # Fall back to nvm if apt fails
-                log_info "APT failed, installing via nvm..."
-                export NVM_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/nvm"
-                curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-                [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
-                nvm install --lts && nvm use --lts
-            fi
-            ;;
-    esac
+    # Set XDG-compliant path
+    export NVM_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/nvm"
+
+    # Use nvm on all platforms for consistent version management
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+
+    # Source nvm
+    [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
+
+    # Install LTS version
+    if command_exists nvm; then
+        nvm install --lts
+        nvm use --lts
+        nvm alias default lts/*
+    fi
 
     if command_exists node; then
-        log_success "Node.js/NPM installed"
+        log_success "Node.js/NPM installed via nvm"
     else
         log_warning "Failed to install Node.js"
     fi

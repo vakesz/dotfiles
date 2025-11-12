@@ -36,17 +36,17 @@
     "toolchains": [
       {
         "name": "rust",
-        "brew": "rust",
+        "brew": null,
         "apt": null,
         "install_script": "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path",
-        "description": "Rust programming language and cargo package manager (required for cargo packages)"
+        "description": "Rust programming language and cargo package manager (required for cargo packages) - installed via rustup"
       },
       {
         "name": "node",
-        "brew": "node@22",
+        "brew": null,
         "apt": null,
-        "install_script": "nvm",
-        "description": "Node.js runtime and npm package manager (required for npm packages)"
+        "install_script": "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash",
+        "description": "Node.js runtime and npm package manager (required for npm packages) - installed via nvm"
       },
       {
         "name": "go",
