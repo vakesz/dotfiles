@@ -86,10 +86,12 @@ configure_macos_defaults() {
     defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
     defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
 
-    # Safari: enable developer menu
-    defaults write com.apple.Safari IncludeDevelopMenu -bool true
-    defaults write com.apple.Safari WebKitDeveloperExtrasEnabledPreferenceKey -bool true
-    defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2DeveloperExtrasEnabled -bool true
+    # Safari: enable developer menu (may fail due to App Sandboxing)
+    # Note: Safari's preferences are sandboxed and may require manual configuration
+    defaults write com.apple.Safari IncludeDevelopMenu -bool true 2>/dev/null || \
+        log_warning "Could not configure Safari (requires manual setup in Safari > Settings > Advanced)"
+    defaults write com.apple.Safari WebKitDeveloperExtrasEnabledPreferenceKey -bool true 2>/dev/null || true
+    defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2DeveloperExtrasEnabled -bool true 2>/dev/null || true
 
     # Require password immediately after sleep or screen saver begins
     defaults write com.apple.screensaver askForPassword -int 1

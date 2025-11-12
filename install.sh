@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 #
-# Dotfiles installation script
+# Dotfiles installation script - Simplified and maintainable
 # Supports macOS (brew), Linux (apt), and WSL
+#
+# Installation Phases:
+#   1. Primary package manager (brew/apt)
+#   2. Toolchains (rust, node, go, python)
+#   3. Packages via each manager
+#   4. System configuration
 #
 
 set -e
@@ -13,7 +19,10 @@ SCRIPTS_DIR="$DOTFILES_DIR/scripts"
 # Source common functions
 source "$SCRIPTS_DIR/common.sh"
 
-# Detect OS
+# ============================================================================
+# SYSTEM DETECTION
+# ============================================================================
+
 detect_os() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         OS="macos"
@@ -30,91 +39,34 @@ detect_os() {
     log_info "Detected OS: $OS"
 }
 
-# Check if command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-# Validate packages.json
-validate_packages_json() {
-    local packages_json="$SCRIPTS_DIR/packages.json"
+# ============================================================================
+# JSON PARSING HELPERS
+# ============================================================================
 
-    if [[ ! -f "$packages_json" ]]; then
-        log_error "packages.json not found"
-        return 1
-    fi
-
-    if ! command_exists jq; then
-        log_warning "jq not available, skipping JSON validation"
-        return 0
-    fi
-
-    # Validate JSON syntax
-    if ! jq empty "$packages_json" 2>/dev/null; then
-        log_error "packages.json contains invalid JSON"
-        return 1
-    fi
-
-    # Validate structure
-    if ! jq -e '.packages | type == "object"' "$packages_json" >/dev/null 2>&1; then
-        log_error "packages.json missing 'packages' object"
-        return 1
-    fi
-
-    log_info "packages.json validated successfully"
-    return 0
-}
-
-# Install Homebrew (macOS only)
-install_homebrew() {
-    if [[ "$OS" != "macos" ]]; then
-        return
-    fi
-
-    if ! command_exists brew; then
-        log_info "Installing Homebrew..."
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-        # Add brew to PATH for current session
-        eval "$(/opt/homebrew/bin/brew shellenv)"
-
-        log_success "Homebrew installed"
-    else
-        log_info "Homebrew already installed"
-    fi
-}
-
-# Update package manager
-update_package_manager() {
-    log_info "Skipping package manager updates (use 'topgrade' to update everything)"
-    # Package updates are handled by topgrade, not during installation
-    return 0
-}
-
-# Parse packages.json and extract package names for a specific package manager
-get_packages_for_manager() {
+# Get packages for a specific package manager
+get_packages() {
     local manager="$1"
     local packages_json="$SCRIPTS_DIR/packages.json"
 
-    if [[ ! -f "$packages_json" ]]; then
-        log_warning "packages.json not found"
+    if [[ ! -f "$packages_json" ]] || ! command_exists jq; then
         return
     fi
 
-    # Extract packages for the specified manager using jq
-    if command_exists jq; then
-        jq -r --arg mgr "$manager" '
-            .packages
-            | to_entries[]
-            | .value[]
-            | select(.[$mgr] != null and .[$mgr] != "")
-            | .[$mgr]
-        ' "$packages_json" | tr '\n' ' '
-    fi
+    jq -r --arg mgr "$manager" '
+        .packages
+        | to_entries[]
+        | .value[]
+        | select(.[$mgr] != null and .[$mgr] != "")
+        | .[$mgr]
+    ' "$packages_json" | tr '\n' ' '
 }
 
-# Get packages that have install_script field
-get_install_script_packages() {
+# Get toolchain info (name and install method)
+get_toolchains() {
     local packages_json="$SCRIPTS_DIR/packages.json"
 
     if [[ ! -f "$packages_json" ]] || ! command_exists jq; then
@@ -122,225 +74,405 @@ get_install_script_packages() {
     fi
 
     jq -r '
-        .packages
-        | to_entries[]
-        | .value[]
-        | select(.install_script != null)
-        | "\(.name):\(.install_script)"
+        .packages.toolchains[]
+        | "\(.name)|\(.brew // "")|\(.apt // "")|\(.install_script // "")"
     ' "$packages_json"
 }
 
-# Helper functions for package installation
-install_brew_packages() {
-    if ! command_exists brew; then
-        return 0
-    fi
+# ============================================================================
+# PHASE 1: PRIMARY PACKAGE MANAGER
+# ============================================================================
 
-    log_info "Installing packages via Homebrew from packages.json..."
-    local brew_packages_str=$(get_packages_for_manager "brew")
+install_primary_manager() {
+    log_info "=== PHASE 1: Installing Primary Package Manager ==="
+    echo ""
 
-    if [[ -n "$brew_packages_str" ]]; then
-        # Convert to array for proper word splitting
-        local -a brew_packages
-        read -ra brew_packages <<< "$brew_packages_str"
+    case "$OS" in
+        macos)
+            if ! command_exists brew; then
+                log_info "Installing Homebrew..."
+                /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                eval "$(/opt/homebrew/bin/brew shellenv)"
+                log_success "Homebrew installed"
+            else
+                log_info "Homebrew already installed"
+            fi
+            ;;
+        linux|wsl)
+            log_info "Using system apt package manager"
+            sudo apt update
+            ;;
+    esac
 
-        log_info "Installing: ${brew_packages[*]}"
-        brew install "${brew_packages[@]}" || log_warning "Some packages failed to install"
-        log_success "Homebrew packages installed"
-    else
-        log_warning "No packages found in packages.json"
-    fi
+    echo ""
 }
 
-install_apt_packages() {
-    if ! command_exists apt; then
+# ============================================================================
+# PHASE 2: TOOLCHAINS (PACKAGE MANAGERS)
+# ============================================================================
+
+install_toolchain_rust() {
+    if command_exists cargo; then
+        log_info "Rust/Cargo already installed"
         return 0
     fi
 
-    log_info "Installing packages via apt from packages.json..."
-    local apt_packages_str=$(get_packages_for_manager "apt")
+    log_info "Installing Rust toolchain..."
 
-    if [[ -n "$apt_packages_str" ]]; then
-        # Convert to array for proper word splitting
-        local -a apt_packages
-        read -ra apt_packages <<< "$apt_packages_str"
-
-        log_info "Installing: ${apt_packages[*]}"
-        sudo apt install -y "${apt_packages[@]}" || log_warning "Some packages failed to install"
-        log_success "APT packages installed"
-    fi
-}
-
-install_cargo_packages() {
-    local cargo_packages=$(get_packages_for_manager "cargo")
-
-    if [[ -z "$cargo_packages" ]]; then
-        return 0
-    fi
-
-    # Set XDG-compliant paths for Rust/Cargo
+    # Set XDG-compliant paths
     export CARGO_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/cargo"
     export RUSTUP_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/rustup"
     export PATH="$CARGO_HOME/bin:$PATH"
 
-    # Install Rust if needed
-    if ! command_exists cargo; then
-        log_info "Installing Rust (needed for cargo packages)..."
-        log_info "Using XDG paths: CARGO_HOME=$CARGO_HOME, RUSTUP_HOME=$RUSTUP_HOME"
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+    case "$OS" in
+        macos)
+            # On macOS, prefer brew for better integration
+            brew install rust || {
+                log_warning "Homebrew install failed, using rustup"
+                curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+            }
+            ;;
+        linux|wsl)
+            # On Linux, use rustup (not available in apt or outdated)
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+            ;;
+    esac
 
-        # Source cargo env with XDG path
-        if [[ -f "$CARGO_HOME/env" ]]; then
-            source "$CARGO_HOME/env"
-        fi
-    fi
+    # Source cargo env
+    [[ -f "$CARGO_HOME/env" ]] && source "$CARGO_HOME/env"
 
     if command_exists cargo; then
-        log_info "Installing cargo packages from packages.json..."
-        log_info "Installing: $cargo_packages"
-        for pkg in $cargo_packages; do
-            cargo install "$pkg" 2>/dev/null || log_warning "Failed to install $pkg"
-        done
-        log_success "Cargo packages installed"
+        log_success "Rust/Cargo installed"
+    else
+        log_warning "Failed to install Rust"
     fi
 }
 
-install_pip_packages() {
-    local pip_packages=$(get_packages_for_manager "pip")
-
-    if [[ -z "$pip_packages" ]]; then
+install_toolchain_node() {
+    if command_exists node && command_exists npm; then
+        log_info "Node.js/NPM already installed"
         return 0
     fi
 
-    if command_exists pipx; then
-        log_info "Installing pip packages via pipx from packages.json..."
-        log_info "Installing: $pip_packages"
-        for pkg in $pip_packages; do
-            pipx install "$pkg" 2>/dev/null || log_warning "Failed to install $pkg"
-        done
-        log_success "Pip packages installed via pipx"
-    elif command_exists pip3; then
-        log_info "Installing pip packages from packages.json..."
-        # Convert to array for proper word splitting
-        local -a pip_packages_array
-        read -ra pip_packages_array <<< "$pip_packages"
+    log_info "Installing Node.js toolchain..."
 
-        log_info "Installing: ${pip_packages_array[*]}"
-        pip3 install --user "${pip_packages_array[@]}" 2>/dev/null || log_warning "Some pip packages failed to install (consider installing pipx)"
-        log_success "Pip packages installed"
+    case "$OS" in
+        macos)
+            # On macOS, use brew
+            brew install node@22
+            ;;
+        linux|wsl)
+            # On Linux, prefer apt (system package manager)
+            if sudo apt install -y nodejs npm 2>/dev/null; then
+                log_success "Installed via apt"
+            else
+                # Fall back to nvm if apt fails
+                log_info "APT failed, installing via nvm..."
+                export NVM_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/nvm"
+                curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+                [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
+                nvm install --lts && nvm use --lts
+            fi
+            ;;
+    esac
+
+    if command_exists node; then
+        log_success "Node.js/NPM installed"
+    else
+        log_warning "Failed to install Node.js"
     fi
 }
 
-install_npm_packages() {
+install_toolchain_go() {
+    if command_exists go; then
+        log_info "Go already installed"
+        return 0
+    fi
+
+    log_info "Installing Go toolchain..."
+
+    case "$OS" in
+        macos)
+            brew install go
+            ;;
+        linux|wsl)
+            sudo apt install -y golang-go
+            ;;
+    esac
+
+    if command_exists go; then
+        log_success "Go installed"
+    else
+        log_warning "Failed to install Go"
+    fi
+}
+
+install_toolchain_python() {
+    if command_exists python3 && command_exists pip3; then
+        log_info "Python already installed"
+
+        # Ensure pipx is installed
+        if ! command_exists pipx; then
+            log_info "Installing pipx..."
+            python3 -m pip install --user pipx
+            python3 -m pipx ensurepath
+        fi
+        return 0
+    fi
+
+    log_info "Installing Python toolchain..."
+
+    case "$OS" in
+        macos)
+            brew install python@3.13
+            brew install pipx || python3 -m pip install --user pipx
+            ;;
+        linux|wsl)
+            sudo apt install -y python3 python3-pip pipx
+            ;;
+    esac
+
+    if command_exists python3; then
+        log_success "Python installed"
+    else
+        log_warning "Failed to install Python"
+    fi
+}
+
+install_toolchains() {
+    log_info "=== PHASE 2: Installing Toolchains ==="
+    echo ""
+
+    # Install in dependency order
+    install_toolchain_rust
+    install_toolchain_node
+    install_toolchain_go
+    install_toolchain_python
+
+    echo ""
+}
+
+# ============================================================================
+# PHASE 3: PACKAGES
+# ============================================================================
+
+install_packages_brew() {
+    if ! command_exists brew; then
+        return 0
+    fi
+
+    log_info "Installing packages via Homebrew..."
+
+    local brew_packages_str=$(get_packages "brew")
+    if [[ -z "$brew_packages_str" ]]; then
+        log_warning "No brew packages found"
+        return 0
+    fi
+
+    # Separate regular packages from cask packages
+    local -a regular_packages=()
+    local -a cask_packages=()
+    local is_cask=false
+
+    for pkg in $brew_packages_str; do
+        if [[ "$pkg" == "--cask" ]]; then
+            is_cask=true
+        elif [[ "$is_cask" == true ]]; then
+            cask_packages+=("$pkg")
+            is_cask=false
+        else
+            # Skip toolchains (already installed)
+            case "$pkg" in
+                rust|node@*|go|python@*)
+                    continue
+                    ;;
+                *)
+                    regular_packages+=("$pkg")
+                    ;;
+            esac
+        fi
+    done
+
+    # Install regular packages
+    if [[ ${#regular_packages[@]} -gt 0 ]]; then
+        log_info "  Regular: ${regular_packages[*]}"
+        brew install "${regular_packages[@]}" || log_warning "Some packages failed"
+    fi
+
+    # Install cask packages
+    if [[ ${#cask_packages[@]} -gt 0 ]]; then
+        log_info "  Casks: ${cask_packages[*]}"
+        brew install --cask "${cask_packages[@]}" || log_warning "Some casks failed"
+    fi
+
+    log_success "Homebrew packages installed"
+}
+
+install_packages_apt() {
+    if ! command_exists apt; then
+        return 0
+    fi
+
+    log_info "Installing packages via APT..."
+
+    local apt_packages_str=$(get_packages "apt")
+    if [[ -z "$apt_packages_str" ]]; then
+        log_warning "No apt packages found"
+        return 0
+    fi
+
+    local -a apt_packages
+    read -ra apt_packages <<< "$apt_packages_str"
+
+    # Filter out already installed toolchains
+    local -a filtered_packages=()
+    for pkg in "${apt_packages[@]}"; do
+        case "$pkg" in
+            golang-go|python3|python3-pip|pipx|nodejs|npm)
+                # Skip if already installed in toolchain phase
+                continue
+                ;;
+            *)
+                filtered_packages+=("$pkg")
+                ;;
+        esac
+    done
+
+    if [[ ${#filtered_packages[@]} -gt 0 ]]; then
+        log_info "  Packages: ${filtered_packages[*]}"
+        sudo apt install -y "${filtered_packages[@]}" || log_warning "Some packages failed"
+    fi
+
+    log_success "APT packages installed"
+}
+
+install_packages_cargo() {
+    if ! command_exists cargo; then
+        log_warning "Cargo not available, skipping cargo packages"
+        return 0
+    fi
+
+    local cargo_packages=$(get_packages "cargo")
+    if [[ -z "$cargo_packages" ]]; then
+        return 0
+    fi
+
+    log_info "Installing Cargo packages..."
+    log_info "  Packages: $cargo_packages"
+
+    for pkg in $cargo_packages; do
+        # Skip if already installed via brew
+        if command_exists "$pkg"; then
+            log_info "  $pkg (already installed, skipping)"
+            continue
+        fi
+
+        log_info "  Installing $pkg..."
+        cargo install "$pkg" || log_warning "Failed to install $pkg"
+    done
+
+    log_success "Cargo packages installed"
+}
+
+install_packages_npm() {
     if ! command_exists npm; then
+        log_warning "NPM not available, skipping npm packages"
         return 0
     fi
 
-    local npm_packages_str=$(get_packages_for_manager "npm")
-
+    local npm_packages_str=$(get_packages "npm")
     if [[ -z "$npm_packages_str" ]]; then
         return 0
     fi
 
-    # Convert to array for proper word splitting
     local -a npm_packages
     read -ra npm_packages <<< "$npm_packages_str"
 
-    log_info "Installing npm packages from packages.json..."
-    log_info "Installing: ${npm_packages[*]}"
-    npm install -g "${npm_packages[@]}" || log_warning "Some npm packages failed to install"
+    log_info "Installing NPM packages..."
+    log_info "  Packages: ${npm_packages[*]}"
+
+    npm install -g "${npm_packages[@]}" || log_warning "Some npm packages failed"
+
     log_success "NPM packages installed"
 }
 
-install_script_packages() {
-    log_info "Installing additional tools..."
-    
-    while IFS=: read -r pkg_name install_cmd; do
-        [[ -z "$pkg_name" ]] && continue
-        
-        # Skip if already installed
-        command_exists "$pkg_name" && continue
-        
-        # Handle special cases
-        case "$pkg_name" in
-            rust)
-                # Rust installation handled by install_cargo_packages
-                continue
-                ;;
-            node)
-                # Install Node.js via nvm on Linux/WSL only
-                [[ "$OS" == "macos" ]] && continue
-                
-                log_info "Installing Node.js via nvm..."
-                export NVM_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/nvm"
-                
-                if [[ ! -d "$NVM_DIR" ]]; then
-                    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-                fi
-                
-                if [[ -s "$NVM_DIR/nvm.sh" ]]; then
-                    source "$NVM_DIR/nvm.sh"
-                    nvm install --lts && nvm use --lts
-                    log_success "Node.js installed via nvm"
-                else
-                    log_warning "Failed to install Node.js via nvm"
-                fi
-                ;;
-            goimports)
-                # Only install if Go is available
-                if command_exists go; then
-                    log_info "Installing goimports..."
-                    go install golang.org/x/tools/cmd/goimports@latest && log_success "goimports installed"
-                fi
-                ;;
-            oh-my-posh)
-                log_info "Installing oh-my-posh..."
-                bash -c "$install_cmd" && log_success "oh-my-posh installed"
-                ;;
-            *)
-                # Generic install for other packages
-                log_info "Installing $pkg_name..."
-                bash -c "$install_cmd" && log_success "$pkg_name installed"
-                ;;
-        esac
-    done < <(get_install_script_packages)
+install_packages_pip() {
+    local pip_packages=$(get_packages "pip")
+    if [[ -z "$pip_packages" ]]; then
+        return 0
+    fi
+
+    log_info "Installing Python packages..."
+    log_info "  Packages: $pip_packages"
+
+    if command_exists pipx; then
+        for pkg in $pip_packages; do
+            pipx install "$pkg" || log_warning "Failed to install $pkg"
+        done
+    elif command_exists pip3; then
+        pip3 install --user $pip_packages || log_warning "Some pip packages failed"
+    else
+        log_warning "Neither pipx nor pip3 available"
+        return 0
+    fi
+
+    log_success "Python packages installed"
 }
 
-# Install packages based on OS
-install_packages() {
-    if ! command_exists jq; then
-        log_warning "jq not found, installing it first..."
-        case "$OS" in
-            macos)
-                brew install jq
-                ;;
-            linux|wsl)
-                sudo apt install -y jq
-                ;;
-        esac
+install_packages_go() {
+    if ! command_exists go; then
+        return 0
     fi
+
+    log_info "Installing Go packages..."
+
+    # Install goimports if go is available
+    if ! command_exists goimports; then
+        log_info "  Installing goimports..."
+        go install golang.org/x/tools/cmd/goimports@latest
+    fi
+
+    log_success "Go packages installed"
+}
+
+install_packages_custom() {
+    log_info "Installing custom packages..."
+
+    # oh-my-posh (if not installed via brew)
+    if ! command_exists oh-my-posh; then
+        log_info "  Installing oh-my-posh..."
+        curl -s https://ohmyposh.dev/install.sh | bash -s || log_warning "Failed to install oh-my-posh"
+    fi
+
+    log_success "Custom packages installed"
+}
+
+install_all_packages() {
+    log_info "=== PHASE 3: Installing Packages ==="
+    echo ""
 
     case "$OS" in
         macos)
-            install_brew_packages
+            install_packages_brew
             ;;
-
         linux|wsl)
-            install_apt_packages
+            install_packages_apt
             ;;
     esac
 
-    # Install packages from additional package managers
-    # These are common across all platforms
-    install_cargo_packages
-    install_pip_packages
-    install_npm_packages
-    install_script_packages
+    install_packages_cargo
+    install_packages_npm
+    install_packages_pip
+    install_packages_go
+    install_packages_custom
 
-    log_success "Package installation complete"
+    echo ""
 }
 
-# Setup XDG directories
+# ============================================================================
+# PHASE 4: SYSTEM CONFIGURATION
+# ============================================================================
+
 setup_xdg_directories() {
     log_info "Setting up XDG directories..."
 
@@ -348,23 +480,19 @@ setup_xdg_directories() {
     mkdir -p "$HOME/.local/share"
     mkdir -p "$HOME/.local/state"
     mkdir -p "$HOME/.cache"
-
-    # Create zsh-specific directories
     mkdir -p "$HOME/.local/state/zsh"
     mkdir -p "$HOME/.cache/zsh"
-
-    # Create directories for XDG-compliant tools
     mkdir -p "$HOME/.local/state/less"
     mkdir -p "$HOME/.cache/python"
 
     log_success "XDG directories created"
 }
 
-# Backup existing dotfiles
 backup_existing_files() {
     log_info "Backing up existing dotfiles..."
 
-    local backup_dir="$HOME/.dotfiles_backup_$(date +%Y%m%d_%H%M%S)"
+    local backup_dir
+    backup_dir="$HOME/.dotfiles_backup_$(date +%Y%m%d_%H%M%S)"
     local files_to_backup=(
         ".zshenv"
         ".zshrc"
@@ -379,7 +507,7 @@ backup_existing_files() {
         if [[ -e "$HOME/$file" ]] && [[ ! -L "$HOME/$file" ]]; then
             mkdir -p "$backup_dir/$(dirname "$file")"
             mv "$HOME/$file" "$backup_dir/$file"
-            log_info "Backed up: $file"
+            log_info "  Backed up: $file"
             backed_up=1
         fi
     done
@@ -392,53 +520,44 @@ backup_existing_files() {
     fi
 }
 
-# Setup dotfiles with stow
 setup_stow() {
     log_info "Setting up dotfiles with stow..."
 
     cd "$DOTFILES_DIR"
 
-    # Stow the main dotfiles
     if command_exists stow; then
-        # Remove existing symlinks first
         stow -D . 2>/dev/null || true
-
-        # Create new symlinks
         stow -v --adopt .
-
-        log_success "Dotfiles symlinked with stow"
+        log_success "Dotfiles symlinked"
     else
-        log_error "Stow not installed. Cannot setup dotfiles."
+        log_error "Stow not installed"
         return 1
     fi
 }
 
-# Setup Zsh as default shell
 setup_zsh() {
     if ! command_exists zsh; then
         log_warning "Zsh not installed"
         return
     fi
 
-    local zsh_path=$(which zsh)
+    local zsh_path
+    zsh_path=$(which zsh)
 
-    # Check if zsh is in /etc/shells
     if ! grep -q "$zsh_path" /etc/shells; then
         log_info "Adding zsh to /etc/shells..."
         echo "$zsh_path" | sudo tee -a /etc/shells
     fi
 
-    # Change default shell to zsh
     if [[ "$SHELL" != "$zsh_path" ]]; then
         log_info "Changing default shell to zsh..."
         chsh -s "$zsh_path"
-        log_success "Default shell changed to zsh (restart terminal to apply)"
+        log_success "Default shell changed (restart terminal)"
     else
-        log_info "Zsh is already the default shell"
+        log_info "Zsh already default shell"
     fi
 }
 
-# Run platform-specific setup
 run_platform_setup() {
     case "$OS" in
         macos)
@@ -456,7 +575,23 @@ run_platform_setup() {
     esac
 }
 
-# Main installation flow
+configure_system() {
+    log_info "=== PHASE 4: System Configuration ==="
+    echo ""
+
+    setup_xdg_directories
+    backup_existing_files
+    setup_stow
+    setup_zsh
+    run_platform_setup
+
+    echo ""
+}
+
+# ============================================================================
+# MAIN
+# ============================================================================
+
 main() {
     log_info "Starting dotfiles installation..."
     echo ""
@@ -469,14 +604,11 @@ main() {
     fi
 
     echo ""
-    log_info "This script will:"
-    echo "  1. Install/update package manager"
-    echo "  2. Install essential packages"
-    echo "  3. Setup XDG directories"
-    echo "  4. Backup existing dotfiles"
-    echo "  5. Symlink dotfiles using stow"
-    echo "  6. Setup zsh as default shell"
-    echo "  7. Run platform-specific setup"
+    log_info "Installation Phases:"
+    echo "  1. Primary package manager (brew/apt)"
+    echo "  2. Toolchains (rust, node, go, python)"
+    echo "  3. Packages via each manager"
+    echo "  4. System configuration"
     echo ""
 
     read -p "Continue? (y/N) " -n 1 -r
@@ -488,48 +620,26 @@ main() {
 
     echo ""
 
-    # Validate packages.json before proceeding
-    if ! validate_packages_json; then
-        log_error "Package configuration validation failed"
+    # Validate packages.json
+    if ! jq empty "$SCRIPTS_DIR/packages.json" 2>/dev/null; then
+        log_error "Invalid packages.json"
         exit 1
     fi
 
-    # Installation steps
-    if [[ "$OS" == "macos" ]]; then
-        install_homebrew
-    fi
-
-    update_package_manager
-    install_packages
-    setup_xdg_directories
-    backup_existing_files
-    setup_stow
-    setup_zsh
-    run_platform_setup
+    # Run installation phases
+    install_primary_manager
+    install_toolchains
+    install_all_packages
+    configure_system
 
     echo ""
     log_success "Dotfiles installation complete!"
     echo ""
     log_info "Next steps:"
     echo "  1. Restart your terminal or run: exec zsh"
-    echo "  2. Your git config is already set via stow (.gitconfig)"
-
-    if [[ "$OS" == "macos" ]]; then
-        echo "  3. Review installed packages: brew list"
-        echo "  4. Update everything: topgrade"
-    fi
-
-    if [[ "$OS" == "linux" ]] || [[ "$OS" == "wsl" ]]; then
-        echo "  3. Verify PATH includes:"
-        echo "     - \$HOME/.cargo/bin (Rust)"
-        echo "     - \$HOME/.local/bin (local tools)"
-        echo "  4. Update everything: topgrade"
-    fi
-
+    echo "  2. Update everything: topgrade"
     echo ""
-    log_info "Note: Package managers may install additional dependencies"
-    echo "  (e.g., Homebrew's 'rust' requires python@3.14 for build scripts)"
 }
 
-# Run main function
+# Run main
 main "$@"
