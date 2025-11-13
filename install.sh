@@ -309,13 +309,20 @@ install_packages_apt() {
     local -a apt_packages
     read -ra apt_packages <<< "$apt_packages_str"
 
-    # Filter out already installed toolchains
+    # Filter out already installed toolchains and Docker if already present
     local -a filtered_packages=()
     for pkg in "${apt_packages[@]}"; do
         case "$pkg" in
             golang-go|python3|python3-pip|pipx|nodejs|npm)
                 # Skip if already installed in toolchain phase
                 continue
+                ;;
+            docker.io|docker-compose)
+                # Skip Docker packages if docker is already installed (from Docker's official repo)
+                if command_exists docker; then
+                    log_info "  Skipping $pkg (Docker already installed)"
+                    continue
+                fi
                 ;;
             *)
                 filtered_packages+=("$pkg")
@@ -376,7 +383,12 @@ install_packages_npm() {
     log_info "Installing NPM packages..."
     log_info "  Packages: ${npm_packages[*]}"
 
-    npm install -g "${npm_packages[@]}" || log_warning "Some npm packages failed"
+    # Use sudo on Linux/WSL for global npm installs
+    if [[ "$OS" == "linux" ]] || [[ "$OS" == "wsl" ]]; then
+        sudo npm install -g "${npm_packages[@]}" || log_warning "Some npm packages failed"
+    else
+        npm install -g "${npm_packages[@]}" || log_warning "Some npm packages failed"
+    fi
 
     log_success "NPM packages installed"
 }

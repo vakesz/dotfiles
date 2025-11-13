@@ -229,7 +229,7 @@
         "name": "docker",
         "brew": "docker",
         "apt": "docker.io",
-        "description": "Docker CLI and engine"
+        "description": "Docker CLI and engine (includes buildx on Linux)"
       },
       {
         "name": "docker-compose",
@@ -240,8 +240,8 @@
       {
         "name": "docker-buildx",
         "brew": "docker-buildx",
-        "apt": "docker-buildx",
-        "description": "Docker build plugin"
+        "apt": null,
+        "description": "Docker build plugin (included with docker.io on Linux)"
       },
       {
         "name": "docker-completion",
