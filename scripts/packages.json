@@ -100,21 +100,21 @@
       },
       {
         "name": "tldr",
-        "brew": "tealdeer",
+        "brew": null,
         "apt": null,
         "cargo": "tealdeer",
         "description": "Simplified man pages (tealdeer implementation)"
       },
       {
         "name": "zoxide",
-        "brew": "zoxide",
+        "brew": null,
         "apt": null,
         "cargo": "zoxide",
         "description": "Smart cd command"
       },
       {
         "name": "oh-my-posh",
-        "brew": "oh-my-posh",
+        "brew": null,
         "apt": null,
         "install_script": "curl -s https://ohmyposh.dev/install.sh | bash -s",
         "description": "Cross-platform prompt engine"
@@ -153,7 +153,7 @@
     "tools": [
       {
         "name": "tree-sitter",
-        "brew": "tree-sitter",
+        "brew": null,
         "apt": null,
         "npm": "tree-sitter-cli",
         "description": "Parser generator"
@@ -178,7 +178,7 @@
       },
       {
         "name": "pre-commit",
-        "brew": "pre-commit",
+        "brew": null,
         "apt": null,
         "pip": "pre-commit",
         "description": "Git pre-commit framework"
@@ -212,7 +212,7 @@
       },
       {
         "name": "goimports",
-        "brew": "goimports",
+        "brew": null,
         "apt": null,
         "install_script": "go install golang.org/x/tools/cmd/goimports@latest",
         "description": "Go imports formatter (gofmt is included with go)"
@@ -236,12 +236,6 @@
         "brew": "docker-compose",
         "apt": "docker-compose",
         "description": "Multi-container orchestration"
-      },
-      {
-        "name": "docker-buildx",
-        "brew": "docker-buildx",
-        "apt": null,
-        "description": "Docker build plugin (included with docker.io on Linux)"
       },
       {
         "name": "docker-completion",
@@ -273,21 +267,21 @@
     "formatters": [
       {
         "name": "prettier",
-        "brew": "prettier",
+        "brew": null,
         "apt": null,
         "npm": "prettier",
         "description": "Code formatter"
       },
       {
         "name": "stylua",
-        "brew": "stylua",
+        "brew": null,
         "apt": null,
         "cargo": "stylua",
         "description": "Lua formatter"
       },
       {
         "name": "ruff",
-        "brew": "ruff",
+        "brew": null,
         "apt": null,
         "pip": "ruff",
         "description": "Python linter and formatter"

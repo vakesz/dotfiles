@@ -383,12 +383,7 @@ install_packages_npm() {
     log_info "Installing NPM packages..."
     log_info "  Packages: ${npm_packages[*]}"
 
-    # Use sudo on Linux/WSL for global npm installs
-    if [[ "$OS" == "linux" ]] || [[ "$OS" == "wsl" ]]; then
-        sudo npm install -g "${npm_packages[@]}" || log_warning "Some npm packages failed"
-    else
-        npm install -g "${npm_packages[@]}" || log_warning "Some npm packages failed"
-    fi
+    npm install -g "${npm_packages[@]}" || log_warning "Some npm packages failed"
 
     log_success "NPM packages installed"
 }
