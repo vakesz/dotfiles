@@ -163,6 +163,50 @@ install_macos_apps() {
 }
 
 # ============================================================================
+# Colima Service Setup (Docker Alternative)
+# ============================================================================
+
+setup_colima_service() {
+    if ! command -v colima &>/dev/null; then
+        log_info "Colima not installed, skipping service setup"
+        return 0
+    fi
+
+    log_info "Setting up Colima service..."
+
+    # Move existing ~/.colima to XDG-compliant location
+    if [[ -d "$HOME/.colima" ]] && [[ ! -d "$HOME/.config/colima" ]]; then
+        log_info "Moving Colima config to XDG location..."
+        mv "$HOME/.colima" "$HOME/.config/colima"
+    fi
+
+    # Check if Colima service is already running via brew services
+    if brew services list | grep -q "^colima.*started"; then
+        log_info "Colima service already running"
+        return 0
+    fi
+
+    # Stop any running Colima instance
+    if colima status &>/dev/null; then
+        log_info "Stopping existing Colima instance..."
+        colima stop 2>/dev/null || true
+    fi
+
+    # Start Colima with optimized settings
+    log_info "Starting Colima with optimized settings..."
+    colima start --cpu 2 --memory 4 --disk 60 --vm-type=vz --mount-type=virtiofs --dns 1.1.1.1 || {
+        log_warning "Failed to start Colima with custom settings, trying defaults..."
+        colima start
+    }
+
+    # Enable Colima as a service
+    log_info "Enabling Colima as a macOS service..."
+    brew services start colima
+
+    log_success "Colima service configured"
+}
+
+# ============================================================================
 # Clean Finder View Preferences
 # ============================================================================
 
@@ -206,6 +250,7 @@ main() {
     setup_xcode_tools
     install_fonts
     install_macos_apps
+    setup_colima_service
 
     echo ""
     read -p "Do you want to configure macOS system defaults? (y/N) " -n 1 -r

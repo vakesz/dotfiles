@@ -33,8 +33,8 @@ export GPG_TTY=$(tty 2>/dev/null || echo "not a tty")
 # Development Tools (XDG-Compliant)
 # ----------------------------------------------------------------------------
 
-# Docker: Use Colima on macOS to avoid socket issues
-if [[ "$OS_TYPE" == "macos" ]] && [[ -S "${XDG_CONFIG_HOME:-$HOME/.config}/colima/default/docker.sock" ]]; then
+# Docker: Use Colima socket on macOS (Colima runs as a service via brew services)
+if [[ "$OS_TYPE" == "macos" ]] && have colima; then
   export DOCKER_HOST="unix://${XDG_CONFIG_HOME:-$HOME/.config}/colima/default/docker.sock"
 fi
 
