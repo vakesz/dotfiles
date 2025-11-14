@@ -165,6 +165,7 @@ install_macos_apps() {
 # ============================================================================
 # Colima Service Setup (Docker Alternative)
 # ============================================================================
+# Note: Colima doesn't respect XDG directories, so it uses ~/.colima as an exception
 
 setup_colima_service() {
     if ! command -v colima &>/dev/null; then
@@ -173,12 +174,6 @@ setup_colima_service() {
     fi
 
     log_info "Setting up Colima service..."
-
-    # Move existing ~/.colima to XDG-compliant location
-    if [[ -d "$HOME/.colima" ]] && [[ ! -d "$HOME/.config/colima" ]]; then
-        log_info "Moving Colima config to XDG location..."
-        mv "$HOME/.colima" "$HOME/.config/colima"
-    fi
 
     # Check if Colima service is already running via brew services
     if brew services list | grep -q "^colima.*started"; then
