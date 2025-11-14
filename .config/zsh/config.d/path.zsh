@@ -59,6 +59,9 @@ if [[ "$OS_TYPE" == "macos" ]]; then
     export PATH="/Applications/Xcode.app/Contents/Developer/usr/bin:$PATH"
   fi
 
+  # Local binaries (claude, custom scripts, etc.)
+  export PATH="$HOME/.local/bin:$PATH"
+
 elif [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
   # Linux/WSL Rust/Cargo (XDG compliant)
   export CARGO_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/cargo"
