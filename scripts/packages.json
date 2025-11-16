@@ -36,6 +36,8 @@
     "toolchains": [
       {
         "name": "rust",
+        "check_binary": "cargo",
+        "install_order": 1,
         "brew": null,
         "apt": null,
         "install_script": "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path",
@@ -43,19 +45,43 @@
       },
       {
         "name": "node",
+        "check_binary": "node",
+        "install_order": 2,
         "brew": null,
         "apt": null,
-        "install_script": "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash",
+        "install_script": "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash",
         "description": "Node.js runtime and npm package manager (required for npm packages) - installed via nvm"
       },
       {
+        "name": "pnpm",
+        "check_binary": "pnpm",
+        "install_order": 3,
+        "brew": null,
+        "apt": null,
+        "install_script": "bash -lc 'if command -v corepack >/dev/null; then corepack enable; corepack prepare pnpm@latest --activate; else npm install -g pnpm; fi'",
+        "description": "pnpm package manager (installed via Node's first-party tooling: corepack or npm)"
+      },
+      {
         "name": "go",
+        "check_binary": "go",
+        "install_order": 4,
         "brew": "go",
         "apt": "golang-go",
         "description": "Go programming language (required for go install packages)"
       },
       {
+        "name": "deno",
+        "check_binary": "deno",
+        "install_order": 5,
+        "brew": null,
+        "apt": null,
+        "install_script": "curl -fsSL https://deno.land/x/install/install.sh | sh",
+        "description": "Deno runtime (installed via official script)"
+      },
+      {
         "name": "python",
+        "check_binary": "python3",
+        "install_order": 6,
         "brew": "python@3.13",
         "apt": "python3 python3-pip pipx",
         "description": "Python programming language (required for pip/pipx packages)"
@@ -114,6 +140,7 @@
       },
       {
         "name": "oh-my-posh",
+        "check_binary": "oh-my-posh",
         "brew": null,
         "apt": null,
         "install_script": "curl -s https://ohmyposh.dev/install.sh | bash -s",
@@ -211,7 +238,50 @@
         "description": "Render markdown in terminal"
       },
       {
+        "name": "hugo",
+        "brew": "hugo",
+        "apt": "hugo",
+        "description": "Static site generator"
+      },
+      {
+        "name": "sqlite",
+        "brew": "sqlite",
+        "apt": "sqlite3",
+        "description": "SQLite command line and libraries"
+      },
+      {
+        "name": "mc",
+        "brew": "mc",
+        "apt": "mc",
+        "description": "Midnight Commander (text-mode file manager)"
+      },
+      {
+        "name": "nmap",
+        "brew": "nmap",
+        "apt": "nmap",
+        "description": "Network mapper and scanner"
+      },
+      {
+        "name": "mas",
+        "brew": "mas",
+        "apt": null,
+        "description": "Mac App Store command line interface (macOS only)"
+      },
+      {
+        "name": "zig",
+        "brew": "zig",
+        "apt": "zig",
+        "description": "Zig programming language (also a system toolchain)"
+      },
+      {
+        "name": "lua",
+        "brew": "lua",
+        "apt": "lua5.4",
+        "description": "Lua interpreter and developer toolchain"
+      },
+      {
         "name": "goimports",
+        "check_binary": "goimports",
         "brew": null,
         "apt": null,
         "install_script": "go install golang.org/x/tools/cmd/goimports@latest",
@@ -285,6 +355,13 @@
         "apt": null,
         "pip": "ruff",
         "description": "Python linter and formatter"
+      },
+      {
+        "name": "black",
+        "brew": null,
+        "apt": null,
+        "pip": "black",
+        "description": "Python code formatter"
       },
       {
         "name": "swift-format",

@@ -1,3 +1,4 @@
+# shellcheck shell=sh
 # ============================================================================
 # PATH Configuration
 # ============================================================================
@@ -30,6 +31,8 @@ add_keg_only() {
 # Platform-Specific PATH Setup
 # ----------------------------------------------------------------------------
 
+# shellcheck shell=sh
+
 if [[ "$OS_TYPE" == "macos" ]]; then
   # macOS Homebrew initialization
   if [[ -f "/opt/homebrew/bin/brew" ]]; then
@@ -43,10 +46,7 @@ if [[ "$OS_TYPE" == "macos" ]]; then
 
   # Dynamically detect latest installed Node version
   if [[ -n "$HOMEBREW_PREFIX" ]] && [[ -d "$HOMEBREW_PREFIX/opt" ]]; then
-    local node_keg=$(ls -d "$HOMEBREW_PREFIX/opt/node@"* 2>/dev/null | sort -V | tail -1)
-    [[ -n "$node_keg" ]] && add_keg_only "$(basename "$node_keg")"
-
-    local python_keg=$(ls -d "$HOMEBREW_PREFIX/opt/python@"* 2>/dev/null | sort -V | tail -1)
+    python_keg=$(ls -d "$HOMEBREW_PREFIX/opt/python@"* 2>/dev/null | sort -V | tail -1)
     [[ -n "$python_keg" ]] && add_keg_only "$(basename "$python_keg")"
   fi
 
@@ -87,22 +87,28 @@ fi
 # Go
 export GOPATH="${XDG_DATA_HOME:-$HOME/.local/share}/go"
 export PATH="$GOPATH/bin:$PATH"
+export GOBIN="${GOBIN:-$GOPATH/bin}"
+export PATH="$GOBIN:$PATH"
 
 # Rust/Cargo + Rustup
 export CARGO_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/cargo"
 export RUSTUP_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/rustup"
 export PATH="$CARGO_HOME/bin:$PATH"
 
-# Node.js - npm (full XDG compliance)
-export NPM_CONFIG_PREFIX="${XDG_DATA_HOME:-$HOME/.local/share}/npm"
+# Node.js - nvm (XDG-compliant)
+# NVM is incompatible with NPM_CONFIG_PREFIX, so we don't set it
+# NVM manages npm in $NVM_DIR/versions/node/*/bin
+export NVM_DIR="${NVM_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/nvm}"
+if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+  # shellcheck disable=SC1090
+  source "$NVM_DIR/nvm.sh" --no-use
+fi
+
+# Node.js - npm config (XDG-compliant, without NPM_CONFIG_PREFIX)
 export NPM_CONFIG_USERCONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/npm/npmrc"
 export NPM_CONFIG_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/npm"
-export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
 
-# Node.js - nvm (loaded if available, NVM_DIR set in env.zsh)
-[[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh" --no-use
-
-# Node.js - pnpm
+# Node.js - pnpm (XDG-compliant)
 export PNPM_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/pnpm"
 export PATH="$PNPM_HOME:$PATH"
 

@@ -23,6 +23,39 @@ source "$SCRIPTS_DIR/common.sh"
 # SYSTEM DETECTION
 # ============================================================================
 
+# Ensure XDG-compliant env vars are set for the session so installs use the same dirs
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+
+# Unset NPM_CONFIG_PREFIX if it exists (incompatible with NVM)
+unset NPM_CONFIG_PREFIX 2>/dev/null || true
+
+# Go (XDG)
+export GOPATH="${GOPATH:-$XDG_DATA_HOME/go}"
+export GOBIN="${GOBIN:-$GOPATH/bin}"
+export PATH="$GOBIN:$PATH"
+
+# Node/npm/pnpm (XDG)
+# NVM is incompatible with NPM_CONFIG_PREFIX, so we don't set it
+export NVM_DIR="${NVM_DIR:-${XDG_DATA_HOME}/nvm}"
+export PNPM_HOME="${PNPM_HOME:-${XDG_DATA_HOME}/pnpm}"
+export PATH="$PNPM_HOME:$PATH"
+
+# Deno XDG
+export DENO_INSTALL="${DENO_INSTALL:-${XDG_DATA_HOME}/deno}"
+export PATH="$DENO_INSTALL/bin:$PATH"
+
+# Rust/Cargo (XDG)
+export CARGO_HOME="${CARGO_HOME:-${XDG_DATA_HOME}/cargo}"
+export RUSTUP_HOME="${RUSTUP_HOME:-${XDG_DATA_HOME}/rustup}"
+export PATH="$CARGO_HOME/bin:$PATH"
+
+# pipx
+export PIPX_HOME="${PIPX_HOME:-${XDG_DATA_HOME}/pipx}"
+export PATH="$PIPX_HOME/venvs/bin:$PATH"
+
+
 detect_os() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         OS="macos"
@@ -79,6 +112,22 @@ get_toolchains() {
     ' "$packages_json"
 }
 
+# Get list of toolchain package names for filtering
+get_toolchain_packages() {
+    local manager="$1"
+    local packages_json="$SCRIPTS_DIR/packages.json"
+
+    if [[ ! -f "$packages_json" ]] || ! command_exists jq; then
+        return
+    fi
+
+    jq -r --arg mgr "$manager" '
+        .packages.toolchains[]
+        | select(.[$mgr] != null and .[$mgr] != "")
+        | .[$mgr]
+    ' "$packages_json" | tr '\n' ' '
+}
+
 # ============================================================================
 # PHASE 1: PRIMARY PACKAGE MANAGER
 # ============================================================================
@@ -111,130 +160,125 @@ install_primary_manager() {
 # PHASE 2: TOOLCHAINS (PACKAGE MANAGERS)
 # ============================================================================
 
-install_toolchain_rust() {
-    if command_exists cargo; then
-        log_info "Rust/Cargo already installed"
-        return 0
-    fi
-
-    log_info "Installing Rust toolchain via rustup..."
-
-    # Set XDG-compliant paths
-    export CARGO_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/cargo"
-    export RUSTUP_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/rustup"
-    export PATH="$CARGO_HOME/bin:$PATH"
-
-    # Use rustup on all platforms for consistent toolchain management
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
-
-    # Source cargo env
-    [[ -f "$CARGO_HOME/env" ]] && source "$CARGO_HOME/env"
-
-    if command_exists cargo; then
-        log_success "Rust/Cargo installed via rustup"
-    else
-        log_warning "Failed to install Rust"
-    fi
-}
-
-install_toolchain_node() {
-    if command_exists node && command_exists npm; then
-        log_info "Node.js/NPM already installed"
-        return 0
-    fi
-
-    log_info "Installing Node.js toolchain via nvm..."
-
-    # Set XDG-compliant path
-    export NVM_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/nvm"
-
-    # Use nvm on all platforms for consistent version management
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-
-    # Source nvm
-    [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
-
-    # Install LTS version
-    if command_exists nvm; then
-        nvm install --lts
-        nvm use --lts
-        nvm alias default lts/*
-    fi
-
-    if command_exists node; then
-        log_success "Node.js/NPM installed via nvm"
-    else
-        log_warning "Failed to install Node.js"
-    fi
-}
-
-install_toolchain_go() {
-    if command_exists go; then
-        log_info "Go already installed"
-        return 0
-    fi
-
-    log_info "Installing Go toolchain..."
-
-    case "$OS" in
-        macos)
-            brew install go
-            ;;
-        linux|wsl)
-            sudo apt install -y golang-go
-            ;;
-    esac
-
-    if command_exists go; then
-        log_success "Go installed"
-    else
-        log_warning "Failed to install Go"
-    fi
-}
-
-install_toolchain_python() {
-    if command_exists python3 && command_exists pip3; then
-        log_info "Python already installed"
-
-        # Ensure pipx is installed
-        if ! command_exists pipx; then
-            log_info "Installing pipx..."
-            python3 -m pip install --user pipx
-            python3 -m pipx ensurepath
-        fi
-        return 0
-    fi
-
-    log_info "Installing Python toolchain..."
-
-    case "$OS" in
-        macos)
-            brew install python@3.13
-            brew install pipx || python3 -m pip install --user pipx
-            ;;
-        linux|wsl)
-            sudo apt install -y python3 python3-pip pipx
-            ;;
-    esac
-
-    if command_exists python3; then
-        log_success "Python installed"
-    else
-        log_warning "Failed to install Python"
-    fi
-}
+## Legacy per-tool installers removed in favor of dynamic toolchain installer
+## TODO: Re-run installs via `install_toolchains_dynamic` for any missing tools
 
 install_toolchains() {
     log_info "=== PHASE 2: Installing Toolchains ==="
     echo ""
 
-    # Install in dependency order
-    install_toolchain_rust
-    install_toolchain_node
-    install_toolchain_go
-    install_toolchain_python
+    # Ensure toolchain directories exist before installation
+    mkdir -p "$NVM_DIR" "$CARGO_HOME" "$RUSTUP_HOME" "$GOPATH" "$DENO_INSTALL" 2>/dev/null || true
+
+    # Installers are driven by scripts/packages.json to prefer first-party
+    # toolchain installation where possible (install_script -> brew -> apt).
+    install_toolchains_dynamic
 
     echo ""
+}
+
+install_toolchains_dynamic() {
+    local packages_json="$SCRIPTS_DIR/packages.json"
+    if [[ ! -f "$packages_json" ]] || ! command_exists jq; then
+        log_warning "packages.json not found or jq missing, skipping dynamic toolchain installs"
+        return 0
+    fi
+
+    # Read toolchains from JSON, sorted by install_order
+    local toolchains_json
+    toolchains_json=$(jq -r '.packages.toolchains | sort_by(.install_order) | .[] | @json' "$packages_json")
+
+    if [[ -z "$toolchains_json" ]]; then
+        log_warning "No toolchains found in packages.json"
+        return 0
+    fi
+
+    log_info "Installing toolchains from packages.json (dynamically ordered)"
+
+    while IFS= read -r toolchain; do
+        local name install_script brew_pkg apt_pkg check_binary
+
+        name=$(echo "$toolchain" | jq -r '.name')
+        check_binary=$(echo "$toolchain" | jq -r '.check_binary // .name')
+        install_script=$(echo "$toolchain" | jq -r '.install_script // empty')
+        brew_pkg=$(echo "$toolchain" | jq -r '.brew // empty')
+        apt_pkg=$(echo "$toolchain" | jq -r '.apt // empty')
+
+        if command_exists "$check_binary"; then
+            log_info "$name already available (binary: $check_binary), skipping"
+            continue
+        fi
+
+        if [[ -n "$install_script" ]]; then
+            log_info "Installing $name via install_script"
+
+            # Special handling for rust: reload cargo environment after installation
+            if [[ "$name" == "rust" ]]; then
+                bash -lc "$install_script" || log_warning "install_script for $name failed"
+
+                # Reload cargo environment if it was just installed
+                if [[ -s "$CARGO_HOME/env" ]]; then
+                    # shellcheck disable=SC1090
+                    source "$CARGO_HOME/env"
+                fi
+            # Special handling for node: reload NVM after installation
+            elif [[ "$name" == "node" ]]; then
+                bash -lc "$install_script" || log_warning "install_script for $name failed"
+
+                # Reload NVM if it was just installed
+                if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+                    # shellcheck disable=SC1090
+                    source "$NVM_DIR/nvm.sh"
+                    # Install and use LTS version
+                    if command_exists nvm; then
+                        nvm install --lts
+                        nvm use --lts
+                    fi
+                fi
+            # Special handling for pnpm: ensure node/nvm is loaded
+            elif [[ "$name" == "pnpm" ]]; then
+                if [[ -n "$NVM_DIR" ]] && [[ -s "$NVM_DIR/nvm.sh" ]]; then
+                    # shellcheck disable=SC1090
+                    source "$NVM_DIR/nvm.sh"
+                    if command_exists nvm; then
+                        nvm use --lts || true
+                    fi
+                fi
+                bash -lc "$install_script" || log_warning "install_script for $name failed"
+            else
+                bash -lc "$install_script" || log_warning "install_script for $name failed"
+            fi
+        else
+            case "$OS" in
+                macos)
+                    if [[ -n "$brew_pkg" ]]; then
+                        local -a brew_args
+                        read -ra brew_args <<< "$brew_pkg"
+                        log_info "Installing $name via Homebrew: ${brew_args[*]}"
+                        brew install "${brew_args[@]}" || log_warning "brew install $brew_pkg failed"
+                    else
+                        log_warning "No brew mapping for $name"
+                    fi
+                    ;;
+                linux|wsl)
+                    if [[ -n "$apt_pkg" ]]; then
+                        local -a apt_args
+                        read -ra apt_args <<< "$apt_pkg"
+                        log_info "Installing $name via APT: ${apt_args[*]}"
+                        sudo apt install -y "${apt_args[@]}" || log_warning "apt install $apt_pkg failed"
+                    else
+                        log_warning "No apt mapping for $name"
+                    fi
+                    ;;
+            esac
+        fi
+
+        if command_exists "$check_binary"; then
+            log_success "$name installed (binary: $check_binary)"
+        else
+            log_warning "$name may not be installed after installer; binary $check_binary not found"
+        fi
+    done <<< "$toolchains_json"
 }
 
 # ============================================================================
@@ -248,11 +292,16 @@ install_packages_brew() {
 
     log_info "Installing packages via Homebrew..."
 
-    local brew_packages_str=$(get_packages "brew")
+    local brew_packages_str
+    brew_packages_str=$(get_packages "brew")
     if [[ -z "$brew_packages_str" ]]; then
         log_warning "No brew packages found"
         return 0
     fi
+
+    # Get toolchain packages to skip (already installed in phase 2)
+    local toolchain_packages_str
+    toolchain_packages_str=$(get_toolchain_packages "brew")
 
     # Separate regular packages from cask packages
     local -a regular_packages=()
@@ -266,15 +315,11 @@ install_packages_brew() {
             cask_packages+=("$pkg")
             is_cask=false
         else
-            # Skip toolchains (already installed)
-            case "$pkg" in
-                rust|node@*|go|python@*)
-                    continue
-                    ;;
-                *)
-                    regular_packages+=("$pkg")
-                    ;;
-            esac
+            # Skip toolchains (already installed in phase 2)
+            if [[ " $toolchain_packages_str " =~ \ $pkg\  ]]; then
+                continue
+            fi
+            regular_packages+=("$pkg")
         fi
     done
 
@@ -300,7 +345,8 @@ install_packages_apt() {
 
     log_info "Installing packages via APT..."
 
-    local apt_packages_str=$(get_packages "apt")
+    local apt_packages_str
+    apt_packages_str=$(get_packages "apt")
     if [[ -z "$apt_packages_str" ]]; then
         log_warning "No apt packages found"
         return 0
@@ -309,25 +355,29 @@ install_packages_apt() {
     local -a apt_packages
     read -ra apt_packages <<< "$apt_packages_str"
 
+    # Get toolchain packages to skip (already installed in phase 2)
+    local toolchain_packages_str
+    toolchain_packages_str=$(get_toolchain_packages "apt")
+
     # Filter out already installed toolchains and Docker if already present
     local -a filtered_packages=()
     for pkg in "${apt_packages[@]}"; do
+        # Skip toolchains (already installed in phase 2)
+        if [[ " $toolchain_packages_str " =~ \ $pkg\  ]]; then
+            continue
+        fi
+
+        # Skip Docker packages if docker is already installed (from Docker's official repo)
         case "$pkg" in
-            golang-go|python3|python3-pip|pipx|nodejs|npm)
-                # Skip if already installed in toolchain phase
-                continue
-                ;;
-            docker.io|docker-compose)
-                # Skip Docker packages if docker is already installed (from Docker's official repo)
+            docker.io|docker-compose-plugin)
                 if command_exists docker; then
                     log_info "  Skipping $pkg (Docker already installed)"
                     continue
                 fi
                 ;;
-            *)
-                filtered_packages+=("$pkg")
-                ;;
         esac
+
+        filtered_packages+=("$pkg")
     done
 
     if [[ ${#filtered_packages[@]} -gt 0 ]]; then
@@ -344,7 +394,10 @@ install_packages_cargo() {
         return 0
     fi
 
-    local cargo_packages=$(get_packages "cargo")
+    local cargo_packages
+    cargo_packages=$(get_packages "cargo")
+    local -a cargo_packages_arr
+    read -ra cargo_packages_arr <<< "$cargo_packages"
     if [[ -z "$cargo_packages" ]]; then
         return 0
     fi
@@ -352,7 +405,7 @@ install_packages_cargo() {
     log_info "Installing Cargo packages..."
     log_info "  Packages: $cargo_packages"
 
-    for pkg in $cargo_packages; do
+    for pkg in "${cargo_packages_arr[@]}"; do
         # Skip if already installed via brew
         if command_exists "$pkg"; then
             log_info "  $pkg (already installed, skipping)"
@@ -372,7 +425,8 @@ install_packages_npm() {
         return 0
     fi
 
-    local npm_packages_str=$(get_packages "npm")
+    local npm_packages_str
+    npm_packages_str=$(get_packages "npm")
     if [[ -z "$npm_packages_str" ]]; then
         return 0
     fi
@@ -389,7 +443,10 @@ install_packages_npm() {
 }
 
 install_packages_pip() {
-    local pip_packages=$(get_packages "pip")
+    local pip_packages
+    pip_packages=$(get_packages "pip")
+    local -a pip_packages_arr
+    read -ra pip_packages_arr <<< "$pip_packages"
     if [[ -z "$pip_packages" ]]; then
         return 0
     fi
@@ -398,11 +455,11 @@ install_packages_pip() {
     log_info "  Packages: $pip_packages"
 
     if command_exists pipx; then
-        for pkg in $pip_packages; do
+        for pkg in "${pip_packages_arr[@]}"; do
             pipx install "$pkg" || log_warning "Failed to install $pkg"
         done
     elif command_exists pip3; then
-        pip3 install --user $pip_packages || log_warning "Some pip packages failed"
+        pip3 install --user "${pip_packages_arr[@]}" || log_warning "Some pip packages failed"
     else
         log_warning "Neither pipx nor pip3 available"
         return 0
@@ -411,32 +468,54 @@ install_packages_pip() {
     log_success "Python packages installed"
 }
 
-install_packages_go() {
-    if ! command_exists go; then
+install_packages_via_script() {
+    local packages_json="$SCRIPTS_DIR/packages.json"
+    if [[ ! -f "$packages_json" ]] || ! command_exists jq; then
         return 0
     fi
 
-    log_info "Installing Go packages..."
+    log_info "Installing packages via install_script..."
 
-    # Install goimports if go is available
-    if ! command_exists goimports; then
-        log_info "  Installing goimports..."
-        go install golang.org/x/tools/cmd/goimports@latest
+    # Get all non-toolchain packages with install_script
+    local packages_with_scripts
+    packages_with_scripts=$(jq -r '
+        .packages
+        | to_entries[]
+        | select(.key != "toolchains")
+        | .value[]
+        | select(.install_script != null and .install_script != "")
+        | @json
+    ' "$packages_json")
+
+    if [[ -z "$packages_with_scripts" ]]; then
+        log_info "No packages with install_script found"
+        return 0
     fi
 
-    log_success "Go packages installed"
-}
+    while IFS= read -r package; do
+        local name install_script check_binary
 
-install_packages_custom() {
-    log_info "Installing custom packages..."
+        name=$(echo "$package" | jq -r '.name')
+        install_script=$(echo "$package" | jq -r '.install_script')
+        check_binary=$(echo "$package" | jq -r '.check_binary // .name')
 
-    # oh-my-posh (if not installed via brew)
-    if ! command_exists oh-my-posh; then
-        log_info "  Installing oh-my-posh..."
-        curl -s https://ohmyposh.dev/install.sh | bash -s || log_warning "Failed to install oh-my-posh"
-    fi
+        # Skip if already installed
+        if command_exists "$check_binary"; then
+            log_info "  $name already installed (binary: $check_binary), skipping"
+            continue
+        fi
 
-    log_success "Custom packages installed"
+        log_info "  Installing $name via install_script..."
+        bash -lc "$install_script" || log_warning "Failed to install $name"
+
+        if command_exists "$check_binary"; then
+            log_success "  $name installed (binary: $check_binary)"
+        else
+            log_warning "  $name may not be installed; binary $check_binary not found"
+        fi
+    done <<< "$packages_with_scripts"
+
+    log_success "Packages via install_script completed"
 }
 
 install_all_packages() {
@@ -455,8 +534,7 @@ install_all_packages() {
     install_packages_cargo
     install_packages_npm
     install_packages_pip
-    install_packages_go
-    install_packages_custom
+    install_packages_via_script
 
     echo ""
 }

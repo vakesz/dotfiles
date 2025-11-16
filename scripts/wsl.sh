@@ -42,7 +42,8 @@ detect_windows_username() {
 
     # Fallback: try to find a writable user directory in /mnt/c/Users
     for user_dir in /mnt/c/Users/*/; do
-        local username=$(basename "$user_dir")
+        local username
+        username=$(basename "$user_dir")
         # Skip system directories
         if [[ "$username" =~ ^(Public|Default|All Users|Default User)$ ]]; then
             continue
@@ -102,7 +103,8 @@ setup_windows_integration() {
     log_info "Setting up Windows integration..."
 
     # Detect Windows username
-    local WIN_USER=$(detect_windows_username)
+    local WIN_USER
+    WIN_USER=$(detect_windows_username)
     WIN_HOME="/mnt/c/Users/$WIN_USER"
 
     if [[ -d "$WIN_HOME" ]]; then
@@ -161,7 +163,8 @@ configure_performance() {
     log_info "Configuring WSL performance settings..."
 
     # Detect Windows username and create .wslconfig in Windows home directory
-    local WIN_USER=$(detect_windows_username)
+    local WIN_USER
+    WIN_USER=$(detect_windows_username)
     WIN_HOME="/mnt/c/Users/$WIN_USER"
     WSLCONFIG="$WIN_HOME/.wslconfig"
 
