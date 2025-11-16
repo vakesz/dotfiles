@@ -165,7 +165,7 @@ install_macos_apps() {
 # ============================================================================
 # Colima Service Setup (Docker Alternative)
 # ============================================================================
-# Note: Colima doesn't respect XDG directories, so it uses ~/.colima as an exception
+# Note: Colima doesn't easily respect XDG directories, so it uses ~/.colima as an exception
 
 setup_colima_service() {
     if ! command -v colima &>/dev/null; then
@@ -196,7 +196,41 @@ setup_colima_service() {
 
     # Enable Colima as a service
     log_info "Enabling Colima as a macOS service..."
-    brew services start colima
+    # Try starting via brew services and catch failures. If bootstrap fails, try to remediate.
+    if ! brew services start colima; then
+        # Show diagnostics
+        log_info "Collecting diagnostics: brew services list and files"
+        brew services list || true
+        ls -la "$HOME/Library/LaunchAgents/homebrew.mxcl.colima.plist" 2>/dev/null || true
+
+        # Attempt a safe cleanup/restart sequence
+        log_info "Attempting to stop and restart Colima service..."
+        brew services stop colima 2>/dev/null || true
+
+        # Unload possibly stale LaunchAgent using launchctl (ignore errors)
+        USER_UID=$(id -u)
+        PLIST_PATH="$HOME/Library/LaunchAgents/homebrew.mxcl.colima.plist"
+        if [ -f "$PLIST_PATH" ]; then
+            log_info "Removing stale LaunchAgent via launchctl (bootout)"
+            launchctl bootout "gui/$USER_UID" "$PLIST_PATH" 2>/dev/null || true
+            log_info "Removing local plist file: $PLIST_PATH"
+            rm -f "$PLIST_PATH" 2>/dev/null || true
+        fi
+
+        # Retry start
+        log_info "Retrying brew services start colima..."
+        if ! brew services start colima; then
+            log_error "Recovery steps failed: brew services start still exited non-zero."
+            log_warning "If you keep seeing: 'Bootstrap failed: 5: Input/output error', then try manually:"
+            log_warning "  1) Stop any running colima instance: 'colima stop'"
+            log_warning "  2) Remove stale launch agent: 'launchctl bootout gui/$USER_UID $PLIST_PATH'"
+            log_warning "  3) Remove plist file: 'rm -f $PLIST_PATH'"
+            log_warning "  4) Start colima or use brew services: 'brew services start colima'"
+            log_warning "If the issue persists, it could indicate a permissions problem or a corrupt plist; re-installing colima and brew services may help."
+        else
+            log_success "Colima service started successfully after recovery attempts"
+        fi
+    fi
 
     log_success "Colima service configured"
 }
@@ -245,7 +279,9 @@ main() {
     setup_xcode_tools
     install_fonts
     install_macos_apps
-    setup_colima_service
+    if ! setup_colima_service; then
+        log_warning "Colima service setup encountered issues; continuing with rest of macOS setup"
+    fi
 
     echo ""
     read -p "Do you want to configure macOS system defaults? (y/N) " -n 1 -r

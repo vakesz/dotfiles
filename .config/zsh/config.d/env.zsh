@@ -60,12 +60,6 @@ export MIX_XDG=1
 # ----------------------------------------------------------------------------
 # These prevent individual apps from polluting HOME
 
-# Claude Code CLI (official XDG location as of 2025)
-export CLAUDE_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/claude"
-
-# OpenAI Codex (supports CODEX_HOME)
-export CODEX_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/codex"
-
 # Node.js version managers
 export N_PREFIX="${XDG_DATA_HOME:-$HOME/.local/share}/node"
 export NVM_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/nvm"
@@ -74,10 +68,6 @@ export NVM_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/nvm"
 export BUNDLE_USER_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/bundle"
 export BUNDLE_USER_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/bundle"
 export BUNDLE_USER_PLUGIN="${XDG_DATA_HOME:-$HOME/.local/share}/bundle"
-
-# AWS CLI
-export AWS_CONFIG_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/aws/config"
-export AWS_SHARED_CREDENTIALS_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/aws/credentials"
 
 # Jupyter
 export JUPYTER_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/jupyter"
