@@ -9,21 +9,10 @@ set -e
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Source common functions
-source "$SCRIPT_DIR/common.sh"
+# Source common functions from parent directory
+source "$SCRIPT_DIR/../common.sh"
 
-# Override logging functions with macOS prefix
-log_info() {
-    echo -e "${BLUE}[macOS]${NC} $1"
-}
-
-log_success() {
-    echo -e "${GREEN}[macOS]${NC} $1"
-}
-
-log_warning() {
-    echo -e "${YELLOW}[macOS]${NC} $1"
-}
+set_log_context "macOS"
 
 # ============================================================================
 # macOS System Preferences

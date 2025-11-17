@@ -3,377 +3,236 @@
   "packages": {
     "core": [
       {
-        "name": "git",
+        "description": "Version control system",
         "brew": "git",
         "apt": "git",
-        "description": "Version control system"
+        "name": "git"
       },
       {
-        "name": "curl",
+        "description": "Data transfer tool",
         "brew": "curl",
         "apt": "curl",
-        "description": "Data transfer tool"
+        "name": "curl"
       },
       {
-        "name": "wget",
+        "description": "Network downloader",
         "brew": "wget",
         "apt": "wget",
-        "description": "Network downloader"
+        "name": "wget"
       },
       {
-        "name": "stow",
+        "description": "Symlink farm manager",
         "brew": "stow",
         "apt": "stow",
-        "description": "Symlink farm manager"
+        "name": "stow"
       },
       {
-        "name": "jq",
+        "description": "JSON processor",
         "brew": "jq",
         "apt": "jq",
-        "description": "JSON processor"
-      }
-    ],
-    "toolchains": [
-      {
-        "name": "rust",
-        "check_binary": "cargo",
-        "install_order": 1,
-        "brew": null,
-        "apt": null,
-        "install_script": "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path",
-        "description": "Rust programming language and cargo package manager (required for cargo packages) - installed via rustup"
-      },
-      {
-        "name": "node",
-        "check_binary": "node",
-        "install_order": 2,
-        "brew": null,
-        "apt": null,
-        "install_script": "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash",
-        "description": "Node.js runtime and npm package manager (required for npm packages) - installed via nvm"
-      },
-      {
-        "name": "pnpm",
-        "check_binary": "pnpm",
-        "install_order": 3,
-        "brew": null,
-        "apt": null,
-        "install_script": "bash -lc 'if command -v corepack >/dev/null; then corepack enable; corepack prepare pnpm@latest --activate; else npm install -g pnpm; fi'",
-        "description": "pnpm package manager (installed via Node's first-party tooling: corepack or npm)"
-      },
-      {
-        "name": "go",
-        "check_binary": "go",
-        "install_order": 4,
-        "brew": "go",
-        "apt": "golang-go",
-        "description": "Go programming language (required for go install packages)"
-      },
-      {
-        "name": "deno",
-        "check_binary": "deno",
-        "install_order": 5,
-        "brew": null,
-        "apt": null,
-        "install_script": "curl -fsSL https://deno.land/x/install/install.sh | sh",
-        "description": "Deno runtime (installed via official script)"
-      },
-      {
-        "name": "python",
-        "check_binary": "python3",
-        "install_order": 6,
-        "brew": "python@3.13",
-        "apt": "python3 python3-pip pipx",
-        "description": "Python programming language (required for pip/pipx packages)"
+        "name": "jq"
       }
     ],
     "shell": [
       {
-        "name": "zsh",
+        "description": "Z shell",
         "brew": "zsh",
         "apt": "zsh",
-        "description": "Z shell"
+        "name": "zsh"
       },
       {
-        "name": "tmux",
+        "description": "Terminal multiplexer",
         "brew": "tmux",
         "apt": "tmux",
-        "description": "Terminal multiplexer"
+        "name": "tmux"
       },
       {
-        "name": "fzf",
+        "description": "Fuzzy finder",
         "brew": "fzf",
         "apt": "fzf",
-        "description": "Fuzzy finder"
+        "name": "fzf"
       },
       {
-        "name": "ripgrep",
+        "description": "Fast grep alternative",
         "brew": "ripgrep",
         "apt": "ripgrep",
-        "description": "Fast grep alternative"
+        "name": "ripgrep"
       },
       {
-        "name": "fd",
+        "description": "Fast find alternative",
         "brew": "fd",
         "apt": "fd-find",
-        "description": "Fast find alternative"
+        "name": "fd"
       },
       {
-        "name": "bat",
+        "description": "Cat with syntax highlighting",
         "brew": "bat",
         "apt": "bat",
-        "description": "Cat with syntax highlighting"
-      },
-      {
-        "name": "tldr",
-        "brew": null,
-        "apt": null,
-        "cargo": "tealdeer",
-        "description": "Simplified man pages (tealdeer implementation)"
-      },
-      {
-        "name": "zoxide",
-        "brew": null,
-        "apt": null,
-        "cargo": "zoxide",
-        "description": "Smart cd command"
-      },
-      {
-        "name": "oh-my-posh",
-        "check_binary": "oh-my-posh",
-        "brew": null,
-        "apt": null,
-        "install_script": "curl -s https://ohmyposh.dev/install.sh | bash -s",
-        "description": "Cross-platform prompt engine"
+        "name": "bat"
       }
     ],
     "editors": [
       {
-        "name": "neovim",
+        "description": "Hyperextensible Vim-based text editor",
         "brew": "neovim",
         "apt": "neovim",
-        "description": "Hyperextensible Vim-based text editor"
+        "name": "neovim"
       },
       {
-        "name": "shellcheck",
+        "description": "Shell script analyzer",
         "brew": "shellcheck",
         "apt": "shellcheck",
-        "description": "Shell script analyzer"
+        "name": "shellcheck"
       }
     ],
     "terminal": [
       {
-        "name": "alacritty",
+        "description": "GPU-accelerated terminal emulator",
         "brew": "--cask alacritty",
         "apt": "alacritty",
-        "description": "GPU-accelerated terminal emulator"
+        "name": "alacritty"
       }
     ],
     "macos-apps": [
       {
-        "name": "CotEditor",
+        "description": "Lightweight plain-text editor for macOS",
         "brew": "--cask coteditor",
         "apt": null,
-        "description": "Lightweight plain-text editor for macOS"
+        "name": "CotEditor"
       }
     ],
     "tools": [
       {
-        "name": "tree-sitter",
-        "brew": null,
-        "apt": null,
-        "npm": "tree-sitter-cli",
-        "description": "Parser generator"
-      },
-      {
-        "name": "git-delta",
+        "description": "Better git diff viewer",
         "brew": "git-delta",
         "apt": "git-delta",
-        "description": "Better git diff viewer"
+        "name": "git-delta"
       },
       {
-        "name": "tig",
+        "description": "Text-mode git interface",
         "brew": "tig",
         "apt": "tig",
-        "description": "Text-mode git interface"
+        "name": "tig"
       },
       {
-        "name": "httpie",
+        "description": "HTTP client",
         "brew": "httpie",
         "apt": "httpie",
-        "description": "HTTP client"
+        "name": "httpie"
       },
       {
-        "name": "pre-commit",
-        "brew": null,
-        "apt": null,
-        "pip": "pre-commit",
-        "description": "Git pre-commit framework"
-      },
-      {
-        "name": "topgrade",
+        "description": "Universal system upgrade tool",
         "brew": "topgrade",
         "apt": null,
-        "cargo": "topgrade",
-        "description": "Universal system upgrade tool"
+        "name": "topgrade"
       },
       {
-        "name": "cargo-update",
-        "brew": null,
-        "apt": null,
-        "cargo": "cargo-update",
-        "description": "Cargo subcommand to check and update installed binaries"
-      },
-      {
-        "name": "cargo-cache",
-        "brew": null,
-        "apt": null,
-        "cargo": "cargo-cache",
-        "description": "Cargo subcommand to inspect and clean the cargo cache"
-      },
-      {
-        "name": "glow",
+        "description": "Render markdown in terminal",
         "brew": "glow",
         "apt": null,
-        "description": "Render markdown in terminal"
+        "name": "glow"
       },
       {
-        "name": "hugo",
+        "description": "Static site generator",
         "brew": "hugo",
         "apt": "hugo",
-        "description": "Static site generator"
+        "name": "hugo"
       },
       {
-        "name": "sqlite",
+        "description": "SQLite command line and libraries",
         "brew": "sqlite",
         "apt": "sqlite3",
-        "description": "SQLite command line and libraries"
+        "name": "sqlite"
       },
       {
-        "name": "mc",
+        "description": "Midnight Commander (text-mode file manager)",
         "brew": "mc",
         "apt": "mc",
-        "description": "Midnight Commander (text-mode file manager)"
+        "name": "mc"
       },
       {
-        "name": "nmap",
+        "description": "Network mapper and scanner",
         "brew": "nmap",
         "apt": "nmap",
-        "description": "Network mapper and scanner"
+        "name": "nmap"
       },
       {
-        "name": "mas",
+        "description": "Mac App Store command line interface (macOS only)",
         "brew": "mas",
         "apt": null,
-        "description": "Mac App Store command line interface (macOS only)"
+        "name": "mas"
       },
       {
-        "name": "zig",
+        "description": "Zig programming language (also a system toolchain)",
         "brew": "zig",
         "apt": "zig",
-        "description": "Zig programming language (also a system toolchain)"
+        "name": "zig"
       },
       {
-        "name": "lua",
+        "description": "Lua interpreter and developer toolchain",
         "brew": "lua",
         "apt": "lua5.4",
-        "description": "Lua interpreter and developer toolchain"
-      },
-      {
-        "name": "goimports",
-        "check_binary": "goimports",
-        "brew": null,
-        "apt": null,
-        "install_script": "go install golang.org/x/tools/cmd/goimports@latest",
-        "description": "Go imports formatter (gofmt is included with go)"
+        "name": "lua"
       }
     ],
     "containers": [
       {
-        "name": "colima",
+        "description": "Container runtime for macOS (not needed on Linux)",
         "brew": "colima",
         "apt": null,
-        "description": "Container runtime for macOS (not needed on Linux)"
+        "name": "colima"
       },
       {
-        "name": "docker",
+        "description": "Docker CLI and engine (includes buildx on Linux)",
         "brew": "docker",
         "apt": "docker.io",
-        "description": "Docker CLI and engine (includes buildx on Linux)"
+        "name": "docker"
       },
       {
-        "name": "docker-compose",
+        "description": "Multi-container orchestration",
         "brew": "docker-compose",
         "apt": "docker-compose",
-        "description": "Multi-container orchestration"
+        "name": "docker-compose"
       },
       {
-        "name": "docker-completion",
+        "description": "Docker shell completion",
         "brew": "docker-completion",
         "apt": "bash-completion",
-        "description": "Docker shell completion"
+        "name": "docker-completion"
       }
     ],
     "build": [
       {
-        "name": "cmake",
+        "description": "Cross-platform build system",
         "brew": "cmake",
         "apt": "cmake",
-        "description": "Cross-platform build system"
+        "name": "cmake"
       },
       {
-        "name": "make",
+        "description": "Build automation tool",
         "brew": "make",
         "apt": "build-essential",
-        "description": "Build automation tool"
+        "name": "make"
       },
       {
-        "name": "gcc",
+        "description": "GNU Compiler Collection",
         "brew": "gcc",
         "apt": "gcc",
-        "description": "GNU Compiler Collection"
+        "name": "gcc"
       }
     ],
     "formatters": [
       {
-        "name": "prettier",
-        "brew": null,
-        "apt": null,
-        "npm": "prettier",
-        "description": "Code formatter"
-      },
-      {
-        "name": "stylua",
-        "brew": null,
-        "apt": null,
-        "cargo": "stylua",
-        "description": "Lua formatter"
-      },
-      {
-        "name": "ruff",
-        "brew": null,
-        "apt": null,
-        "pip": "ruff",
-        "description": "Python linter and formatter"
-      },
-      {
-        "name": "black",
-        "brew": null,
-        "apt": null,
-        "pip": "black",
-        "description": "Python code formatter"
-      },
-      {
-        "name": "swift-format",
+        "description": "Swift formatter",
         "brew": "swift-format",
         "apt": null,
-        "description": "Swift formatter"
+        "name": "swift-format"
       },
       {
-        "name": "clang-format",
+        "description": "C/C++/Objective-C formatter",
         "brew": "clang-format",
         "apt": "clang-format",
-        "description": "C/C++/Objective-C formatter"
+        "name": "clang-format"
       }
     ]
   }

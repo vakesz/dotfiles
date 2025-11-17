@@ -9,21 +9,10 @@ set -e
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Source common functions
-source "$SCRIPT_DIR/common.sh"
+# Source common functions from parent directory
+source "$SCRIPT_DIR/../common.sh"
 
-# Override logging functions with WSL prefix
-log_info() {
-    echo -e "${BLUE}[WSL]${NC} $1"
-}
-
-log_success() {
-    echo -e "${GREEN}[WSL]${NC} $1"
-}
-
-log_warning() {
-    echo -e "${YELLOW}[WSL]${NC} $1"
-}
+set_log_context "WSL"
 
 # ============================================================================
 # Detect Windows Username

@@ -53,9 +53,14 @@ See [KEYMAPS.md](KEYMAPS.md) for complete keybinding reference.
 │   ├── tmux/            # Terminal multiplexer
 │   └── zsh/             # Zsh configuration
 ├── scripts/             # Installation and setup scripts
+│   ├── common.sh        # Shared logging helpers
 │   ├── packages.json    # Cross-platform package mapping
-│   ├── mac.sh          # macOS-specific setup
-│   └── wsl.sh          # WSL-specific setup
+│   ├── platform-helpers.sh # Platform detection + core package helpers
+│   ├── tweaks/          # Platform-specific tweak scripts
+│   │   ├── macos-tweaks.sh
+│   │   ├── wsl-tweaks.sh
+│   │   └── create-alacritty-app-link.sh
+│   └── tooling/         # Toolchain-specific installers
 ├── .gitconfig          # Global git configuration
 ├── .stow-local-ignore  # Stow ignore patterns
 ├── .zshenv             # Zsh environment (XDG setup)
