@@ -55,7 +55,14 @@ install_rust_tooling() {
 
     for pkg in "${cargo_tools[@]}"; do
         log_info "Installing cargo package: $pkg"
-        cargo install --locked "$pkg" || log_warning "cargo install $pkg failed"
+
+        # Special handling for topgrade on macOS due to mac-notification-sys linking issues
+        if [[ "$pkg" == "topgrade" ]] && [[ "$(uname -s)" == "Darwin" ]]; then
+            RUSTFLAGS="-C link-arg=-framework -C link-arg=AppKit -C link-arg=-framework -C link-arg=CoreServices" \
+                cargo install --locked "$pkg" || log_warning "cargo install $pkg failed"
+        else
+            cargo install --locked "$pkg" || log_warning "cargo install $pkg failed"
+        fi
     done
 
     log_success "Rust toolchain setup complete"

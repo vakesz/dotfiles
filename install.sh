@@ -17,6 +17,7 @@ fi
 
 source "$SCRIPTS_DIR/common.sh"
 source "$SCRIPTS_DIR/platform-helpers.sh"
+source "$SCRIPTS_DIR/tooling/install_ohmyposh.sh"
 source "$SCRIPTS_DIR/tooling/install_cargo.sh"
 source "$SCRIPTS_DIR/tooling/install_npm.sh"
 source "$SCRIPTS_DIR/tooling/install_pip.sh"
@@ -30,6 +31,7 @@ main() {
     ensure_package_manager
 
     install_core_packages
+    install_ohmyposh
 
     install_rust_tooling
     install_npm_tooling
