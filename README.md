@@ -22,6 +22,7 @@ Cross-platform dotfiles for macOS, Linux, and WSL. Managed with [GNU Stow](https
 ### Neovim Configuration
 
 Modern, fast, and minimal Neovim setup:
+
 - **Package Manager**: lazy.nvim with lazy-loading for fast startup
 - **LSP**: Mason + nvim-lspconfig with auto-configuration
 - **Completion**: nvim-cmp with GitHub Copilot integration
@@ -79,25 +80,6 @@ This setup follows the [XDG Base Directory Specification](https://specifications
 - `XDG_CACHE_HOME`: `~/.cache` - User-specific cache files
 
 The `.zshenv` file sets `ZDOTDIR` to `~/.config/zsh`, keeping zsh configs out of `$HOME`.
-
-## Customization
-
-### Adding Packages
-
-All packages are managed in `scripts/packages.json`. Add entries like this:
-
-```json
-{
-  "name": "package-name",
-  "brew": "package-name",
-  "apt": "package-name",
-  "cargo": "package-name",
-  "pip": "package-name",
-  "npm": "package-name",
-  "manual": "curl -s https://example.com/install.sh | bash",
-  "description": "What this package does"
-}
-```
 
 ## Troubleshooting
 
