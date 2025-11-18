@@ -33,12 +33,6 @@ export GPG_TTY=$(tty 2>/dev/null || echo "not a tty")
 # Development Tools (XDG-Compliant)
 # ----------------------------------------------------------------------------
 
-# Docker: Use Colima socket on macOS (Colima runs as a service via brew services)
-# Note: Colima doesn't respect XDG directories, so it uses ~/.colima as an exception
-if [[ "$OS_TYPE" == "macos" ]] && have colima; then
-  export DOCKER_HOST="unix://$HOME/.colima/default/docker.sock"
-fi
-
 # Less: Better default options
 export LESS='-R -i -M -W -x4 -F -X'
 export LESSHISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/less/history"

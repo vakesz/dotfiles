@@ -215,8 +215,6 @@ main() {
     log_info "Recommended next steps:"
     echo "  1. Restart WSL: wsl --shutdown (run from Windows PowerShell)"
     echo "  2. Install Windows Terminal from Microsoft Store"
-    echo "  3. Configure Windows Terminal to use WSL as default"
-    echo "  4. Consider installing Docker Desktop for Windows with WSL 2 backend"
 }
 
 # Only run if executed directly

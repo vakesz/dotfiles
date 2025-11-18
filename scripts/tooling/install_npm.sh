@@ -70,22 +70,4 @@ install_npm_tooling() {
         log_info "Installing npm globals: ${npm_tools[*]}"
         npm install -g "${npm_tools[@]}" || log_warning "npm install -g failed"
     fi
-
-    install_oh_my_posh
-}
-
-install_oh_my_posh() {
-    if command_exists oh-my-posh; then
-        log_info "oh-my-posh already installed"
-        return
-    fi
-
-    log_info "Installing oh-my-posh..."
-    tooling_ensure_local_bin
-    curl -s https://ohmyposh.dev/install.sh | bash -s -- --bin-dir "$HOME/.local/bin"
-    if command_exists oh-my-posh; then
-        log_success "oh-my-posh installed"
-    else
-        log_warning "oh-my-posh installer finished but the binary is not on PATH yet"
-    fi
 }
