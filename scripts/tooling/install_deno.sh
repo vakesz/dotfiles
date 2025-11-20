@@ -4,6 +4,7 @@
 #
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
 source "$SCRIPT_DIR/env.sh"
 
 setup_deno_env() {
@@ -24,7 +25,7 @@ install_deno_runtime() {
         return
     fi
 
-    curl -fsSL https://deno.land/x/install/install.sh | sh
+    curl -fsSL https://deno.land/install.sh | sh
     setup_deno_env
 
     if command_exists deno; then

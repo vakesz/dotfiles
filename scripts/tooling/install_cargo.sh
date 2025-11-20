@@ -4,6 +4,7 @@
 #
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
 source "$SCRIPT_DIR/env.sh"
 
 setup_rust_env() {
@@ -25,7 +26,7 @@ install_rust_tooling() {
         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
 
         if [[ -f "$RUSTUP_HOME/env" ]]; then
-            # shellcheck disable=SC1090
+            # shellcheck disable=SC1090,SC1091
             source "$RUSTUP_HOME/env"
         fi
     else
@@ -33,10 +34,10 @@ install_rust_tooling() {
     fi
 
     if [[ -f "$RUSTUP_HOME/env" ]]; then
-        # shellcheck disable=SC1090
+        # shellcheck disable=SC1090,SC1091
         source "$RUSTUP_HOME/env"
     elif [[ -f "$HOME/.cargo/env" ]]; then
-        # shellcheck disable=SC1090
+        # shellcheck disable=SC1090,SC1091
         source "$HOME/.cargo/env"
     fi
 

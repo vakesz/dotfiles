@@ -4,6 +4,7 @@
 #
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
 source "$SCRIPT_DIR/env.sh"
 
 setup_node_env() {
@@ -37,7 +38,7 @@ install_npm_tooling() {
 
     # Source nvm if already installed
     if [[ -s "$NVM_DIR/nvm.sh" ]]; then
-        # shellcheck disable=SC1090
+        # shellcheck disable=SC1090,SC1091
         source "$NVM_DIR/nvm.sh"
     fi
 
@@ -51,7 +52,7 @@ install_npm_tooling() {
 
         # Source nvm after installation
         if [[ -s "$NVM_DIR/nvm.sh" ]]; then
-            # shellcheck disable=SC1090
+            # shellcheck disable=SC1090,SC1091
             source "$NVM_DIR/nvm.sh"
         else
             log_error "nvm.sh not found after installation at $NVM_DIR/nvm.sh"
@@ -131,6 +132,8 @@ install_npm_tooling() {
     local npm_tools=(
         "tree-sitter-cli"
         "prettier"
+        "typescript"
+        "eslint"
     )
 
     if [[ ${#npm_tools[@]} -eq 0 ]]; then

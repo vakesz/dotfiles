@@ -3,6 +3,7 @@
 # Bootstrapper for the dotfiles tooling stack.
 # Delegates to platform and tooling helpers for a maintainable install flow.
 #
+# shellcheck disable=SC1091
 
 set -euo pipefail
 

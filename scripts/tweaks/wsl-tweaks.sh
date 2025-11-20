@@ -10,6 +10,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source common functions from parent directory
+# shellcheck disable=SC1091
 source "$SCRIPT_DIR/../common.sh"
 
 set_log_context "WSL"
