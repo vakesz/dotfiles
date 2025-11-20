@@ -77,20 +77,55 @@ install_npm_tooling() {
         log_info "Node already installed via nvm"
     fi
 
-    nvm alias default 'lts/*' >/dev/null 2>&1 || true
-    nvm use --lts >/dev/null 2>&1 || true
+    # Find the latest installed Node version directly from filesystem
+    # This avoids calling nvm commands which can hang in some contexts
+    local latest_node_dir
+    latest_node_dir=$(find "$NVM_DIR/versions/node" -maxdepth 1 -type d -name "v*" 2>/dev/null | sort -V | tail -n1)
+
+    if [[ -z "$latest_node_dir" ]] || [[ ! -d "$latest_node_dir" ]]; then
+        log_error "No Node versions found in $NVM_DIR/versions/node"
+        return 1
+    fi
+
+    local nvm_bin="$latest_node_dir/bin"
+
+    if [[ ! -d "$nvm_bin" ]]; then
+        log_error "Node bin directory not found at $nvm_bin"
+        return 1
+    fi
+
+    # Prepend nvm bin to PATH to ensure we use nvm's tools
+    export PATH="$nvm_bin:$PATH"
+
+    # Verify node and npm are available
+    if ! command -v node >/dev/null 2>&1; then
+        log_error "node command not found after PATH update"
+        return 1
+    fi
+
+    if ! command -v npm >/dev/null 2>&1; then
+        log_error "npm command not found after PATH update"
+        return 1
+    fi
+
+    log_info "Using Node $(node --version) from nvm at: $(command -v node)"
+    log_info "Using npm $(npm --version) from: $(command -v npm)"
 
     if command_exists corepack; then
-        if ! corepack enable; then
-            log_warning "corepack enable failed"
-        fi
-
-        if ! corepack prepare pnpm@latest --activate; then
-            log_warning "corepack prepare pnpm@latest failed (network?)"
+        log_info "Enabling corepack..."
+        if ! corepack enable 2>/dev/null; then
+            log_warning "corepack enable failed, trying to install pnpm via npm instead"
+            npm install -g pnpm 2>/dev/null || log_warning "pnpm installation failed"
+        else
+            log_info "Preparing pnpm via corepack..."
+            if ! corepack prepare pnpm@latest --activate 2>/dev/null; then
+                log_warning "corepack prepare pnpm@latest failed, trying npm install"
+                npm install -g pnpm 2>/dev/null || log_warning "pnpm installation failed"
+            fi
         fi
     else
         log_info "Installing pnpm via npm..."
-        npm install -g pnpm
+        npm install -g pnpm 2>/dev/null || log_warning "pnpm installation failed"
     fi
 
     local npm_tools=(
@@ -102,6 +137,12 @@ install_npm_tooling() {
         log_info "No npm global packages configured"
     else
         log_info "Installing npm globals: ${npm_tools[*]}"
-        npm install -g "${npm_tools[@]}" || log_warning "npm install -g failed"
+        if ! npm install -g "${npm_tools[@]}" 2>&1; then
+            log_warning "npm install -g failed for some packages, continuing anyway"
+        else
+            log_success "npm global packages installed successfully"
+        fi
     fi
+
+    log_success "Node/npm tooling setup complete"
 }
