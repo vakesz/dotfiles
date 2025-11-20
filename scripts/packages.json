@@ -121,12 +121,6 @@
         "name": "httpie"
       },
       {
-        "description": "Universal system upgrade tool",
-        "brew": "topgrade",
-        "apt": null,
-        "name": "topgrade"
-      },
-      {
         "description": "Render markdown in terminal",
         "brew": "glow",
         "apt": null,
@@ -187,6 +181,13 @@
         "brew": "docker",
         "apt": "docker.io",
         "name": "docker"
+      },
+      {
+        "description": "Docker Buildx plugin (for macOS only)",
+        "brew": "docker-buildx",
+        "apt": null,
+        "name": "docker-buildx"
+
       },
       {
         "description": "Multi-container orchestration",
