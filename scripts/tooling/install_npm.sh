@@ -12,6 +12,10 @@ setup_node_env() {
 
     export NVM_DIR="${NVM_DIR:-${XDG_DATA_HOME}/nvm}"
     export PNPM_HOME="${PNPM_HOME:-${XDG_DATA_HOME}/pnpm}"
+
+    # Ensure directories exist
+    mkdir -p "$NVM_DIR" "$PNPM_HOME"
+
     export PATH="$PNPM_HOME:$PATH"
 }
 
@@ -20,27 +24,57 @@ install_npm_tooling() {
 
     setup_node_env
 
+    # Verify NVM_DIR is set and accessible
     if [[ -z "${NVM_DIR:-}" ]]; then
-        die "NVM_DIR is not set; cannot install Node"
+        log_error "NVM_DIR is not set; cannot install Node"
+        return 1
     fi
 
+    if [[ ! -d "$NVM_DIR" ]]; then
+        log_error "NVM_DIR directory does not exist: $NVM_DIR"
+        return 1
+    fi
+
+    # Source nvm if already installed
     if [[ -s "$NVM_DIR/nvm.sh" ]]; then
         # shellcheck disable=SC1090
         source "$NVM_DIR/nvm.sh"
     fi
 
+    # Install nvm if not available
     if ! command_exists nvm; then
         log_info "nvm not installed, fetching installer..."
-        curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
-        # shellcheck disable=SC1090
-        source "$NVM_DIR/nvm.sh"
+        if ! curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash; then
+            log_warning "nvm installation failed (network issue?)"
+            return 1
+        fi
+
+        # Source nvm after installation
+        if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+            # shellcheck disable=SC1090
+            source "$NVM_DIR/nvm.sh"
+        else
+            log_error "nvm.sh not found after installation at $NVM_DIR/nvm.sh"
+            return 1
+        fi
     fi
 
-    if ! command_exists node; then
+    # Verify nvm command is now available
+    if ! command_exists nvm; then
+        log_error "nvm command not available after installation; check $NVM_DIR/nvm.sh"
+        return 1
+    fi
+
+    # Install Node via nvm even if system node exists
+    # This ensures we have nvm-managed node for version switching
+    if ! nvm list 2>/dev/null | grep -q "v[0-9]"; then
         log_info "Installing Node LTS via nvm..."
         if ! nvm install --lts; then
             log_warning "nvm install --lts failed (network issue?)"
+            return 1
         fi
+    else
+        log_info "Node already installed via nvm"
     fi
 
     nvm alias default 'lts/*' >/dev/null 2>&1 || true

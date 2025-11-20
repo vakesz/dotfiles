@@ -102,6 +102,32 @@ export NVM_DIR="${NVM_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/nvm}"
 if [[ -s "$NVM_DIR/nvm.sh" ]]; then
   # shellcheck disable=SC1090
   source "$NVM_DIR/nvm.sh" --no-use
+
+  # Auto-load default node version if set
+  # This is faster than 'nvm use default' and avoids the overhead
+  if [[ -f "$NVM_DIR/alias/default" ]] && [[ -d "$NVM_DIR/versions/node" ]]; then
+    local default_version
+    default_version=$(cat "$NVM_DIR/alias/default" 2>/dev/null)
+
+    # Only proceed if we successfully read the default version
+    if [[ -n "$default_version" ]]; then
+      local node_path="$NVM_DIR/versions/node/$default_version/bin"
+
+      # Resolve LTS aliases to actual version
+      if [[ "$default_version" == lts/* ]]; then
+        local resolved_version
+        resolved_version=$(nvm version "$default_version" 2>/dev/null)
+        if [[ -n "$resolved_version" && "$resolved_version" != "N/A" ]]; then
+          node_path="$NVM_DIR/versions/node/$resolved_version/bin"
+        fi
+      fi
+
+      # Add to PATH only if the bin directory actually exists
+      if [[ -d "$node_path" ]]; then
+        export PATH="$node_path:$PATH"
+      fi
+    fi
+  fi
 fi
 
 # Node.js - npm config (XDG-compliant, without NPM_CONFIG_PREFIX)
