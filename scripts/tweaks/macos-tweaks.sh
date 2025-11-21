@@ -68,10 +68,19 @@ configure_macos_defaults() {
     defaults write NSGlobalDomain KeyRepeat -int 2
     defaults write NSGlobalDomain InitialKeyRepeat -int 15
 
+    # Disable smart dashes as they're annoying when typing code
+    defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
+
+    # Disable automatic period substitution as it's annoying when typing code
+    defaults write NSGlobalDomain NSAutomaticPeriodSubstitutionEnabled -bool false
+
+    # Disable smart quotes as they're annoying when typing code
+    defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
+
     # Disable auto-correct
     defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
 
-    # Enable tap to click for this user and for the login screen
+    # Trackpad: enable tap to click for this user and for the login screen
     defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
     defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
     defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
@@ -83,12 +92,24 @@ configure_macos_defaults() {
     defaults write com.apple.Safari WebKitDeveloperExtrasEnabledPreferenceKey -bool true 2>/dev/null || true
     defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2DeveloperExtrasEnabled -bool true 2>/dev/null || true
 
+    # Safari: disable Java
+    defaults write com.apple.Safari WebKitJavaEnabled -bool false 2>/dev/null || true
+    defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2JavaEnabled -bool false 2>/dev/null || true
+    defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2JavaEnabledForLocalFiles -bool false 2>/dev/null || true
+
+    # Safari: block pop-up windows
+    defaults write com.apple.Safari WebKitJavaScriptCanOpenWindowsAutomatically -bool false 2>/dev/null || true
+    defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2JavaScriptCanOpenWindowsAutomatically -bool false 2>/dev/null || true
+
     # Require password immediately after sleep or screen saver begins
     defaults write com.apple.screensaver askForPassword -int 1
     defaults write com.apple.screensaver askForPasswordDelay -int 0
 
-    # Dock: set icon size to 24px
-    defaults write com.apple.dock tilesize -int 24
+    # Dock: set icon size to 36 pixels
+    defaults write com.apple.dock tilesize -int 36
+
+    # Dock: change minimize/maximize window effect
+    defaults write com.apple.dock mineffect -string "scale"
 
     # Dock: position on bottom
     defaults write com.apple.dock orientation -string "bottom"
