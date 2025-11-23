@@ -38,7 +38,7 @@ thickness = 0.15
 
 [mouse]
 # Hide mouse cursor when typing
-hide_when_typing = true
+hide_when_typing = false
 
 [hints]
 # URL launcher

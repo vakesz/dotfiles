@@ -176,7 +176,6 @@ install_macos_apps() {
 # ============================================================================
 # Colima Service Setup (Docker Alternative)
 # ============================================================================
-# Note: Colima doesn't easily respect XDG directories, so it uses ~/.colima as an exception
 
 setup_colima_service() {
     if ! command -v colima &>/dev/null; then
