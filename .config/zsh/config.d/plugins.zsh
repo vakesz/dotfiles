@@ -81,7 +81,10 @@ if have fzf; then
   elif [ -f /usr/share/fzf/key-bindings.zsh ]; then
     source /usr/share/fzf/key-bindings.zsh
     source /usr/share/fzf/completion.zsh 2>/dev/null || true
+  elif [ -f "${XDG_DATA_HOME:-$HOME/.local/share}/fzf/fzf.zsh" ]; then
+    source "${XDG_DATA_HOME:-$HOME/.local/share}/fzf/fzf.zsh"
   elif [ -f ~/.fzf.zsh ]; then
+    # Legacy fallback for non-XDG installations
     source ~/.fzf.zsh
   fi
 fi

@@ -7,6 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "$SCRIPT_DIR/env.sh"
 
+# Sets up Node.js environment variables and PATH for nvm and pnpm
 setup_node_env() {
     tooling_setup_xdg_dirs
     tooling_ensure_local_bin
@@ -20,6 +21,7 @@ setup_node_env() {
     export PATH="$PNPM_HOME:$PATH"
 }
 
+# Installs Node.js via nvm, enables pnpm, and installs curated npm global packages
 install_npm_tooling() {
     log_info "Setting up Node/npm tooling..."
 
@@ -99,12 +101,12 @@ install_npm_tooling() {
     export PATH="$nvm_bin:$PATH"
 
     # Verify node and npm are available
-    if ! command -v node >/dev/null 2>&1; then
+    if ! command_exists node; then
         log_error "node command not found after PATH update"
         return 1
     fi
 
-    if ! command -v npm >/dev/null 2>&1; then
+    if ! command_exists npm; then
         log_error "npm command not found after PATH update"
         return 1
     fi
@@ -141,7 +143,7 @@ install_npm_tooling() {
     else
         log_info "Installing npm globals: ${npm_tools[*]}"
         if ! npm install -g "${npm_tools[@]}" 2>&1; then
-            log_warning "npm install -g failed for some packages, continuing anyway"
+            log_warning "Failed to install npm packages: ${npm_tools[*]}"
         else
             log_success "npm global packages installed successfully"
         fi

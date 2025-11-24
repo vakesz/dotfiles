@@ -7,6 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "$SCRIPT_DIR/env.sh"
 
+# Sets up Go environment variables and PATH
 setup_go_env() {
     tooling_setup_xdg_dirs
     tooling_ensure_local_bin
@@ -16,6 +17,7 @@ setup_go_env() {
     export PATH="$GOBIN:$PATH"
 }
 
+# Installs Go runtime via package manager and curated Go tools
 install_go_tooling() {
     log_info "Installing Go runtime and tools..."
 
@@ -36,7 +38,8 @@ install_go_tooling() {
     fi
 
     if ! command_exists go; then
-        die "Go installation failed"
+        log_error "Go installation failed"
+        return 1
     fi
 
     local go_tools=(

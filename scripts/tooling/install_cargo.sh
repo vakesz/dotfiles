@@ -7,6 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "$SCRIPT_DIR/env.sh"
 
+# Sets up Rust environment variables and PATH for rustup and cargo
 setup_rust_env() {
     tooling_setup_xdg_dirs
     tooling_ensure_local_bin
@@ -16,6 +17,7 @@ setup_rust_env() {
     export PATH="$CARGO_HOME/bin:$PATH"
 }
 
+# Installs Rust toolchain via rustup and curated cargo packages
 install_rust_tooling() {
     log_info "Ensuring Rust and Cargo toolchain..."
 
@@ -37,6 +39,7 @@ install_rust_tooling() {
         # shellcheck disable=SC1090,SC1091
         source "$RUSTUP_HOME/env"
     elif [[ -f "$HOME/.cargo/env" ]]; then
+        # Legacy fallback for non-XDG Rust installations
         # shellcheck disable=SC1090,SC1091
         source "$HOME/.cargo/env"
     fi
@@ -58,7 +61,7 @@ install_rust_tooling() {
         log_info "Installing cargo package: $pkg"
 
         # Special handling for topgrade on macOS due to mac-notification-sys linking issues
-        if [[ "$pkg" == "topgrade" ]] && [[ "$(uname -s)" == "Darwin" ]]; then
+        if [[ "$pkg" == "topgrade" ]] && [[ "$PLATFORM" == "macos" ]]; then
             RUSTFLAGS="-C link-arg=-framework -C link-arg=AppKit -C link-arg=-framework -C link-arg=CoreServices" \
                 cargo install --locked "$pkg" || log_warning "cargo install $pkg failed"
         else

@@ -7,6 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "$SCRIPT_DIR/env.sh"
 
+# Sets up Deno environment variables and PATH
 setup_deno_env() {
     tooling_setup_xdg_dirs
     tooling_ensure_local_bin
@@ -15,18 +16,21 @@ setup_deno_env() {
     export PATH="$DENO_INSTALL/bin:$PATH"
 }
 
+# Installs Deno runtime using official installer with XDG compliance
 install_deno_runtime() {
     log_info "Ensuring Deno runtime is installed..."
 
     setup_deno_env
 
     if command_exists deno; then
-        log_info "Deno already available: $(deno --version | head -n1)"
+        log_info "Deno already available: $(deno --version)"
         return
     fi
 
-    curl -fsSL https://deno.land/install.sh | sh
-    setup_deno_env
+    if ! curl -fsSL https://deno.land/install.sh | sh -s -- --no-modify-path; then
+        log_warning "Deno installation failed"
+        return 1
+    fi
 
     if command_exists deno; then
         log_success "Deno installed successfully"

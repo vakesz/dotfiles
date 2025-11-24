@@ -7,6 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "$SCRIPT_DIR/env.sh"
 
+# Sets up Python environment variables and PATH for pipx
 setup_python_env() {
     tooling_setup_xdg_dirs
     tooling_ensure_local_bin
@@ -15,6 +16,7 @@ setup_python_env() {
     export PATH="$PIPX_HOME/bin:$PATH"
 }
 
+# Installs Python runtime, pipx, and curated Python tools
 install_pip_tooling() {
     log_info "Installing Python ecosystem tooling..."
 
@@ -34,8 +36,11 @@ install_pip_tooling() {
 
     if ! command_exists pipx; then
         log_info "Installing pipx..."
-        python3 -m pip install --user pipx
-        python3 -m pipx ensurepath >/dev/null 2>&1 || true
+        if ! python3 -m pip install --user pipx; then
+            log_error "Failed to install pipx via pip"
+            return 1
+        fi
+        python3 -m pipx ensurepath >/dev/null 2>&1 || log_warning "pipx ensurepath failed, PATH may need manual configuration"
         setup_python_env
     fi
 
