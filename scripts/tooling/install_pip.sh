@@ -36,11 +36,19 @@ install_pip_tooling() {
 
     if ! command_exists pipx; then
         log_info "Installing pipx..."
-        if ! python3 -m pip install --user pipx; then
-            log_error "Failed to install pipx via pip"
-            return 1
-        fi
-        python3 -m pipx ensurepath >/dev/null 2>&1 || log_warning "pipx ensurepath failed, PATH may need manual configuration"
+        case "$PLATFORM" in
+            macos)
+                if ! python3 -m pip install --user pipx; then
+                    log_error "Failed to install pipx via pip"
+                    return 1
+                fi
+                python3 -m pipx ensurepath >/dev/null 2>&1 || log_warning "pipx ensurepath failed, PATH may need manual configuration"
+                ;;
+            linux|wsl)
+                # On Linux, pipx should be installed via apt to avoid externally-managed-environment errors
+                platform_install_with_manager "apt" "pipx"
+                ;;
+        esac
         setup_python_env
     fi
 

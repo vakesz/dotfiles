@@ -117,6 +117,45 @@ setup_windows_integration() {
 }
 
 # ============================================================================
+# Shell Configuration
+# ============================================================================
+
+configure_shell() {
+    log_info "Configuring default shell..."
+
+    # Check if zsh is installed
+    if ! command -v zsh &>/dev/null; then
+        log_warning "zsh is not installed. Please install it first."
+        return 1
+    fi
+
+    # Get current shell
+    local current_shell
+    current_shell=$(basename "$SHELL")
+
+    if [[ "$current_shell" != "zsh" ]]; then
+        log_info "Current shell is $current_shell, switching to zsh..."
+        
+        # Ensure zsh is in /etc/shells
+        if ! grep -q "$(which zsh)" /etc/shells; then
+            log_info "Adding zsh to /etc/shells..."
+            which zsh | sudo tee -a /etc/shells > /dev/null
+        fi
+
+        # Change default shell
+        if chsh -s "$(which zsh)"; then
+            log_success "Default shell changed to zsh"
+            log_warning "Please log out and log back in for the change to take effect"
+        else
+            log_error "Failed to change default shell to zsh"
+            return 1
+        fi
+    else
+        log_info "Default shell is already zsh"
+    fi
+}
+
+# ============================================================================
 # WSL-specific Tools
 # ============================================================================
 
@@ -207,6 +246,7 @@ main() {
 
     configure_wsl
     setup_windows_integration
+    configure_shell
     install_wsl_tools
     configure_performance
 
@@ -216,6 +256,7 @@ main() {
     log_info "Recommended next steps:"
     echo "  1. Restart WSL: wsl --shutdown (run from Windows PowerShell)"
     echo "  2. Install Windows Terminal from Microsoft Store"
+    echo "  3. Log out and log back in if shell was changed to zsh"
 }
 
 # Only run if executed directly

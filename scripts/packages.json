@@ -31,9 +31,49 @@
         "brew": "jq",
         "apt": "jq",
         "name": "jq"
-      }
-    ],
-    "shell": [
+      },
+      {
+        "description": "C/C++ compiler and build tools (required for building from source)",
+        "brew": null,
+        "apt": "build-essential",
+        "name": "build-essential"
+      },
+      {
+        "description": "Archive extraction utility",
+        "brew": null,
+        "apt": "unzip",
+        "name": "unzip"
+      },
+      {
+        "description": "Python package installer",
+        "brew": null,
+        "apt": "python3-pip",
+        "name": "python3-pip"
+      },
+      {
+        "description": "Python application installer in isolated environments",
+        "brew": null,
+        "apt": "pipx",
+        "name": "pipx"
+      },
+      {
+        "description": "SSL/TLS toolkit",
+        "brew": "openssl",
+        "apt": "openssl",
+        "name": "openssl"
+      },
+      {
+        "description": "OpenSSL development headers",
+        "brew": null,
+        "apt": "libssl-dev",
+        "name": "libssl-dev"
+      },
+      {
+        "description": "Package config system",
+        "brew": null,
+        "apt": "pkg-config",
+        "name": "pkg-config"
+      },
       {
         "description": "Z shell",
         "brew": "zsh",
@@ -69,9 +109,7 @@
         "brew": "bat",
         "apt": "bat",
         "name": "bat"
-      }
-    ],
-    "editors": [
+      },
       {
         "description": "Hyperextensible Vim-based text editor",
         "brew": "neovim",
@@ -83,25 +121,19 @@
         "brew": "shellcheck",
         "apt": "shellcheck",
         "name": "shellcheck"
-      }
-    ],
-    "terminal": [
+      },
       {
         "description": "GPU-accelerated terminal emulator",
         "brew": "--cask alacritty",
         "apt": "alacritty",
         "name": "alacritty"
-      }
-    ],
-    "macos-apps": [
+      },
       {
         "description": "Lightweight plain-text editor for macOS",
         "brew": "--cask coteditor",
         "apt": null,
         "name": "CotEditor"
-      }
-    ],
-    "tools": [
+      },
       {
         "description": "Better git diff viewer",
         "brew": "git-delta",
@@ -159,7 +191,7 @@
       {
         "description": "Zig programming language (also a system toolchain)",
         "brew": "zig",
-        "apt": "zig",
+        "apt": null, 
         "name": "zig"
       },
       {
@@ -167,9 +199,7 @@
         "brew": "lua",
         "apt": "lua5.4",
         "name": "lua"
-      }
-    ],
-    "containers": [
+      },
       {
         "description": "Container runtime for macOS (not needed on Linux)",
         "brew": "colima",
@@ -200,9 +230,7 @@
         "brew": "docker-completion",
         "apt": "bash-completion",
         "name": "docker-completion"
-      }
-    ],
-    "build": [
+      },
       {
         "description": "Cross-platform build system",
         "brew": "cmake",
@@ -220,9 +248,7 @@
         "brew": "gcc",
         "apt": "gcc",
         "name": "gcc"
-      }
-    ],
-    "formatters": [
+      },
       {
         "description": "Swift formatter",
         "brew": "swift-format",
