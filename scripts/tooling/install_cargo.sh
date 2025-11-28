@@ -48,25 +48,28 @@ install_rust_tooling() {
         die "Cargo is not available after installing rustup"
     fi
 
+    # Default set of cargo tools to install. `topgrade` is a user-facing
+    # tool that we prefer to install via the platform package manager on
+    # macOS (Homebrew) so avoid installing it via Cargo there.
     local cargo_tools=(
         "tealdeer"
         "zoxide"
-        "topgrade"
         "cargo-update"
         "cargo-cache"
         "stylua"
     )
 
+    # Add topgrade on non-macOS platforms only (we install via Homebrew on macOS)
+    if [[ "$PLATFORM" != "macos" ]]; then
+        cargo_tools+=("topgrade")
+    else
+        log_info "Skipping cargo installation of topgrade on macOS (use Homebrew)"
+    fi
+
     for pkg in "${cargo_tools[@]}"; do
         log_info "Installing cargo package: $pkg"
 
-        # Special handling for topgrade on macOS due to mac-notification-sys linking issues
-        if [[ "$pkg" == "topgrade" ]] && [[ "$PLATFORM" == "macos" ]]; then
-            RUSTFLAGS="-C link-arg=-framework -C link-arg=AppKit -C link-arg=-framework -C link-arg=CoreServices" \
-                cargo install --locked "$pkg" || log_warning "cargo install $pkg failed"
-        else
-            cargo install --locked "$pkg" || log_warning "cargo install $pkg failed"
-        fi
+        cargo install --locked "$pkg" || log_warning "cargo install $pkg failed"
     done
 
     log_success "Rust toolchain setup complete"

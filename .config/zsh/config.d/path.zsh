@@ -59,8 +59,9 @@ if [[ "$OS_TYPE" == "macos" ]]; then
     export PATH="/Applications/Xcode.app/Contents/Developer/usr/bin:$PATH"
   fi
 
-  # Local binaries (claude, custom scripts, etc.)
-  export PATH="$HOME/.local/bin:$PATH"
+  # Local binaries (claude, custom scripts, etc.) — XDG-compliant
+  export XDG_BIN_HOME="${XDG_BIN_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/bin}"
+  export PATH="$XDG_BIN_HOME:$PATH"
 
 elif [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
   # Linux/WSL Rust/Cargo (XDG compliant)
@@ -68,11 +69,12 @@ elif [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
   export RUSTUP_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/rustup"
   export PATH="$CARGO_HOME/bin:$PATH"
 
-  # Local binaries (oh-my-posh, custom scripts, etc.)
-  export PATH="$HOME/.local/bin:$PATH"
+  # Local binaries (oh-my-posh, custom scripts, etc.) — XDG-compliant
+  export XDG_BIN_HOME="${XDG_BIN_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/bin}"
+  export PATH="$XDG_BIN_HOME:$PATH"
 
   # Python user packages
-  export PATH="$HOME/.local/share/python/bin:$PATH"
+  export PATH="${XDG_DATA_HOME:-$HOME/.local/share}/python/bin:$PATH"
 
   # Snap packages (Ubuntu/Debian)
   if [[ -d "/snap/bin" ]]; then
@@ -139,7 +141,8 @@ export PNPM_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/pnpm"
 export PATH="$PNPM_HOME:$PATH"
 
 # Python pipx
-export PATH="${XDG_DATA_HOME:-$HOME/.local/share}/pipx/venvs/bin:$PATH"
+  export PIPX_HOME="${PIPX_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/pipx}"
+  export PATH="$PIPX_HOME/venvs/bin:$PATH"
 
 # Deno
 export DENO_INSTALL="${XDG_DATA_HOME:-$HOME/.local/share}/deno"
@@ -149,8 +152,9 @@ export PATH="$DENO_INSTALL/bin:$PATH"
 export SWIFTPM_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/swiftpm"
 export PATH="$SWIFTPM_HOME/bin:$PATH"
 
-# Docker (XDG compliant)
-export DOCKER_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/docker"
+# Yarn (XDG compliant)
+export YARN_CACHE_FOLDER="${XDG_CACHE_HOME:-$HOME/.cache}/yarn"
+export YARN_GLOBAL_FOLDER="${XDG_DATA_HOME:-$HOME/.local/share}/yarn"
 
 # tldr / tealdeer (XDG compliant)
 export TEALDEER_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/tealdeer"

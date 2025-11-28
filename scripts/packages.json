@@ -1,264 +1,306 @@
 {
   "description": "Cross-platform package mapping for dotfiles setup",
   "packages": [
-      {
-        "description": "Version control system",
-        "brew": "git",
-        "apt": "git",
-        "name": "git"
-      },
-      {
-        "description": "Data transfer tool",
-        "brew": "curl",
-        "apt": "curl",
-        "name": "curl"
-      },
-      {
-        "description": "Network downloader",
-        "brew": "wget",
-        "apt": "wget",
-        "name": "wget"
-      },
-      {
-        "description": "Symlink farm manager",
-        "brew": "stow",
-        "apt": "stow",
-        "name": "stow"
-      },
-      {
-        "description": "JSON processor",
-        "brew": "jq",
-        "apt": "jq",
-        "name": "jq"
-      },
-      {
-        "description": "C/C++ compiler and build tools (required for building from source)",
-        "brew": null,
-        "apt": "build-essential",
-        "name": "build-essential"
-      },
-      {
-        "description": "Archive extraction utility",
-        "brew": null,
-        "apt": "unzip",
-        "name": "unzip"
-      },
-      {
-        "description": "Python package installer",
-        "brew": null,
-        "apt": "python3-pip",
-        "name": "python3-pip"
-      },
-      {
-        "description": "Python application installer in isolated environments",
-        "brew": null,
-        "apt": "pipx",
-        "name": "pipx"
-      },
-      {
-        "description": "SSL/TLS toolkit",
-        "brew": "openssl",
-        "apt": "openssl",
-        "name": "openssl"
-      },
-      {
-        "description": "OpenSSL development headers",
-        "brew": null,
-        "apt": "libssl-dev",
-        "name": "libssl-dev"
-      },
-      {
-        "description": "Package config system",
-        "brew": null,
-        "apt": "pkg-config",
-        "name": "pkg-config"
-      },
-      {
-        "description": "Z shell",
-        "brew": "zsh",
-        "apt": "zsh",
-        "name": "zsh"
-      },
-      {
-        "description": "Terminal multiplexer",
-        "brew": "tmux",
-        "apt": "tmux",
-        "name": "tmux"
-      },
-      {
-        "description": "Fuzzy finder",
-        "brew": "fzf",
-        "apt": "fzf",
-        "name": "fzf"
-      },
-      {
-        "description": "Fast grep alternative",
-        "brew": "ripgrep",
-        "apt": "ripgrep",
-        "name": "ripgrep"
-      },
-      {
-        "description": "Fast find alternative",
-        "brew": "fd",
-        "apt": "fd-find",
-        "name": "fd"
-      },
-      {
-        "description": "Cat with syntax highlighting",
-        "brew": "bat",
-        "apt": "bat",
-        "name": "bat"
-      },
-      {
-        "description": "Hyperextensible Vim-based text editor",
-        "brew": "neovim",
-        "apt": "neovim",
-        "name": "neovim"
-      },
-      {
-        "description": "Shell script analyzer",
-        "brew": "shellcheck",
-        "apt": "shellcheck",
-        "name": "shellcheck"
-      },
-      {
-        "description": "Lightweight plain-text editor for macOS",
-        "brew": "--cask coteditor",
-        "apt": null,
-        "name": "CotEditor"
-      },
-      {
-        "description": "Better git diff viewer",
-        "brew": "git-delta",
-        "apt": "git-delta",
-        "name": "git-delta"
-      },
-      {
-        "description": "Text-mode git interface",
-        "brew": "tig",
-        "apt": "tig",
-        "name": "tig"
-      },
-      {
-        "description": "HTTP client",
-        "brew": "httpie",
-        "apt": "httpie",
-        "name": "httpie"
-      },
-      {
-        "description": "Render markdown in terminal",
-        "brew": "glow",
-        "apt": null,
-        "name": "glow"
-      },
-      {
-        "description": "Static site generator",
-        "brew": "hugo",
-        "apt": "hugo",
-        "name": "hugo"
-      },
-      {
-        "description": "SQLite command line and libraries",
-        "brew": "sqlite",
-        "apt": "sqlite3",
-        "name": "sqlite"
-      },
-      {
-        "description": "Midnight Commander (text-mode file manager)",
-        "brew": "mc",
-        "apt": "mc",
-        "name": "mc"
-      },
-      {
-        "description": "Network mapper and scanner",
-        "brew": "nmap",
-        "apt": "nmap",
-        "name": "nmap"
-      },
-      {
-        "description": "Mac App Store command line interface (macOS only)",
-        "brew": "mas",
-        "apt": null,
-        "name": "mas"
-      },
-      {
-        "description": "Zig programming language (also a system toolchain)",
-        "brew": "zig",
-        "apt": null, 
-        "name": "zig"
-      },
-      {
-        "description": "Lua interpreter and developer toolchain",
-        "brew": "lua",
-        "apt": "lua5.4",
-        "name": "lua"
-      },
-      {
-        "description": "Container runtime for macOS (not needed on Linux)",
-        "brew": "colima",
-        "apt": null,
-        "name": "colima"
-      },
-      {
-        "description": "Docker CLI and engine (includes buildx on Linux)",
-        "brew": "docker",
-        "apt": "docker.io",
-        "name": "docker"
-      },
-      {
-        "description": "Docker Buildx plugin",
-        "brew": "docker-buildx",
-        "apt": "docker-buildx",
-        "name": "docker-buildx"
+    {
+      "description": "Version control system",
+      "brew": "git",
+      "apt": "git",
+      "name": "git"
+    },
+    {
+      "description": "Data transfer tool",
+      "brew": "curl",
+      "apt": "curl",
+      "name": "curl"
+    },
+    {
+      "description": "Network downloader",
+      "brew": "wget",
+      "apt": "wget",
+      "name": "wget"
+    },
+    {
+      "description": "Symlink farm manager",
+      "brew": "stow",
+      "apt": "stow",
+      "name": "stow"
+    },
+    {
+      "description": "JSON processor",
+      "brew": "jq",
+      "apt": "jq",
+      "name": "jq"
+    },
+    {
+      "description": "C/C++ compiler and build tools (required for building from source)",
+      "brew": null,
+      "apt": "build-essential",
+      "name": "build-essential"
+    },
+    {
+      "description": "Archive extraction utility",
+      "brew": null,
+      "apt": "unzip",
+      "name": "unzip"
+    },
+    {
+      "description": "Python package installer",
+      "brew": null,
+      "apt": "python3-pip",
+      "name": "python3-pip"
+    },
+    {
+      "description": "Python application installer in isolated environments",
+      "brew": null,
+      "apt": "pipx",
+      "name": "pipx"
+    },
+    {
+      "description": "SSL/TLS toolkit",
+      "brew": "openssl",
+      "apt": "openssl",
+      "name": "openssl"
+    },
+    {
+      "description": "OpenSSL development headers",
+      "brew": null,
+      "apt": "libssl-dev",
+      "name": "libssl-dev"
+    },
+    {
+      "description": "Package config system",
+      "brew": null,
+      "apt": "pkg-config",
+      "name": "pkg-config"
+    },
+    {
+      "description": "Z shell",
+      "brew": "zsh",
+      "apt": "zsh",
+      "name": "zsh"
+    },
+    {
+      "description": "Terminal multiplexer",
+      "brew": "tmux",
+      "apt": "tmux",
+      "name": "tmux"
+    },
+    {
+      "description": "Fuzzy finder",
+      "brew": "fzf",
+      "apt": "fzf",
+      "name": "fzf"
+    },
+    {
+      "description": "Fast grep alternative",
+      "brew": "ripgrep",
+      "apt": "ripgrep",
+      "name": "ripgrep"
+    },
+    {
+      "description": "Fast find alternative",
+      "brew": "fd",
+      "apt": "fd-find",
+      "name": "fd"
+    },
+    {
+      "description": "Cat with syntax highlighting",
+      "brew": "bat",
+      "apt": "bat",
+      "name": "bat"
+    },
+    {
+      "description": "Hyperextensible Vim-based text editor",
+      "brew": "neovim",
+      "apt": "neovim",
+      "name": "neovim"
+    },
+    {
+      "description": "Shell script analyzer",
+      "brew": "shellcheck",
+      "apt": "shellcheck",
+      "name": "shellcheck"
+    },
+    {
+      "description": "Lightweight plain-text editor for macOS",
+      "brew": "--cask coteditor",
+      "apt": null,
+      "name": "CotEditor"
+    },
+    {
+      "description": "Better git diff viewer",
+      "brew": "git-delta",
+      "apt": "git-delta",
+      "name": "git-delta"
+    },
+    {
+      "description": "Text-mode git interface",
+      "brew": "tig",
+      "apt": "tig",
+      "name": "tig"
+    },
+    {
+      "description": "HTTP client",
+      "brew": "httpie",
+      "apt": "httpie",
+      "name": "httpie"
+    },
+    {
+      "description": "Render markdown in terminal",
+      "brew": "glow",
+      "apt": null,
+      "name": "glow"
+    },
+    {
+      "description": "Static site generator",
+      "brew": "hugo",
+      "apt": "hugo",
+      "name": "hugo"
+    },
+    {
+      "description": "SQLite command line and libraries",
+      "brew": "sqlite",
+      "apt": "sqlite3",
+      "name": "sqlite"
+    },
+    {
+      "description": "Midnight Commander (text-mode file manager)",
+      "brew": "mc",
+      "apt": "mc",
+      "name": "mc"
+    },
+    {
+      "description": "Network mapper and scanner",
+      "brew": "nmap",
+      "apt": "nmap",
+      "name": "nmap"
+    },
+    {
+      "description": "Mac App Store command line interface (macOS only)",
+      "brew": "mas",
+      "apt": null,
+      "name": "mas"
+    },
+    {
+      "description": "Zig programming language (also a system toolchain)",
+      "brew": "zig",
+      "apt": null, 
+      "name": "zig"
+    },
+    {
+      "description": "Lua interpreter and developer toolchain",
+      "brew": "lua",
+      "apt": "lua5.4",
+      "name": "lua"
+    },
+    {
+      "description": "Container runtime for macOS (not needed on Linux)",
+      "brew": "colima",
+      "apt": null,
+      "name": "colima"
+    },
+    {
+      "description": "Docker CLI and engine (includes buildx on Linux)",
+      "brew": "docker",
+      "apt": "docker.io",
+      "name": "docker"
+    },
+    {
+      "description": "Docker Buildx plugin",
+      "brew": "docker-buildx",
+      "apt": "docker-buildx",
+      "name": "docker-buildx"
 
-      },
-      {
-        "description": "Multi-container orchestration",
-        "brew": "docker-compose",
-        "apt": "docker-compose",
-        "name": "docker-compose"
-      },
-      {
-        "description": "Docker shell completion",
-        "brew": "docker-completion",
-        "apt": "bash-completion",
-        "name": "docker-completion"
-      },
-      {
-        "description": "Cross-platform build system",
-        "brew": "cmake",
-        "apt": "cmake",
-        "name": "cmake"
-      },
-      {
-        "description": "Build automation tool",
-        "brew": "make",
-        "apt": "build-essential",
-        "name": "make"
-      },
-      {
-        "description": "GNU Compiler Collection",
-        "brew": "gcc",
-        "apt": "gcc",
-        "name": "gcc"
-      },
-      {
-        "description": "Swift formatter",
-        "brew": "swift-format",
-        "apt": null,
-        "name": "swift-format"
-      },
-      {
-        "description": "C/C++/Objective-C formatter",
-        "brew": "clang-format",
-        "apt": "clang-format",
-        "name": "clang-format"
-      },
-      {
-        "description": "Tool to keep software up-to-date",
-        "brew": "topgrade",
-        "apt": null,
-        "name": "topgrade"
-      }
+    },
+    {
+      "description": "Multi-container orchestration",
+      "brew": "docker-compose",
+      "apt": "docker-compose",
+      "name": "docker-compose"
+    },
+    {
+      "description": "Docker shell completion",
+      "brew": "docker-completion",
+      "apt": "bash-completion",
+      "name": "docker-completion"
+    },
+    {
+      "description": "Cross-platform build system",
+      "brew": "cmake",
+      "apt": "cmake",
+      "name": "cmake"
+    },
+    {
+      "description": "Build automation tool",
+      "brew": "make",
+      "apt": "build-essential",
+      "name": "make"
+    },
+    {
+      "description": "GNU Compiler Collection",
+      "brew": "gcc",
+      "apt": "gcc",
+      "name": "gcc"
+    },
+    {
+      "description": "Swift formatter",
+      "brew": "swift-format",
+      "apt": null,
+      "name": "swift-format"
+    },
+    {
+      "description": "C/C++/Objective-C formatter",
+      "brew": "clang-format",
+      "apt": "clang-format",
+      "name": "clang-format"
+    },
+    {
+      "description": "LLVM/Clang toolchain",
+      "brew": "llvm",
+      "apt": "llvm",
+      "name": "llvm"
+    },
+    {
+      "description": "Xcode project generation helper",
+      "brew": "xcodegen",
+      "apt": null,
+      "name": "xcodegen"
+    },
+    {
+      "description": "Swift linter",
+      "brew": "swiftlint",
+      "apt": null,
+      "name": "swiftlint"
+    },
+    {
+      "description": "Swift code formatter (SwiftFormat)",
+      "brew": "swiftformat",
+      "apt": null,
+      "name": "swiftformat"
+    },
+    {
+      "description": "XC Build log beautifier",
+      "brew": "xcbeautify",
+      "apt": null,
+      "name": "xcbeautify"
+    },
+    {
+      "description": "JetBrains Mono Nerd Font (cask)",
+      "brew": "--cask font-jetbrains-mono-nerd-font",
+      "apt": null,
+      "name": "font-jetbrains-mono-nerd-font"
+    },
+    {
+      "description": "Tool to keep software up-to-date",
+      "brew": "topgrade",
+      "apt": null,
+      "name": "topgrade"
+    },
+    {
+      "description": "iTerm2 terminal emulator (macOS only)",
+      "brew": "--cask iterm2",
+      "apt": null,
+      "name": "iTerm2"
+    }
   ]
 }

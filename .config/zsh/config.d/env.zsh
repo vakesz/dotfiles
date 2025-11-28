@@ -67,10 +67,10 @@ export BUNDLE_USER_PLUGIN="${XDG_DATA_HOME:-$HOME/.local/share}/bundle"
 export JUPYTER_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/jupyter"
 
 # Docker
-export DOCKER_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/docker"
+export DOCKER_CONFIG="$HOME/.docker"
 
 # Colima
-export COLIMA_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/colima"
+export COLIMA_HOME="$HOME/.colima"
 
 # PostgreSQL
 export PSQLRC="${XDG_CONFIG_HOME:-$HOME/.config}/pg/psqlrc"
@@ -86,6 +86,15 @@ export SQLITE_HISTORY="${XDG_STATE_HOME:-$HOME/.local/state}/sqlite_history"
 
 # GnuPG
 export GNUPGHOME="${XDG_DATA_HOME:-$HOME/.local/share}/gnupg"
+
+# Local and user binary location (XDG-compliant)
+export XDG_BIN_HOME="${XDG_BIN_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/bin}"
+export PATH="$XDG_BIN_HOME:$PATH"
+
+# Ensure XDG_BIN_HOME exists for interactive shells
+if [[ -n "$ZSH_NAME" || -n "$VIM" ]]; then
+  mkdir -p "$XDG_BIN_HOME" 2>/dev/null || true
+fi
 
 # FZF default options
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'

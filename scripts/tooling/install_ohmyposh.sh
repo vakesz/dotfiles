@@ -25,6 +25,6 @@ install_ohmyposh() {
     if command_exists oh-my-posh; then
         log_success "Oh My Posh installed successfully"
     else
-        log_warning "Oh My Posh installation may have failed - check ~/.local/bin"
+        log_warning "Oh My Posh installation may have failed - check $XDG_BIN_HOME"
     fi
 }
