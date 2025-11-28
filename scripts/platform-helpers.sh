@@ -113,22 +113,35 @@ install_core_packages() {
         core_entries+=("$entry")
     done < <(
         jq -r --arg manager "$manager_key" '
-            .packages.core[]
+            .packages[]
             | select(.name != "jq")
             | .[$manager]
             | select(. != null and . != "")
         ' "$PACKAGES_JSON"
     )
 
-    local -a install_args=()
+    local -a regular_packages=()
+    local -a cask_packages=()
+
     for entry in "${core_entries[@]}"; do
-        read -ra tokens <<< "$entry"
-        install_args+=("${tokens[@]}")
+        if [[ "$entry" =~ ^--cask[[:space:]]+(.+)$ ]]; then
+            # Extract package name after --cask and any whitespace
+            cask_packages+=("${BASH_REMATCH[1]}")
+        else
+            regular_packages+=("$entry")
+        fi
     done
 
-    if [[ ${#install_args[@]} -gt 0 ]]; then
-        platform_install_with_manager "$manager_key" "${install_args[@]}"
-    else
+    if [[ ${#regular_packages[@]} -gt 0 ]]; then
+        platform_install_with_manager "$manager_key" "${regular_packages[@]}"
+    fi
+    
+    if [[ "$manager_key" == "brew" ]] && [[ ${#cask_packages[@]} -gt 0 ]]; then
+        log_info "Installing cask packages: ${cask_packages[*]}"
+        brew install --cask "${cask_packages[@]}"
+    fi
+    
+    if [[ ${#regular_packages[@]} -eq 0 ]] && [[ ${#cask_packages[@]} -eq 0 ]]; then
         log_info "No additional core packages configured for $manager_key"
     fi
 }
@@ -164,7 +177,8 @@ apply_platform_tweaks() {
             bash "$SCRIPTS_DIR/tweaks/wsl-tweaks.sh"
             ;;
         linux)
-            log_info "No additional tweaks configured for pure Linux yet"
+            log_info "Running Linux-specific tweaks"
+            bash "$SCRIPTS_DIR/tweaks/linux-tweaks.sh"
             ;;
         *)
             log_warning "Skipping platform tweaks for $PLATFORM"

@@ -1,7 +1,6 @@
 {
   "description": "Cross-platform package mapping for dotfiles setup",
-  "packages": {
-    "core": [
+  "packages": [
       {
         "description": "Version control system",
         "brew": "git",
@@ -213,9 +212,9 @@
         "name": "docker"
       },
       {
-        "description": "Docker Buildx plugin (for macOS only)",
+        "description": "Docker Buildx plugin",
         "brew": "docker-buildx",
-        "apt": null,
+        "apt": "docker-buildx",
         "name": "docker-buildx"
 
       },
@@ -260,7 +259,12 @@
         "brew": "clang-format",
         "apt": "clang-format",
         "name": "clang-format"
+      },
+      {
+        "description": "Tool to keep software up-to-date",
+        "brew": "topgrade",
+        "apt": null,
+        "name": "topgrade"
       }
-    ]
-  }
+  ]
 }

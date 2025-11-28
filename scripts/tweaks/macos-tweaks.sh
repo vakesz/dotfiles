@@ -206,6 +206,112 @@ setup_colima_service() {
 }
 
 # ============================================================================
+# Docker Socket Symlink (for Colima compatibility)
+# ============================================================================
+
+setup_docker_socket_symlink() {
+    if ! command -v docker &>/dev/null; then
+        log_info "Docker not installed, skipping socket symlink setup"
+        return 0
+    fi
+
+    log_info "Setting up Docker socket symlink for macOS..."
+
+    local colima_socket="$HOME/.config/colima/docker.sock"
+    local docker_socket="/var/run/docker.sock"
+
+    # Check if symlink already points to the correct location
+    if [ -L "$docker_socket" ] && [ "$(readlink "$docker_socket")" = "$colima_socket" ]; then
+        log_info "Docker socket symlink already configured correctly"
+        return 0
+    fi
+
+    # Check if docker socket exists but isn't our symlink
+    if [ -e "$docker_socket" ]; then
+        log_warning "Docker socket exists at $docker_socket but not pointing to Colima"
+        log_info "Manual intervention may be required. Remove existing socket if needed."
+        return 1
+    fi
+
+    # Create /var/run directory if it doesn't exist (requires sudo)
+    if [ ! -d "/var/run" ]; then
+        log_info "Creating /var/run directory..."
+        sudo mkdir -p /var/run
+    fi
+
+    # Wait for Colima socket to be available
+    if [ ! -S "$colima_socket" ]; then
+        log_warning "Colima socket not found at $colima_socket"
+        log_info "Start Colima first with: colima start"
+        return 1
+    fi
+
+    # Create symlink (requires sudo)
+    log_info "Creating symlink: $docker_socket -> $colima_socket"
+    sudo ln -sf "$colima_socket" "$docker_socket"
+
+    if [ -L "$docker_socket" ]; then
+        log_success "Docker socket symlink created successfully"
+    else
+        log_warning "Failed to create Docker socket symlink"
+        return 1
+    fi
+}
+
+# ============================================================================
+# Docker Config Setup
+# ============================================================================
+
+setup_docker_config() {
+    if ! command -v docker &>/dev/null; then
+        log_info "Docker not installed, skipping config setup"
+        return 0
+    fi
+
+    log_info "Setting up Docker configuration..."
+
+    local docker_config_dir="$HOME/.config/docker"
+    local docker_config_file="$docker_config_dir/config.json"
+
+    # Create config directory if it doesn't exist
+    mkdir -p "$docker_config_dir"
+
+    # Check if config file exists
+    if [ -f "$docker_config_file" ]; then
+        # Config exists, check if it already has cliPluginsExtraDirs
+        if grep -q "cliPluginsExtraDirs" "$docker_config_file"; then
+            log_info "Docker config already has cliPluginsExtraDirs configured"
+            return 0
+        fi
+
+        log_info "Updating existing Docker config..."
+        # Backup existing config
+        cp "$docker_config_file" "$docker_config_file.backup"
+
+        # Use jq to merge if available, otherwise manual merge
+        if command -v jq &>/dev/null; then
+            jq '. + {"cliPluginsExtraDirs": ["/opt/homebrew/lib/docker/cli-plugins"]}' "$docker_config_file" > "$docker_config_file.tmp"
+            mv "$docker_config_file.tmp" "$docker_config_file"
+        else
+            log_warning "jq not found, manually add cliPluginsExtraDirs to $docker_config_file"
+            return 1
+        fi
+    else
+        # Create new config file
+        log_info "Creating new Docker config..."
+        cat > "$docker_config_file" <<'EOF'
+{
+  "cliPluginsExtraDirs": [
+    "/opt/homebrew/lib/docker/cli-plugins"
+  ]
+}
+EOF
+    fi
+
+    log_success "Docker config configured"
+}
+
+# ============================================================================
 # Clean Finder View Preferences
 # ============================================================================
 
@@ -251,6 +357,12 @@ main() {
     install_macos_apps
     if ! setup_colima_service; then
         log_warning "Colima service setup encountered issues; continuing with rest of macOS setup"
+    fi
+    if ! setup_docker_config; then
+        log_warning "Docker config setup encountered issues; continuing with rest of macOS setup"
+    fi
+    if ! setup_docker_socket_symlink; then
+        log_warning "Docker socket symlink setup encountered issues; you may need to run 'colima start' first"
     fi
 
     echo ""
