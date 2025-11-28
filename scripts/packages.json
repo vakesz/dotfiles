@@ -122,12 +122,6 @@
         "name": "shellcheck"
       },
       {
-        "description": "GPU-accelerated terminal emulator",
-        "brew": "--cask alacritty",
-        "apt": "alacritty",
-        "name": "alacritty"
-      },
-      {
         "description": "Lightweight plain-text editor for macOS",
         "brew": "--cask coteditor",
         "apt": null,

@@ -15,6 +15,9 @@ source "$SCRIPT_DIR/../common.sh"
 
 set_log_context "WSL"
 
+# Ensure Docker uses XDG config
+export DOCKER_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/docker"
+
 # ============================================================================
 # Detect Windows Username
 # ============================================================================
@@ -206,7 +209,7 @@ setup_docker_compose_plugin() {
     log_info "Installing Docker Compose plugin..."
 
     # Create plugin directory
-    local plugin_dir="$HOME/.docker/cli-plugins"
+    local plugin_dir="${DOCKER_CONFIG:-$HOME/.config/docker}/cli-plugins"
     mkdir -p "$plugin_dir"
 
     # Detect architecture

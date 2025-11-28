@@ -47,7 +47,6 @@ See [KEYMAPS.md](KEYMAPS.md) for complete keybinding reference.
 ```txt
 ~/dotfiles/
 ├── .config/              # Application configurations
-│   ├── alacritty/       # Terminal emulator config
 │   ├── git/             # Git config
 │   ├── nvim/            # Neovim config (see below)
 │   ├── oh-my-posh/      # Prompt theme
@@ -59,8 +58,8 @@ See [KEYMAPS.md](KEYMAPS.md) for complete keybinding reference.
 │   ├── platform-helpers.sh # Platform detection + core package helpers
 │   ├── tweaks/          # Platform-specific tweak scripts
 │   │   ├── macos-tweaks.sh
-│   │   ├── wsl-tweaks.sh
-│   │   └── create-alacritty-app-link.sh
+│   │   ├── linux-tweaks.sh
+│   │   └── wsl-tweaks.sh
 │   └── tooling/         # Toolchain-specific installers
 ├── .gitconfig          # Global git configuration
 ├── .stow-local-ignore  # Stow ignore patterns
@@ -80,33 +79,6 @@ This setup follows the [XDG Base Directory Specification](https://specifications
 - `XDG_CACHE_HOME`: `~/.cache` - User-specific cache files
 
 The `.zshenv` file sets `ZDOTDIR` to `~/.config/zsh`, keeping zsh configs out of `$HOME`.
-
-## Troubleshooting
-
-### Stow conflicts
-
-If stow reports conflicts:
-
-1. Backup the conflicting files
-2. Remove or rename them
-3. Run `stow .` again
-
-The install script automatically backs up existing files to `~/.dotfiles_backup_<timestamp>/`.
-
-### Missing commands on Linux
-
-Some tools need manual installation:
-
-```bash
-# oh-my-posh
-curl -s https://ohmyposh.dev/install.sh | bash -s
-
-# Rust (for zoxide, etc.)
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-# Then install tools
-cargo install zoxide
-```
 
 ## Resources
 

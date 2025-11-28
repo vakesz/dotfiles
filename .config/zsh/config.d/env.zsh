@@ -66,6 +66,12 @@ export BUNDLE_USER_PLUGIN="${XDG_DATA_HOME:-$HOME/.local/share}/bundle"
 # Jupyter
 export JUPYTER_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/jupyter"
 
+# Docker
+export DOCKER_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/docker"
+
+# Colima
+export COLIMA_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/colima"
+
 # PostgreSQL
 export PSQLRC="${XDG_CONFIG_HOME:-$HOME/.config}/pg/psqlrc"
 export PSQL_HISTORY="${XDG_STATE_HOME:-$HOME/.local/state}/psql_history"

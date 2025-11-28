@@ -15,6 +15,12 @@ source "$SCRIPT_DIR/../common.sh"
 
 set_log_context "macOS"
 
+# Ensure Colima uses XDG config
+export COLIMA_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/colima"
+
+# Ensure Docker uses XDG config
+export DOCKER_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/docker"
+
 # ============================================================================
 # macOS System Preferences
 # ============================================================================
@@ -217,7 +223,7 @@ setup_docker_socket_symlink() {
 
     log_info "Setting up Docker socket symlink for macOS..."
 
-    local colima_socket="$HOME/.config/colima/docker.sock"
+    local colima_socket="${COLIMA_HOME}/default/docker.sock"
     local docker_socket="/var/run/docker.sock"
 
     # Check if symlink already points to the correct location
@@ -270,7 +276,7 @@ setup_docker_config() {
 
     log_info "Setting up Docker configuration..."
 
-    local docker_config_dir="$HOME/.config/docker"
+    local docker_config_dir="${DOCKER_CONFIG:-$HOME/.config/docker}"
     local docker_config_file="$docker_config_dir/config.json"
 
     # Create config directory if it doesn't exist
