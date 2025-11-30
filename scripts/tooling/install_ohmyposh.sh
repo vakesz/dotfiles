@@ -20,7 +20,7 @@ install_ohmyposh() {
     fi
 
     log_info "Installing Oh My Posh via official installer..."
-    curl -fsSL https://ohmyposh.dev/install.sh | bash -s
+    curl -fsSL https://ohmyposh.dev/install.sh | bash -s -- -d "$XDG_BIN_HOME"
 
     if command_exists oh-my-posh; then
         log_success "Oh My Posh installed successfully"
