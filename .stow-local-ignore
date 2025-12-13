@@ -1,26 +1,24 @@
 # Stow ignore file - patterns for files NOT to symlink
 # See: man stow
 
-# Documentation files
+# Documentation
 ^/README\.md$
 ^/KEYMAPS\.md$
 ^/CLAUDE\.md$
 
-# Installation and setup scripts
-^/scripts
+# Installation script
 ^/install\.sh$
 
 # Git metadata
 ^/\.git
 ^/\.gitignore$
 
-# Claude Code configuration
+# Claude Code
 ^/\.claude
 
-# Cache directories and files (regex patterns)
+# Cache/temp files
 \.DS_Store$
 .*\.zwc$
 .*\.log$
 cache
 Cache
-registry

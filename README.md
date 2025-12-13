@@ -1,88 +1,67 @@
 # Dotfiles
 
-Cross-platform dotfiles for macOS, Linux, and WSL. Managed with [GNU Stow](https://www.gnu.org/software/stow/) and automated setup scripts.
+Cross-platform dotfiles for macOS, Linux, and WSL. Managed with [GNU Stow](https://www.gnu.org/software/stow/).
 
-## Features
+## Installation
 
-- **Cross-platform**: Works on macOS, Linux, and WSL
-- **XDG Base Directory compliant**: Clean home directory
-- **Automated installation**: Single command setup
-- **Platform-specific configurations**: Optimized for each OS
-- **Version controlled**: Track and sync across machines
+```bash
+./install.sh
+```
+
+Dry-run (preview without changes):
+```bash
+DOTFILES_STOW_SIMULATE=1 ./install.sh
+```
+
+**Prerequisites:** Install GNU Stow first (`brew install stow` or `apt install stow`).
 
 ## What's Included
 
-### Shell Configuration
-
+### Shell
 - **Zsh** with XDG-compliant setup
-- **Oh My Posh** for cross-platform prompts
-- **Zinit** for plugin management
-- Platform-specific PATH and environment variables
+- **Oh My Posh** prompt
+- **Zinit** plugin manager
 
-### Neovim Configuration
+### Neovim
+- **lazy.nvim** package manager
+- **Mason** for LSP/formatters
+- **Telescope** fuzzy finder
+- **nvim-cmp** completion with Copilot
+- **conform.nvim** formatting
+- **fugitive + gitsigns** Git integration
 
-Modern, fast, and minimal Neovim setup:
+See [KEYMAPS.md](KEYMAPS.md) for keybindings.
 
-- **Package Manager**: lazy.nvim with lazy-loading for fast startup
-- **LSP**: Mason + nvim-lspconfig with auto-configuration
-- **Completion**: nvim-cmp with GitHub Copilot integration
-- **Formatting**: conform.nvim with format-on-save
-- **Git**: fugitive + gitsigns for version control
-- **UI**: mini.nvim (statusline, surround, indent guides)
-- **Fuzzy Finding**: Telescope with file browser
-- **Testing**: neotest for Go, Python, Zig
-- **Debugging**: nvim-dap with UI for multiple languages
-- **Theme**: GitHub dark colorblind with transparent background
+### Other
+- **tmux** configuration
+- **Git** config and global ignore
+- **topgrade** update tool config
 
-See [KEYMAPS.md](KEYMAPS.md) for complete keybinding reference.
+## Structure
 
-### Package Management
-
-- `packages.json` - Unified package mapping for all platforms
-- Automatic package installation via brew/apt/cargo/pip/npm
-- Platform-specific package resolution
-
-## Directory Structure
-
-```txt
-~/dotfiles/
-├── .config/              # Application configurations
-│   ├── git/             # Git config
-│   ├── nvim/            # Neovim config (see below)
-│   ├── oh-my-posh/      # Prompt theme
-│   ├── tmux/            # Terminal multiplexer
-│   └── zsh/             # Zsh configuration
-├── scripts/             # Installation and setup scripts
-│   ├── common.sh        # Shared logging helpers
-│   ├── packages.json    # Cross-platform package mapping
-│   ├── platform-helpers.sh # Platform detection + core package helpers
-│   ├── tweaks/          # Platform-specific tweak scripts
-│   │   ├── macos-tweaks.sh
-│   │   ├── linux-tweaks.sh
-│   │   └── wsl-tweaks.sh
-│   └── tooling/         # Toolchain-specific installers
-├── .gitconfig          # Global git configuration
-├── .stow-local-ignore  # Stow ignore patterns
-├── .zshenv             # Zsh environment (XDG setup)
-├── install.sh          # Main installation script
-├── KEYMAPS.md          # Neovim keybindings reference
-└── README.md           # This file
+```
+dotfiles/
+├── .config/
+│   ├── git/              # Global gitignore
+│   ├── nvim/             # Neovim config
+│   ├── oh-my-posh/       # Prompt theme
+│   ├── tmux/             # tmux config
+│   ├── topgrade.toml     # Update tool
+│   └── zsh/              # Zsh config
+├── .gitconfig            # Git settings
+├── .zshenv               # Sets ZDOTDIR
+└── install.sh            # Installer
 ```
 
-## XDG Base Directory
+## XDG Compliance
 
-This setup follows the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html):
-
-- `XDG_CONFIG_HOME`: `~/.config` - User-specific configurations
-- `XDG_DATA_HOME`: `~/.local/share` - User-specific data files
-- `XDG_STATE_HOME`: `~/.local/state` - User-specific state data
-- `XDG_CACHE_HOME`: `~/.cache` - User-specific cache files
-
-The `.zshenv` file sets `ZDOTDIR` to `~/.config/zsh`, keeping zsh configs out of `$HOME`.
+Configs use XDG Base Directory spec to keep `$HOME` clean:
+- `~/.config` - configs
+- `~/.local/share` - data
+- `~/.local/state` - history
 
 ## Resources
 
 - [GNU Stow](https://www.gnu.org/software/stow/)
 - [XDG Base Directory](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html)
 - [Oh My Posh](https://ohmyposh.dev/)
-- [Zinit](https://github.com/zdharma-continuum/zinit)

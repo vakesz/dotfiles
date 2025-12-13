@@ -1,85 +1,162 @@
 #!/usr/bin/env bash
 #
-# Bootstrapper for the dotfiles tooling stack.
-# Delegates to platform and tooling helpers for a maintainable install flow.
+# Dotfiles installer - symlinks configs via GNU Stow with optional OS tweaks.
 #
-# shellcheck disable=SC1091
 
 set -euo pipefail
 
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SCRIPTS_DIR="$DOTFILES_DIR/scripts"
-PACKAGES_JSON="$SCRIPTS_DIR/packages.json"
 
-if [[ ! -f "$PACKAGES_JSON" ]]; then
-    echo "packages.json is missing from scripts/ - cannot continue"
-    exit 1
-fi
+# Logging
+info()    { printf '\033[34m[INFO]\033[0m %s\n' "$1"; }
+success() { printf '\033[32m[OK]\033[0m %s\n' "$1"; }
+warn()    { printf '\033[33m[WARN]\033[0m %s\n' "$1"; }
+error()   { printf '\033[31m[ERROR]\033[0m %s\n' "$1"; }
 
-source "$SCRIPTS_DIR/common.sh"
-source "$SCRIPTS_DIR/platform-helpers.sh"
-source "$SCRIPTS_DIR/tooling/install_ohmyposh.sh"
-source "$SCRIPTS_DIR/tooling/install_cargo.sh"
-source "$SCRIPTS_DIR/tooling/install_npm.sh"
-source "$SCRIPTS_DIR/tooling/install_pip.sh"
-source "$SCRIPTS_DIR/tooling/install_go.sh"
-source "$SCRIPTS_DIR/tooling/install_deno.sh"
+# Platform detection
+detect_platform() {
+    case "$OSTYPE" in
+        darwin*)  PLATFORM="macos" ;;
+        linux*)
+            if grep -qi microsoft /proc/version 2>/dev/null; then
+                PLATFORM="wsl"
+            else
+                PLATFORM="linux"
+            fi ;;
+        *)        PLATFORM="unknown" ;;
+    esac
+    info "Detected platform: $PLATFORM"
+}
 
-apply_stow_symlinks() {
-    set_log_context "stow"
-    if ! command_exists stow; then
-        log_warning "GNU Stow not installed; skipping symlink application"
-        clear_log_context
+# macOS tweaks - Finder, keyboard, Dock defaults
+apply_macos_tweaks() {
+    info "Applying macOS defaults..."
+
+    # Finder
+    defaults write com.apple.finder AppleShowAllFiles -bool true
+    defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+    defaults write com.apple.finder ShowStatusBar -bool true
+    defaults write com.apple.finder ShowPathbar -bool true
+    defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
+    defaults write com.apple.finder _FXSortFoldersFirst -bool true
+    defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
+    defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
+    defaults write com.apple.finder FXEnableExtensionChangeWarning -bool false
+
+    # Keyboard
+    defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
+    defaults write NSGlobalDomain KeyRepeat -int 2
+    defaults write NSGlobalDomain InitialKeyRepeat -int 15
+    defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
+    defaults write NSGlobalDomain NSAutomaticPeriodSubstitutionEnabled -bool false
+    defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
+    defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
+
+    # Trackpad
+    defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
+    defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+
+    # Dock
+    defaults write com.apple.dock tilesize -int 36
+    defaults write com.apple.dock mineffect -string "scale"
+    defaults write com.apple.dock minimize-to-application -bool true
+    defaults write com.apple.dock show-process-indicators -bool true
+
+    # Screenshots
+    defaults write com.apple.screencapture location -string "${HOME}/Desktop"
+    defaults write com.apple.screencapture type -string "png"
+
+    # Restart affected services
+    killall Finder 2>/dev/null || true
+    killall Dock 2>/dev/null || true
+
+    success "macOS defaults applied"
+}
+
+# Linux/WSL tweaks - change shell to zsh
+apply_linux_tweaks() {
+    if ! command -v zsh &>/dev/null; then
+        warn "zsh not installed, skipping shell change"
         return 0
     fi
 
-    log_info "Applying dotfiles via GNU Stow..."
+    local current_shell
+    current_shell=$(basename "$SHELL")
 
-    # Ensure we run from DOTFILES_DIR
-    pushd "$DOTFILES_DIR" >/dev/null || die "Cannot change to $DOTFILES_DIR"
-
-    # Apply stow from the repo root. .stow-local-ignore in the repo controls what is
-    # excluded, so a single `stow .` is sufficient for typical dotfiles repositories.
-    log_info "Applying stow from repository root (stow .) — .stow-local-ignore will control exclusions"
-    declare -a stow_args=("-v" "--restow" "--target=$HOME")
-    # Optionally allow a dry-run/simulate mode via env var
-    if [[ "${DOTFILES_STOW_SIMULATE-}" == "1" || "${DOTFILES_STOW_SIMULATE-}" == "true" ]]; then
-        stow_args=("-n" "${stow_args[@]}")
+    if [[ "$current_shell" == "zsh" ]]; then
+        info "Shell is already zsh"
+        return 0
     fi
-    if stow "${stow_args[@]}" .; then
-        log_success "Stow completed successfully"
+
+    info "Changing default shell to zsh..."
+
+    # Ensure zsh is in /etc/shells
+    if ! grep -q "$(which zsh)" /etc/shells 2>/dev/null; then
+        info "Adding zsh to /etc/shells..."
+        which zsh | sudo tee -a /etc/shells > /dev/null
+    fi
+
+    if chsh -s "$(which zsh)"; then
+        success "Default shell changed to zsh (log out and back in to apply)"
     else
-        log_error "Stow encountered issues (see output above)"
+        error "Failed to change shell"
+        return 1
+    fi
+}
+
+# GNU Stow symlinks
+apply_stow() {
+    if ! command -v stow &>/dev/null; then
+        error "GNU Stow not installed. Install it first:"
+        echo "  macOS: brew install stow"
+        echo "  Linux: sudo apt install stow"
+        return 1
     fi
 
-    popd >/dev/null || true
-    clear_log_context
+    info "Applying dotfiles via GNU Stow..."
+
+    pushd "$DOTFILES_DIR" >/dev/null
+
+    local -a stow_args=("-v" "--restow" "--target=$HOME")
+
+    # Dry-run mode
+    if [[ "${DOTFILES_STOW_SIMULATE:-}" == "1" ]]; then
+        stow_args=("-n" "${stow_args[@]}")
+        info "Running in dry-run mode"
+    fi
+
+    if stow "${stow_args[@]}" .; then
+        success "Stow completed"
+    else
+        error "Stow encountered issues"
+    fi
+
+    popd >/dev/null
 }
 
 main() {
-    log_info "Starting tooling bootstrap..."
+    info "Dotfiles installer"
+    echo ""
 
     detect_platform
-    ensure_package_manager
 
-    install_core_packages
-    install_ohmyposh
+    # Offer platform tweaks
+    echo ""
+    read -rp "Apply OS tweaks? (y/N) " apply_tweaks
+    if [[ "$apply_tweaks" =~ ^[Yy]$ ]]; then
+        case "$PLATFORM" in
+            macos) apply_macos_tweaks ;;
+            linux|wsl) apply_linux_tweaks ;;
+            *) warn "No tweaks for platform: $PLATFORM" ;;
+        esac
+    fi
 
-    install_rust_tooling
-    install_npm_tooling
-    install_pip_tooling
-    install_go_tooling
-    install_deno_runtime
+    # Apply stow
+    echo ""
+    apply_stow
 
-    apply_platform_tweaks
-
-    # Apply dotfile symlinks using GNU Stow if it's available.
-    # We build a list of package directories from the repository root and
-    # honor .stow-local-ignore for top-level exclusions.
-    apply_stow_symlinks
-
-    log_success "Tooling bootstrap complete!"
+    echo ""
+    success "Done!"
 }
 
 main "$@"
- 
