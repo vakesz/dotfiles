@@ -46,31 +46,4 @@ return {
             vim.keymap.set("n", "<leader>xq", "<cmd>Telescope quickfix<cr>", { desc = "Show QuickFix List" })
         end,
     },
-
-    -- Alternative: xbase for Swift Package Manager projects
-    {
-        "xbase-lab/xbase",
-        build = "make install",
-        dependencies = {
-            "nvim-lua/plenary.nvim",
-            "nvim-telescope/telescope.nvim",
-        },
-        config = function()
-            require("xbase").setup({
-                sourcekit = {
-                    -- Path to sourcekit-lsp (comes with Xcode)
-                    path = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp",
-                },
-                simctl = {
-                    iOS = {
-                        "iPhone 15", -- default iOS simulator
-                        "iPhone 17",
-                    },
-                },
-            })
-
-            vim.keymap.set("n", "<leader>xo", "<cmd>XbaseOpen<cr>", { desc = "Open Xcode" })
-            vim.keymap.set("n", "<leader>xw", "<cmd>XbaseWatchBuild<cr>", { desc = "Watch Build" })
-        end,
-    },
 }

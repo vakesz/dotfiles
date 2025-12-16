@@ -130,7 +130,15 @@ Tip: If you accidentally yank something over your unnamed register but wanted to
 | `<leader>vrr` | n | Show references |
 | `<leader>vrn` | n | Rename symbol |
 | `<C-h>` | i | Signature help |
-| `[d` / `]d` | n | Next / previous diagnostic |
+| `[d` / `]d` | n | Previous / next diagnostic |
+
+**Note**: Neovim 0.11+ also provides built-in LSP keymaps:
+
+- `grn` - Rename symbol
+- `gra` - Code action
+- `grr` - Show references
+- `gri` - Go to implementation
+- `gO` - Document symbols
 
 ### Completion (nvim-cmp)
 
@@ -220,6 +228,7 @@ Mini.surround provides easy manipulation of surrounding characters.
 | `sr{old}{new}` | n | Replace surrounding | `sr"'` = replace " with ' |
 
 Common examples:
+
 - `saiw"` - Surround inner word with quotes
 - `sa)` - Add parentheses around selection
 - `sd]` - Delete surrounding brackets

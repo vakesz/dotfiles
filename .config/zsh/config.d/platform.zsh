@@ -27,5 +27,5 @@ have() {
 
 # Helper function to create alias only if command exists
 alias_if_exists() {
-  have "$2" && alias "$1"="$3"
+  have "$2" && alias "$1=$3"
 }

@@ -6,7 +6,6 @@ return {
     dependencies = {
         "nvim-neotest/nvim-nio", -- async library
         "nvim-lua/plenary.nvim", -- utility functions
-        "antoinemadec/FixCursorHold.nvim", -- fix CursorHold events
         "nvim-treesitter/nvim-treesitter", -- syntax trees
         "fredrikaverpil/neotest-golang", -- Go adapter
         "nvim-neotest/neotest-python", -- Python adapter

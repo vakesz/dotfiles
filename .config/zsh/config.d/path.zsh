@@ -44,10 +44,12 @@ if [[ "$OS_TYPE" == "macos" ]]; then
   # macOS Homebrew keg-only packages
   add_keg_only "curl"
 
-  # Dynamically detect latest installed Node version
-  if [[ -n "$HOMEBREW_PREFIX" ]] && [[ -d "$HOMEBREW_PREFIX/opt" ]]; then
-    python_keg=$(ls -d "$HOMEBREW_PREFIX/opt/python@"* 2>/dev/null | sort -V | tail -1)
-    [[ -n "$python_keg" ]] && add_keg_only "$(basename "$python_keg")"
+  # Dynamically detect latest installed Python version (optimized)
+  if [[ -n "$HOMEBREW_PREFIX" ]]; then
+    local python_keg
+    for python_keg in "$HOMEBREW_PREFIX/opt"/python@3.*(N-/On[1]); do
+      [[ -d "$python_keg" ]] && add_keg_only "${python_keg:t}" && break
+    done
   fi
 
   add_keg_only "llvm"
@@ -59,20 +61,7 @@ if [[ "$OS_TYPE" == "macos" ]]; then
     export PATH="/Applications/Xcode.app/Contents/Developer/usr/bin:$PATH"
   fi
 
-  # Local binaries (claude, custom scripts, etc.) — XDG-compliant
-  export XDG_BIN_HOME="${XDG_BIN_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/bin}"
-  export PATH="$XDG_BIN_HOME:$PATH"
-
 elif [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
-  # Linux/WSL Rust/Cargo (XDG compliant)
-  export CARGO_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/cargo"
-  export RUSTUP_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/rustup"
-  export PATH="$CARGO_HOME/bin:$PATH"
-
-  # Local binaries (oh-my-posh, custom scripts, etc.) — XDG-compliant
-  export XDG_BIN_HOME="${XDG_BIN_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/bin}"
-  export PATH="$XDG_BIN_HOME:$PATH"
-
   # Python user packages
   export PATH="${XDG_DATA_HOME:-$HOME/.local/share}/python/bin:$PATH"
 

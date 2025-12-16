@@ -33,7 +33,7 @@ return {
                 disable = function(lang, buf)
                     -- Disable treesitter for large files to improve performance
                     local max_filesize = 100 * 1024 -- 100 KB
-                    local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+                    local ok, stats = pcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(buf))
                     if ok and stats and stats.size > max_filesize then
                         vim.notify(
                             "File larger than 100KB treesitter disabled for performance",
@@ -67,7 +67,7 @@ return {
 
     {
         "nvim-treesitter/nvim-treesitter-context",
-        after = "nvim-treesitter",
+        dependencies = { "nvim-treesitter/nvim-treesitter" },
         config = function()
             require'treesitter-context'.setup{
                 enable = true, -- Enable this plugin (Can be enabled/disabled later via commands)

@@ -1,82 +1,64 @@
 -- Language Server Protocol configuration
--- Docs:
---  nvim-lspconfig: https://github.com/neovim/nvim-lspconfig
---  mason.nvim: https://github.com/williamboman/mason.nvim
---  nvim-cmp: https://github.com/hrsh7th/nvim-cmp
+-- Uses native vim.lsp.config (Neovim 0.11+) with mason for installation
 
 return {
-    "neovim/nvim-lspconfig",
+    "williamboman/mason.nvim",
     dependencies = {
-        "stevearc/conform.nvim", -- formatter integration
-        "williamboman/mason.nvim", -- LSP/DAP/tool installer
-        "williamboman/mason-lspconfig.nvim", -- bridge mason <-> lspconfig
-        "hrsh7th/cmp-nvim-lsp", -- LSP source for nvim-cmp
-        "hrsh7th/cmp-buffer", -- buffer completions
-        "hrsh7th/cmp-path", -- path completions
-        "hrsh7th/nvim-cmp", -- completion engine
-        "j-hui/fidget.nvim", -- LSP progress UI
+        "williamboman/mason-lspconfig.nvim",
+        "neovim/nvim-lspconfig", -- Provides lsp/*.lua server configs for vim.lsp.config
+        "hrsh7th/cmp-nvim-lsp",
+        "hrsh7th/cmp-buffer",
+        "hrsh7th/cmp-path",
+        "hrsh7th/nvim-cmp",
+        "j-hui/fidget.nvim",
     },
-
     config = function()
-        require("conform").setup({
-            formatters_by_ft = {}, -- configure formatters per filetype
-        })
         local cmp = require('cmp')
         local cmp_lsp = require("cmp_nvim_lsp")
-        local capabilities = vim.tbl_deep_extend(
-            "force",
-            {},
-            vim.lsp.protocol.make_client_capabilities(),
-            cmp_lsp.default_capabilities()
-        )
+
+        -- Set default capabilities for ALL LSP servers
+        vim.lsp.config('*', {
+            capabilities = vim.tbl_deep_extend(
+                "force",
+                {},
+                vim.lsp.protocol.make_client_capabilities(),
+                cmp_lsp.default_capabilities()
+            ),
+        })
+
+        -- Configure individual servers
+        vim.lsp.config('lua_ls', {
+            settings = {
+                Lua = {
+                    runtime = { version = "LuaJIT" },
+                    workspace = { checkThirdParty = false },
+                    telemetry = { enable = false },
+                },
+            },
+        })
+
+        vim.lsp.config('pyright', {
+            settings = {
+                python = {
+                    analysis = { typeCheckingMode = "basic" },
+                },
+            },
+            on_attach = function(client)
+                client.server_capabilities.documentFormattingProvider = false
+            end,
+        })
+
+        -- clangd and ts_ls use defaults (no custom config needed)
 
         require("fidget").setup({})
         require("mason").setup()
         require("mason-lspconfig").setup({
             ensure_installed = { "lua_ls", "pyright", "clangd", "ts_ls" },
-            handlers = {
-                -- Default handler for all servers
-                function(server_name)
-                    require("lspconfig")[server_name].setup({
-                        capabilities = capabilities,
-                    })
-                end,
-
-                -- Lua language server with custom settings
-                ["lua_ls"] = function()
-                    require("lspconfig").lua_ls.setup({
-                        capabilities = capabilities,
-                        settings = {
-                            Lua = {
-                                runtime = { version = "LuaJIT" },
-                                workspace = { checkThirdParty = false },
-                                telemetry = { enable = false },
-                            },
-                        },
-                    })
-                end,
-
-                -- Python with formatting disabled (use ruff via conform)
-                ["pyright"] = function()
-                    require("lspconfig").pyright.setup({
-                        capabilities = capabilities,
-                        settings = {
-                            python = {
-                                analysis = {
-                                    typeCheckingMode = "basic",
-                                },
-                            },
-                        },
-                        on_attach = function(client)
-                            client.server_capabilities.documentFormattingProvider = false
-                        end,
-                    })
-                end,
-            },
+            automatic_enable = true, -- Calls vim.lsp.enable() for installed servers
         })
 
+        -- nvim-cmp setup
         local cmp_select = { behavior = cmp.SelectBehavior.Select }
-
         cmp.setup({
             mapping = cmp.mapping.preset.insert({
                 ['<C-p>'] = cmp.mapping.select_prev_item(cmp_select),

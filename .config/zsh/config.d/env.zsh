@@ -92,7 +92,7 @@ export XDG_BIN_HOME="${XDG_BIN_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/bin}"
 export PATH="$XDG_BIN_HOME:$PATH"
 
 # Ensure XDG_BIN_HOME exists for interactive shells
-if [[ -n "$ZSH_NAME" || -n "$VIM" ]]; then
+if [[ -n "$ZSH_NAME" ]] && [[ ! -d "$XDG_BIN_HOME" ]]; then
   mkdir -p "$XDG_BIN_HOME" 2>/dev/null || true
 fi
 
