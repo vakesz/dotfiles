@@ -90,7 +90,12 @@ __auto_venv
 
 alias ..='cd ..'
 alias ...='cd ../..'
-alias ll='ls -la'
+
+# Colorized ls aliases
+alias ls='ls --color=auto'
+alias ll='ls -la --color=auto'
+alias la='ls -A --color=auto'
+alias l='ls -CF --color=auto'
 
 alias home='cd ~'
 alias dots='cd ~/dotfiles'
