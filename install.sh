@@ -142,7 +142,8 @@ main() {
 
     # Offer platform tweaks
     echo ""
-    read -rp "Apply OS tweaks? (y/N) " apply_tweaks
+    read -rn1 -p "Apply OS tweaks? (y/N) " apply_tweaks
+    echo ""
     if [[ "$apply_tweaks" =~ ^[Yy]$ ]]; then
         case "$PLATFORM" in
             macos) apply_macos_tweaks ;;

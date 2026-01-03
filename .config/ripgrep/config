@@ -1,0 +1,18 @@
+# Smart case: case-insensitive unless uppercase used
+--smart-case
+
+# Include hidden files
+--hidden
+
+# Follow symlinks
+--follow
+
+# Don't search these directories
+--glob=!.git/
+--glob=!node_modules/
+--glob=!.venv/
+--glob=!__pycache__/
+--glob=!*.pyc
+--glob=!.DS_Store
+--glob=!.build/
+--glob=!DerivedData/
