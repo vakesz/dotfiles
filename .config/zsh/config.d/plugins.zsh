@@ -1,91 +1,83 @@
 # ============================================================================
 # Zinit Plugin Manager
 # ============================================================================
-# Manages zsh plugins for enhanced shell experience
-
-# ----------------------------------------------------------------------------
-# Zinit Installation and Setup
-# ----------------------------------------------------------------------------
 
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 
 # Download Zinit if not already installed
 if [[ ! -d "$ZINIT_HOME" ]]; then
-  print -P "%F{33}▓▒░ %F{220}Installing ZINIT (zdharma-continuum/zinit)…%f"
+  print -P "%F{33}Installing Zinit...%f"
   command mkdir -p "$(dirname $ZINIT_HOME)"
   if command git clone --depth=1 https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME" 2>/dev/null; then
-    print -P "%F{33}▓▒░ %F{34}Installation successful.%f%b"
+    print -P "%F{34}Done.%f"
   else
-    print -P "%F{160}▓▒░ Zinit installation failed. Plugins disabled.%f%b" >&2
-    return 0  # Exit gracefully, continue without plugins
+    print -P "%F{160}Failed.%f" >&2
+    return 0
   fi
 fi
 
-# Source Zinit with error handling
+# Source Zinit
 if [[ -f "${ZINIT_HOME}/zinit.zsh" ]]; then
   source "${ZINIT_HOME}/zinit.zsh"
 else
-  print -P "%F{160}▓▒░ Zinit not found. Plugins disabled.%f%b" >&2
-  return 0  # Exit gracefully
+  return 0
 fi
 
 # ----------------------------------------------------------------------------
-# Zinit Plugins
+# Plugins (Turbo Mode for deferred loading)
 # ----------------------------------------------------------------------------
 
-# Syntax highlighting - Must be loaded before autosuggestions
-zinit light zsh-users/zsh-syntax-highlighting
+# Essential - load immediately
+zinit light-mode lucid for \
+    zsh-users/zsh-autosuggestions
 
-# Autosuggestions - Fish-like command suggestions
-zinit light zsh-users/zsh-autosuggestions
+# Syntax highlighting - defer slightly
+zinit wait'0a' lucid for \
+    zsh-users/zsh-syntax-highlighting
 
-# Completions - Additional completion definitions
-zinit light zsh-users/zsh-completions
+# Completions - defer
+zinit wait'0b' lucid blockf for \
+    zsh-users/zsh-completions
 
-# FZF Tab - Replace zsh default completion with fzf
-zinit light Aloxaf/fzf-tab
-
-# ----------------------------------------------------------------------------
-# Oh-My-Zsh Plugins (via snippets)
-# ----------------------------------------------------------------------------
-
-# Git aliases and functions
-zinit snippet OMZP::git
-
-# Sudo - Press ESC twice to add sudo to command
-zinit snippet OMZP::sudo
-
-# Command-not-found - Suggests package for missing commands
-zinit snippet OMZP::command-not-found
-
-# Docker - Docker completion and aliases (if docker is installed)
-if have docker; then
-  zinit snippet OMZP::docker
-  zinit snippet OMZP::docker-compose
-fi
+# FZF Tab - defer after completions
+zinit wait'0c' lucid for \
+    Aloxaf/fzf-tab
 
 # ----------------------------------------------------------------------------
-# Additional Tools Integration
+# Oh-My-Zsh Snippets (deferred)
 # ----------------------------------------------------------------------------
 
-# Zoxide - Smart directory jumping (better cd)
+zinit wait'1' lucid for \
+    OMZP::git \
+    OMZP::sudo
+
+zinit wait'2' lucid for \
+    OMZP::command-not-found
+
+# ----------------------------------------------------------------------------
+# Tool Integrations (cached)
+# ----------------------------------------------------------------------------
+
+# Zoxide - cached initialization
 if have zoxide; then
-  eval "$(zoxide init --cmd cd zsh)"
+  local zoxide_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zoxide-init.zsh"
+  local zoxide_bin
+  zoxide_bin=$(command -v zoxide)
+  if [[ ! -f "$zoxide_cache" || "$zoxide_bin" -nt "$zoxide_cache" ]]; then
+    mkdir -p "${zoxide_cache:h}"
+    zoxide init --cmd cd zsh > "$zoxide_cache" 2>/dev/null
+  fi
+  source "$zoxide_cache"
 fi
 
-# FZF - Fuzzy finder integration
+# FZF - cached initialization
 if have fzf; then
-  # Key bindings - try new method first, fallback to old method
-  local fzf_init
-  if fzf_init=$(fzf --zsh 2>/dev/null) && [[ -n "$fzf_init" ]]; then
-    eval "$fzf_init"
-  elif [ -f /usr/share/fzf/key-bindings.zsh ]; then
-    source /usr/share/fzf/key-bindings.zsh
-    source /usr/share/fzf/completion.zsh 2>/dev/null || true
-  elif [ -f "${XDG_DATA_HOME:-$HOME/.local/share}/fzf/fzf.zsh" ]; then
-    source "${XDG_DATA_HOME:-$HOME/.local/share}/fzf/fzf.zsh"
-  elif [ -f ~/.fzf.zsh ]; then
-    # Legacy fallback for non-XDG installations
-    source ~/.fzf.zsh
+  local fzf_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/fzf-init.zsh"
+  local fzf_bin
+  fzf_bin=$(command -v fzf)
+  if [[ ! -f "$fzf_cache" || "$fzf_bin" -nt "$fzf_cache" ]]; then
+    mkdir -p "${fzf_cache:h}"
+    fzf --zsh > "$fzf_cache" 2>/dev/null
   fi
+  [[ -f "$fzf_cache" ]] && source "$fzf_cache"
 fi

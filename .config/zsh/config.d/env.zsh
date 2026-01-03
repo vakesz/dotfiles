@@ -56,33 +56,12 @@ export MIX_XDG=1
 
 # Node.js version managers
 export N_PREFIX="${XDG_DATA_HOME:-$HOME/.local/share}/node"
-export NVM_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/nvm"
+# NVM_DIR is set in path.zsh where nvm is initialized
 
 # Ruby bundler
 export BUNDLE_USER_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/bundle"
 export BUNDLE_USER_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/bundle"
 export BUNDLE_USER_PLUGIN="${XDG_DATA_HOME:-$HOME/.local/share}/bundle"
-
-# Jupyter
-export JUPYTER_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/jupyter"
-
-# Docker
-export DOCKER_CONFIG="$HOME/.docker"
-
-# Colima
-export COLIMA_HOME="$HOME/.colima"
-
-# PostgreSQL
-export PSQLRC="${XDG_CONFIG_HOME:-$HOME/.config}/pg/psqlrc"
-export PSQL_HISTORY="${XDG_STATE_HOME:-$HOME/.local/state}/psql_history"
-export PGPASSFILE="${XDG_CONFIG_HOME:-$HOME/.config}/pg/pgpass"
-export PGSERVICEFILE="${XDG_CONFIG_HOME:-$HOME/.config}/pg/pg_service.conf"
-
-# MySQL/MariaDB
-export MYSQL_HISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/mysql_history"
-
-# SQLite
-export SQLITE_HISTORY="${XDG_STATE_HOME:-$HOME/.local/state}/sqlite_history"
 
 # GnuPG
 export GNUPGHOME="${XDG_DATA_HOME:-$HOME/.local/share}/gnupg"

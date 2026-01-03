@@ -36,12 +36,22 @@ source_if_exists "$CONFIG_DIR/aliases.zsh"
 # Oh My Posh Prompt
 # ----------------------------------------------------------------------------
 
-# Initialize Oh My Posh with zen theme
+# Initialize Oh My Posh with zen theme (cached for speed)
 if have oh-my-posh; then
-  eval "$(oh-my-posh init zsh --config ${XDG_CONFIG_HOME:-$HOME/.config}/oh-my-posh/zen.toml)"
+  local omp_config="${XDG_CONFIG_HOME:-$HOME/.config}/oh-my-posh/zen.toml"
+  local omp_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/oh-my-posh-init.zsh"
+  local omp_bin
+  omp_bin=$(command -v oh-my-posh)
+
+  if [[ ! -f "$omp_cache" ]] || \
+     [[ "$omp_config" -nt "$omp_cache" ]] || \
+     [[ "$omp_bin" -nt "$omp_cache" ]]; then
+    mkdir -p "${omp_cache:h}"
+    oh-my-posh init zsh --config "$omp_config" > "$omp_cache" 2>/dev/null
+  fi
+  source "$omp_cache"
 else
-  # Fallback to simple prompt if oh-my-posh not installed
-  PROMPT='%F{blue}%~%f %F{magenta}❯%f '
+  PROMPT='%F{blue}%~%f %F{magenta}>%f '
 fi
 
 # ----------------------------------------------------------------------------

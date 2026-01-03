@@ -31,17 +31,32 @@ if (( ${+functions[zinit]} )); then
 fi
 
 # ----------------------------------------------------------------------------
-# Completion Options
+# Zsh Options
 # ----------------------------------------------------------------------------
 
+# Completion
 setopt ALWAYS_TO_END          # Move cursor to end of word after completion
 setopt AUTO_MENU              # Show completion menu on successive tab press
 setopt AUTO_PARAM_SLASH       # Add trailing slash to directory completions
 setopt COMPLETE_IN_WORD       # Complete from both ends of a word
 setopt LIST_PACKED            # Make completion list smaller
 setopt MENU_COMPLETE          # Auto-select first completion entry
-
 unsetopt FLOW_CONTROL         # Disable flow control (Ctrl-S/Ctrl-Q)
+
+# Navigation
+setopt AUTO_CD                # Type directory name to cd into it
+setopt AUTO_PUSHD             # Push old directory onto stack
+setopt PUSHD_IGNORE_DUPS      # Don't push duplicates
+setopt PUSHD_SILENT           # Don't print stack after pushd/popd
+
+# Globbing
+setopt EXTENDED_GLOB          # Extended glob patterns (#, ~, ^)
+setopt GLOB_DOTS              # Include dotfiles in globs
+
+# Safety & Convenience
+setopt CORRECT                # Command spelling correction
+setopt NO_CLOBBER             # Don't overwrite with > (use >| to force)
+setopt INTERACTIVE_COMMENTS   # Allow comments in interactive shell
 
 # ----------------------------------------------------------------------------
 # Completion Styling
@@ -93,7 +108,18 @@ zstyle ':completion:*:messages' format '%F{purple}-- %d --%f'
 zstyle ':completion:*:warnings' format '%F{red}-- no matches found --%f'
 
 # ----------------------------------------------------------------------------
-# History-Based Completion
+# History Search with Arrow Keys
+# ----------------------------------------------------------------------------
+# Type partial command, press Up/Down to search history
+
+autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
+zle -N up-line-or-beginning-search
+zle -N down-line-or-beginning-search
+bindkey '^[[A' up-line-or-beginning-search    # Up arrow
+bindkey '^[[B' down-line-or-beginning-search  # Down arrow
+
+# ----------------------------------------------------------------------------
+# History Options
 # ----------------------------------------------------------------------------
 
 setopt HIST_IGNORE_ALL_DUPS   # Remove older duplicate entries from history

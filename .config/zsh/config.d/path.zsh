@@ -34,11 +34,21 @@ add_keg_only() {
 # shellcheck shell=sh
 
 if [[ "$OS_TYPE" == "macos" ]]; then
-  # macOS Homebrew initialization
+  # macOS Homebrew initialization (cached for speed)
+  local brew_path
   if [[ -f "/opt/homebrew/bin/brew" ]]; then
-    eval "$(/opt/homebrew/bin/brew shellenv)"
+    brew_path="/opt/homebrew/bin/brew"
   elif [[ -f "/usr/local/bin/brew" ]]; then
-    eval "$(/usr/local/bin/brew shellenv)"
+    brew_path="/usr/local/bin/brew"
+  fi
+
+  if [[ -n "$brew_path" ]]; then
+    local brew_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/brew_shellenv.zsh"
+    if [[ ! -f "$brew_cache" || "$brew_cache" -ot "$brew_path" ]]; then
+      mkdir -p "${brew_cache:h}"
+      "$brew_path" shellenv > "$brew_cache" 2>/dev/null
+    fi
+    source "$brew_cache"
   fi
 
   # macOS Homebrew keg-only packages
@@ -77,7 +87,6 @@ fi
 
 # Go
 export GOPATH="${XDG_DATA_HOME:-$HOME/.local/share}/go"
-export PATH="$GOPATH/bin:$PATH"
 export GOBIN="${GOBIN:-$GOPATH/bin}"
 export PATH="$GOBIN:$PATH"
 
@@ -86,39 +95,48 @@ export CARGO_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/cargo"
 export RUSTUP_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/rustup"
 export PATH="$CARGO_HOME/bin:$PATH"
 
-# Node.js - nvm (XDG-compliant)
-# NVM is incompatible with NPM_CONFIG_PREFIX, so we don't set it
-# NVM manages npm in $NVM_DIR/versions/node/*/bin
+# Node.js - nvm (lazy-loaded for fast startup)
 export NVM_DIR="${NVM_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/nvm}"
+
 if [[ -s "$NVM_DIR/nvm.sh" ]]; then
-  # shellcheck disable=SC1090
-  source "$NVM_DIR/nvm.sh" --no-use
+  # Resolve nvm alias chain to get actual version (e.g., lts/* → lts/krypton → v24.x.x)
+  __resolve_nvm_alias() {
+    local alias_name="$1"
+    local alias_file="$NVM_DIR/alias/$alias_name"
+    local max_depth=10
+    local depth=0
 
-  # Auto-load default node version if set
-  # This is faster than 'nvm use default' and avoids the overhead
-  if [[ -f "$NVM_DIR/alias/default" ]] && [[ -d "$NVM_DIR/versions/node" ]]; then
+    while [[ -f "$alias_file" ]] && (( depth++ < max_depth )); do
+      alias_name=$(<"$alias_file")
+      alias_file="$NVM_DIR/alias/$alias_name"
+    done
+
+    echo "$alias_name"
+  }
+
+  # Add default node to PATH without loading nvm
+  if [[ -f "$NVM_DIR/alias/default" ]]; then
     local default_version
-    default_version=$(cat "$NVM_DIR/alias/default" 2>/dev/null)
-
-    # Only proceed if we successfully read the default version
-    if [[ -n "$default_version" ]]; then
-      local node_path="$NVM_DIR/versions/node/$default_version/bin"
-
-      # Resolve LTS aliases to actual version
-      if [[ "$default_version" == lts/* ]]; then
-        local resolved_version
-        resolved_version=$(nvm version "$default_version" 2>/dev/null)
-        if [[ -n "$resolved_version" && "$resolved_version" != "N/A" ]]; then
-          node_path="$NVM_DIR/versions/node/$resolved_version/bin"
-        fi
-      fi
-
-      # Add to PATH only if the bin directory actually exists
-      if [[ -d "$node_path" ]]; then
-        export PATH="$node_path:$PATH"
-      fi
-    fi
+    default_version=$(__resolve_nvm_alias "default")
+    local node_path="$NVM_DIR/versions/node/$default_version/bin"
+    [[ -d "$node_path" ]] && export PATH="$node_path:$PATH"
   fi
+
+  # Clean up helper function
+  unset -f __resolve_nvm_alias
+
+  # Lazy-load nvm on first use
+  __load_nvm() {
+    unset -f nvm node npm npx yarn pnpm 2>/dev/null
+    source "$NVM_DIR/nvm.sh"
+  }
+
+  nvm() { __load_nvm && nvm "$@"; }
+  node() { __load_nvm && node "$@"; }
+  npm() { __load_nvm && npm "$@"; }
+  npx() { __load_nvm && npx "$@"; }
+  yarn() { __load_nvm && yarn "$@"; }
+  pnpm() { __load_nvm && pnpm "$@"; }
 fi
 
 # Node.js - npm config (XDG-compliant, without NPM_CONFIG_PREFIX)
@@ -130,8 +148,9 @@ export PNPM_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/pnpm"
 export PATH="$PNPM_HOME:$PATH"
 
 # Python pipx
-  export PIPX_HOME="${PIPX_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/pipx}"
-  export PATH="$PIPX_HOME/venvs/bin:$PATH"
+export PIPX_HOME="${PIPX_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/pipx}"
+export PIPX_BIN_DIR="${PIPX_BIN_DIR:-$PIPX_HOME/bin}"
+export PATH="$PIPX_BIN_DIR:$PATH"
 
 # Deno
 export DENO_INSTALL="${XDG_DATA_HOME:-$HOME/.local/share}/deno"

@@ -1,13 +1,13 @@
 # ============================================================================
 # Aliases and Functions
 # ============================================================================
+# Minimal, essential aliases only
 
 # ----------------------------------------------------------------------------
 # Platform-Specific Command Aliases
 # ----------------------------------------------------------------------------
 
 if [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
-  # Fix Ubuntu naming differences
   alias_if_exists fd fdfind fdfind
   alias_if_exists bat batcat batcat
 fi
@@ -23,221 +23,80 @@ if have nvim; then
 fi
 
 # ----------------------------------------------------------------------------
-# Python Aliases
+# Python
 # ----------------------------------------------------------------------------
-# Prefer Python 3.13 (widely supported), fallback to system python3
-# Note: Python 3.14+ may not be fully supported by all tools yet
 
-if have python3.13; then
-  alias python='python3.13'
-  alias python3='python3.13'
-  alias pip='pip3.13'
-  alias pip3='pip3.13'
-  alias py='python3.13'
-elif have python3.12; then
-  alias python='python3.12'
-  alias python3='python3.12'
-  alias pip='pip3.12'
-  alias pip3='pip3.12'
-  alias py='python3.12'
-elif have python3; then
-  # Fallback to whatever python3 is available
-  alias python='python3'
-  alias pip='pip3'
-  alias py='python3'
-fi
+alias py='python3'
 
-# Python virtual environment helper
+# Virtual environment helper with error handling
 venv() {
-  if [[ -d .venv ]]; then
-    source .venv/bin/activate
+  local venv_dir="${1:-.venv}"
+
+  if [[ -d "$venv_dir" ]]; then
+    if [[ -f "$venv_dir/bin/activate" ]]; then
+      source "$venv_dir/bin/activate"
+    else
+      echo "Error: $venv_dir exists but is not a valid virtualenv" >&2
+      return 1
+    fi
   else
-    python3 -m venv .venv
-    source .venv/bin/activate
-    pip install --upgrade pip
+    if ! have python3; then
+      echo "Error: python3 not found" >&2
+      return 1
+    fi
+    echo "Creating virtualenv in $venv_dir..."
+    if python3 -m venv "$venv_dir"; then
+      source "$venv_dir/bin/activate"
+      pip install --upgrade pip --quiet
+    else
+      echo "Error: Failed to create virtualenv" >&2
+      return 1
+    fi
   fi
 }
 
-# Deactivate virtual environment
 alias venv-off='deactivate'
 
+# Auto-activate .venv on directory change
+__auto_venv() {
+  # Deactivate if we left a venv directory
+  if [[ -n "$VIRTUAL_ENV" ]]; then
+    local venv_parent="${VIRTUAL_ENV:h}"
+    if [[ "$PWD" != "$venv_parent"* ]]; then
+      deactivate
+    fi
+  fi
+
+  # Activate if .venv exists in current dir
+  if [[ -z "$VIRTUAL_ENV" && -f ".venv/bin/activate" ]]; then
+    source .venv/bin/activate
+  fi
+}
+
+autoload -Uz add-zsh-hook
+add-zsh-hook chpwd __auto_venv
+
+# Run once on shell start (for initial directory)
+__auto_venv
+
 # ----------------------------------------------------------------------------
-# Directory Navigation
+# Navigation
 # ----------------------------------------------------------------------------
 
 alias ..='cd ..'
 alias ...='cd ../..'
-alias ....='cd ../../..'
-alias .....='cd ../../../..'
-
-# List directory contents
-alias l='ls -lFh --color'     # size, show type, human readable
-alias la='ls -lAFh --color'   # long list, show almost all, show type, human readable
-alias lr='ls -tRFh --color'   # sorted by date, recursive, show type, human readable
-alias lt='ls -ltFh --color'   # long list, sorted by date, show type, human readable
-alias ll='ls -l --color'      # long list
-alias ldot='ls -ld .* --color' # list only hidden files
-
-# ----------------------------------------------------------------------------
-# Git Aliases (Supplementary to OMZ git plugin)
-# ----------------------------------------------------------------------------
-
-alias g='git'
-alias gs='git status'
-alias gd='git diff'
-alias gdc='git diff --cached'
-alias gl='git log --oneline --graph --decorate'
-alias gla='git log --oneline --graph --decorate --all'
-alias gp='git push'
-alias gpl='git pull'
-alias gc='git commit'
-alias gca='git commit -a'
-alias gcm='git commit -m'
-alias gco='git checkout'
-alias gb='git branch'
-alias ga='git add'
-alias gaa='git add --all'
-
-# ----------------------------------------------------------------------------
-# Safety Aliases
-# ----------------------------------------------------------------------------
-
-alias rm='rm -i'      # Confirm before removing
-alias cp='cp -i'      # Confirm before overwriting
-alias mv='mv -i'      # Confirm before overwriting
-alias mkdir='mkdir -p' # Create intermediate directories
-
-# ----------------------------------------------------------------------------
-# Utility Aliases
-# ----------------------------------------------------------------------------
-
-# Clear screen
-alias c='clear'
-alias cls='clear'
-
-# Find large files
-alias findbig='du -h -d 1 | sort -hr | head -20'
-
-# Human-readable sizes
-alias df='df -h'
-alias du='du -h'
-
-# Grep with color
-alias grep='grep --color=auto'
-alias fgrep='fgrep --color=auto'
-alias egrep='egrep --color=auto'
-
-# Process management
-alias psg='ps aux | grep -v grep | grep -i -e VSZ -e'
-alias psme='ps -u $USER -o pid,stat,pcpu,pmem,comm'
-
-# Network
-alias ports='netstat -tulanp'
-alias myip='curl -s https://api.ipify.org && echo'
-alias localip='ipconfig getifaddr en0'  # macOS
-if [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
-  alias localip='hostname -I | awk "{print \$1}"'
-fi
-
-# Reload zsh config
-alias reload='source $ZDOTDIR/.zshrc'
-
-# Edit zsh config
-alias zshconfig='$EDITOR $ZDOTDIR/.zshrc'
-alias zshenv='$EDITOR $HOME/.zshenv'
-
-# ----------------------------------------------------------------------------
-# Development Shortcuts
-# ----------------------------------------------------------------------------
-
-# Bat (a cat clone with syntax highlighting and Git integration)
-if have bat; then
-  alias cat='bat'
-  alias b='bat'
-  alias bdiff='bat --diff'
-fi
-
-# Docker
-if have docker; then
-  alias d='docker'
-  alias dc='docker compose'
-  alias dps='docker ps'
-  alias dpsa='docker ps -a'
-  alias di='docker images'
-  alias dex='docker exec -it'
-  alias dlog='docker logs -f'
-  alias dprune='docker system prune -af --volumes'
-fi
-
-# Kubernetes
-if have kubectl; then
-  alias k='kubectl'
-  alias kg='kubectl get'
-  alias kd='kubectl describe'
-  alias kdel='kubectl delete'
-  alias kl='kubectl logs'
-  alias kx='kubectl exec -it'
-fi
-
-# Make
-if have make; then
-  alias m='make'
-  alias mr='make run'
-  alias mb='make build'
-  alias mt='make test'
-fi
-
-# ----------------------------------------------------------------------------
-# Quick Directory Access
-# ----------------------------------------------------------------------------
 
 alias home='cd ~'
-alias desk='cd ~/Desktop'
-alias docs='cd ~/Documents'
-alias down='cd ~/Downloads'
 alias dots='cd ~/dotfiles'
 
 # ----------------------------------------------------------------------------
-# macOS-Specific Aliases
+# macOS-Specific
 # ----------------------------------------------------------------------------
 
 if [[ "$OS_TYPE" == "macos" ]]; then
-  # Show/hide hidden files in Finder
   alias showfiles='defaults write com.apple.finder AppleShowAllFiles YES; killall Finder'
   alias hidefiles='defaults write com.apple.finder AppleShowAllFiles NO; killall Finder'
-
-  # Flush DNS cache
   alias flushdns='sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder'
-
-  # Empty trash
   alias emptytrash='sudo rm -rf ~/.Trash/*'
-
-  # Lock screen
   alias lock='/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend'
-fi
-
-# ----------------------------------------------------------------------------
-# Linux-Specific Aliases
-# ----------------------------------------------------------------------------
-
-if [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
-  # Service management
-  alias services='systemctl list-units --type=service'
-fi
-
-# ----------------------------------------------------------------------------
-# Update Management (Cross-Platform)
-# ----------------------------------------------------------------------------
-
-# Use topgrade for comprehensive updates across all package managers
-if have topgrade; then
-  alias update='topgrade'
-  alias upgrade='topgrade'
-else
-  # Fallback if topgrade not installed
-  if [[ "$OS_TYPE" == "macos" ]]; then
-    alias update='brew update && brew upgrade && brew cleanup'
-  elif [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
-    alias update='sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y'
-  fi
 fi
