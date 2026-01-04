@@ -54,7 +54,6 @@ setopt EXTENDED_GLOB          # Extended glob patterns (#, ~, ^)
 setopt GLOB_DOTS              # Include dotfiles in globs
 
 # Safety & Convenience
-setopt NO_CLOBBER             # Don't overwrite with > (use >| to force)
 setopt INTERACTIVE_COMMENTS   # Allow comments in interactive shell
 
 # ----------------------------------------------------------------------------

@@ -47,7 +47,7 @@ if have oh-my-posh; then
      [[ "$omp_config" -nt "$omp_cache" ]] || \
      [[ "$omp_bin" -nt "$omp_cache" ]]; then
     mkdir -p "${omp_cache:h}"
-    oh-my-posh init zsh --config "$omp_config" >| "$omp_cache" 2>/dev/null
+    oh-my-posh init zsh --config "$omp_config" > "$omp_cache" 2>/dev/null
   fi
   source "$omp_cache"
 else
