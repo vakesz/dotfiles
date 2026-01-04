@@ -19,6 +19,7 @@ return {
 
         -- Register leader key groups
         wk.add({
+            { "<leader>b", group = "Buffer" },
             { "<leader>c", group = "Code" },
             { "<leader>d", group = "Debug" },
             { "<leader>f", desc = "Format" },
@@ -27,7 +28,6 @@ return {
             { "<leader>p", group = "Project/Find" },
             { "<leader>t", group = "Test" },
             { "<leader>v", group = "LSP" },
-            { "<leader>x", group = "Diagnostics" },
         })
     end,
 }

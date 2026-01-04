@@ -46,9 +46,7 @@ return {
                     case_mode = "smart_case",
                 },
                 ["ui-select"] = require("telescope.themes").get_dropdown({}),
-                file_browser = {
-                    hijack_netrw = true,
-                },
+                file_browser = { hijack_netrw = true },
             },
         })
 

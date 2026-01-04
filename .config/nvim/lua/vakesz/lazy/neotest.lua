@@ -33,17 +33,7 @@ return {
                     },
                     args = { "--log-level", "DEBUG", "-vv" },
                     runner = "pytest",
-                    python = function()
-                        -- Try to use virtual environment
-                        local cwd = vim.fn.getcwd()
-                        if vim.fn.executable(cwd .. '/.venv/bin/python') == 1 then
-                            return cwd .. '/.venv/bin/python'
-                        elseif vim.fn.executable(cwd .. '/venv/bin/python') == 1 then
-                            return cwd .. '/venv/bin/python'
-                        else
-                            return 'python3'
-                        end
-                    end,
+                    python = require("vakesz.utils").get_python_path,
                 }),
 
                 -- Zig test adapter

@@ -43,17 +43,7 @@ return {
                 request = 'launch',
                 name = 'Launch file',
                 program = '${file}',
-                pythonPath = function()
-                    -- Try to use virtual environment first
-                    local cwd = vim.fn.getcwd()
-                    if vim.fn.executable(cwd .. '/.venv/bin/python') == 1 then
-                        return cwd .. '/.venv/bin/python'
-                    elseif vim.fn.executable(cwd .. '/venv/bin/python') == 1 then
-                        return cwd .. '/venv/bin/python'
-                    else
-                        return 'python3'
-                    end
-                end,
+                pythonPath = require("vakesz.utils").get_python_path,
             },
             {
                 type = 'python',
@@ -64,16 +54,7 @@ return {
                     local args_string = vim.fn.input('Arguments: ')
                     return vim.split(args_string, " +")
                 end,
-                pythonPath = function()
-                    local cwd = vim.fn.getcwd()
-                    if vim.fn.executable(cwd .. '/.venv/bin/python') == 1 then
-                        return cwd .. '/.venv/bin/python'
-                    elseif vim.fn.executable(cwd .. '/venv/bin/python') == 1 then
-                        return cwd .. '/venv/bin/python'
-                    else
-                        return 'python3'
-                    end
-                end,
+                pythonPath = require("vakesz.utils").get_python_path,
             },
             {
                 type = 'python',
