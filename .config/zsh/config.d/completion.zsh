@@ -45,6 +45,7 @@ unsetopt FLOW_CONTROL         # Disable flow control (Ctrl-S/Ctrl-Q)
 
 # Navigation
 setopt AUTO_CD                # Type directory name to cd into it
+setopt CDSPELL                # Correct minor typos in cd directory names
 setopt AUTO_PUSHD             # Push old directory onto stack
 setopt PUSHD_IGNORE_DUPS      # Don't push duplicates
 setopt PUSHD_SILENT           # Don't print stack after pushd/popd
