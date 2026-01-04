@@ -65,7 +65,7 @@ if have zoxide; then
   zoxide_bin=$(command -v zoxide)
   if [[ ! -f "$zoxide_cache" || "$zoxide_bin" -nt "$zoxide_cache" ]]; then
     mkdir -p "${zoxide_cache:h}"
-    zoxide init --cmd cd zsh > "$zoxide_cache" 2>/dev/null
+    zoxide init --cmd cd zsh >| "$zoxide_cache" 2>/dev/null
   fi
   source "$zoxide_cache"
 fi
@@ -77,7 +77,7 @@ if have fzf; then
   fzf_bin=$(command -v fzf)
   if [[ ! -f "$fzf_cache" || "$fzf_bin" -nt "$fzf_cache" ]]; then
     mkdir -p "${fzf_cache:h}"
-    fzf --zsh > "$fzf_cache" 2>/dev/null
+    fzf --zsh >| "$fzf_cache" 2>/dev/null
   fi
   [[ -f "$fzf_cache" ]] && source "$fzf_cache"
 fi

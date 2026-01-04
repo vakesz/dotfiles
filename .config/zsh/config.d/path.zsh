@@ -46,7 +46,7 @@ if [[ "$OS_TYPE" == "macos" ]]; then
     local brew_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/brew_shellenv.zsh"
     if [[ ! -f "$brew_cache" || "$brew_cache" -ot "$brew_path" ]]; then
       mkdir -p "${brew_cache:h}"
-      "$brew_path" shellenv > "$brew_cache" 2>/dev/null
+      "$brew_path" shellenv >| "$brew_cache" 2>/dev/null
     fi
     source "$brew_cache"
   fi
@@ -70,6 +70,11 @@ elif [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
   if [[ -d "/snap/bin" ]]; then
     export PATH="/snap/bin:$PATH"
   fi
+
+  # NVM (Node Version Manager) - Linux/WSL only
+  export NVM_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/nvm"
+  [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
+  [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
 fi
 
 # ----------------------------------------------------------------------------
