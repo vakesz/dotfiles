@@ -24,7 +24,7 @@
 # Disable specific steps - same options as the command line flag
 # Disable built-in shell step (uses custom zinit command instead to avoid double-sourcing .zshrc)
 # Disable containers step to prevent automatic docker/podman updates
-disable = ["shell", "containers"]
+disable = ["shell", "containers", "yarn", "deno"]
 
 # Ignore failures for these steps
 # ignore_failures = ["powershell"]

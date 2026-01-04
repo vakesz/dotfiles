@@ -54,17 +54,13 @@ if [[ "$OS_TYPE" == "macos" ]]; then
   # macOS Homebrew keg-only packages
   add_keg_only "curl"
 
-  # Dynamically detect latest installed Python version (optimized)
-  if [[ -n "$HOMEBREW_PREFIX" ]]; then
-    local python_keg
-    for python_keg in "$HOMEBREW_PREFIX/opt"/python@3.*(N-/On[1]); do
-      [[ -d "$python_keg" ]] && add_keg_only "${python_keg:t}" && break
-    done
-  fi
+  # Python 3.13 (explicit version to avoid 3.14 compatibility issues)
+  add_keg_only "python@3.13"
 
   add_keg_only "llvm"
   add_keg_only "ruby"
   add_keg_only "make" "libexec/gnubin"
+  add_keg_only "node"
 
   # Xcode command line tools
   if [[ -d "/Applications/Xcode.app/Contents/Developer/usr/bin" ]]; then
@@ -90,53 +86,13 @@ export GOPATH="${XDG_DATA_HOME:-$HOME/.local/share}/go"
 export GOBIN="${GOBIN:-$GOPATH/bin}"
 export PATH="$GOBIN:$PATH"
 
-# Rust/Cargo + Rustup
+# Rust/Cargo
 export CARGO_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/cargo"
-export RUSTUP_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/rustup"
 export PATH="$CARGO_HOME/bin:$PATH"
 
-# Node.js - nvm (lazy-loaded for fast startup)
-export NVM_DIR="${NVM_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/nvm}"
-
-if [[ -s "$NVM_DIR/nvm.sh" ]]; then
-  # Resolve nvm alias chain to get actual version (e.g., lts/* → lts/krypton → v24.x.x)
-  __resolve_nvm_alias() {
-    local alias_name="$1"
-    local alias_file="$NVM_DIR/alias/$alias_name"
-    local max_depth=10
-    local depth=0
-
-    while [[ -f "$alias_file" ]] && (( depth++ < max_depth )); do
-      alias_name=$(<"$alias_file")
-      alias_file="$NVM_DIR/alias/$alias_name"
-    done
-
-    echo "$alias_name"
-  }
-
-  # Add default node to PATH without loading nvm
-  if [[ -f "$NVM_DIR/alias/default" ]]; then
-    local default_version
-    default_version=$(__resolve_nvm_alias "default")
-    local node_path="$NVM_DIR/versions/node/$default_version/bin"
-    [[ -d "$node_path" ]] && export PATH="$node_path:$PATH"
-  fi
-
-  # Clean up helper function
-  unset -f __resolve_nvm_alias
-
-  # Lazy-load nvm on first use
-  __load_nvm() {
-    unset -f nvm node npm npx yarn pnpm 2>/dev/null
-    source "$NVM_DIR/nvm.sh"
-  }
-
-  nvm() { __load_nvm && nvm "$@"; }
-  node() { __load_nvm && node "$@"; }
-  npm() { __load_nvm && npm "$@"; }
-  npx() { __load_nvm && npx "$@"; }
-  yarn() { __load_nvm && yarn "$@"; }
-  pnpm() { __load_nvm && pnpm "$@"; }
+# Rustup (Linux only - macOS uses brew rust)
+if [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
+  export RUSTUP_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/rustup"
 fi
 
 # Node.js - npm config (XDG-compliant, without NPM_CONFIG_PREFIX)
@@ -152,17 +108,15 @@ export PIPX_HOME="${PIPX_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/pipx}"
 export PIPX_BIN_DIR="${PIPX_BIN_DIR:-$PIPX_HOME/bin}"
 export PATH="$PIPX_BIN_DIR:$PATH"
 
-# Deno
-export DENO_INSTALL="${XDG_DATA_HOME:-$HOME/.local/share}/deno"
-export PATH="$DENO_INSTALL/bin:$PATH"
+# Deno (Linux only - macOS uses brew deno)
+if [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
+  export DENO_INSTALL="${XDG_DATA_HOME:-$HOME/.local/share}/deno"
+  export PATH="$DENO_INSTALL/bin:$PATH"
+fi
 
 # Swift Package Manager (XDG compliant)
 export SWIFTPM_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/swiftpm"
 export PATH="$SWIFTPM_HOME/bin:$PATH"
-
-# Yarn (XDG compliant)
-export YARN_CACHE_FOLDER="${XDG_CACHE_HOME:-$HOME/.cache}/yarn"
-export YARN_GLOBAL_FOLDER="${XDG_DATA_HOME:-$HOME/.local/share}/yarn"
 
 # tldr / tealdeer (XDG compliant)
 export TEALDEER_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/tealdeer"
