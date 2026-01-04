@@ -62,11 +62,6 @@ if [[ "$OS_TYPE" == "macos" ]]; then
   add_keg_only "make" "libexec/gnubin"
   add_keg_only "node"
 
-  # Xcode command line tools
-  if [[ -d "/Applications/Xcode.app/Contents/Developer/usr/bin" ]]; then
-    export PATH="/Applications/Xcode.app/Contents/Developer/usr/bin:$PATH"
-  fi
-
 elif [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
   # Python user packages
   export PATH="${XDG_DATA_HOME:-$HOME/.local/share}/python/bin:$PATH"
