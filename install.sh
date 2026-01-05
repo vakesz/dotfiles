@@ -73,8 +73,28 @@ apply_macos_tweaks() {
     success "macOS defaults applied"
 }
 
-# Linux/WSL tweaks - change shell to zsh
+# Setup locale for Linux/WSL
+setup_locale() {
+    if locale -a 2>/dev/null | grep -qE '^en_US\.UTF-8$|^en_US\.utf8$'; then
+        info "Locale en_US.UTF-8 already available"
+    else
+        info "Installing en_US.UTF-8 locale..."
+        sudo apt-get update -qq
+        sudo apt-get install -y locales
+        sudo locale-gen en_US.UTF-8
+        success "Locale en_US.UTF-8 generated"
+    fi
+
+    # Set system-wide default
+    info "Setting system default locale..."
+    sudo update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+    success "System locale configured"
+}
+
+# Linux/WSL tweaks - locale and shell setup
 apply_linux_tweaks() {
+    setup_locale
+
     if ! command -v zsh &>/dev/null; then
         warn "zsh not installed, skipping shell change"
         return 0
