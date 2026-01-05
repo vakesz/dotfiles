@@ -8,12 +8,23 @@ Cross-platform dotfiles for macOS, Linux, and WSL. Managed with [GNU Stow](https
 ./install.sh
 ```
 
-Dry-run (preview without changes):
-```bash
-DOTFILES_STOW_SIMULATE=1 ./install.sh
-```
+**Prerequisites:** GNU Stow (`brew install stow` or `apt install stow`)
 
-**Prerequisites:** Install GNU Stow first (`brew install stow` or `apt install stow`).
+### OS Tweaks (Optional)
+
+The installer prompts to apply platform-specific settings:
+
+**macOS:**
+- Finder: show hidden files, extensions, path bar, list view, folders first
+- Keyboard: fast key repeat, disable auto-correct/substitution
+- Dock: smaller tiles, scale effect
+- Trackpad: tap to click
+- Screenshots: save to Desktop as PNG
+- Disable Tips notifications
+
+**Linux/WSL:**
+- Configure en_US.UTF-8 locale
+- Set zsh as default shell
 
 ## What's Included
 
@@ -35,6 +46,8 @@ See [KEYMAPS.md](KEYMAPS.md) for keybindings.
 ### Other
 - **tmux** configuration
 - **Git** config and global ignore
+- **fd** fast find alternative config
+- **ripgrep** fast grep alternative config
 - **topgrade** update tool config
 
 ## Structure
@@ -42,9 +55,11 @@ See [KEYMAPS.md](KEYMAPS.md) for keybindings.
 ```
 dotfiles/
 ├── .config/
+│   ├── fd/               # fd (find alternative) config
 │   ├── git/              # Global gitignore
 │   ├── nvim/             # Neovim config
 │   ├── oh-my-posh/       # Prompt theme
+│   ├── ripgrep/          # ripgrep config
 │   ├── tmux/             # tmux config
 │   ├── topgrade.toml     # Update tool
 │   └── zsh/              # Zsh config

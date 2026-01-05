@@ -66,6 +66,9 @@ apply_macos_tweaks() {
     defaults write com.apple.screencapture location -string "${HOME}/Desktop"
     defaults write com.apple.screencapture type -string "png"
 
+    # Tips
+    defaults write com.apple.tips TipsEnabled -bool false
+
     # Restart affected services
     killall Finder 2>/dev/null || true
     killall Dock 2>/dev/null || true
@@ -73,8 +76,9 @@ apply_macos_tweaks() {
     success "macOS defaults applied"
 }
 
-# Setup locale for Linux/WSL
-setup_locale() {
+# Linux/WSL tweaks - locale and shell setup
+apply_linux_tweaks() {
+    # Setup locale
     if locale -a 2>/dev/null | grep -qE '^en_US\.UTF-8$|^en_US\.utf8$'; then
         info "Locale en_US.UTF-8 already available"
     else
@@ -84,37 +88,14 @@ setup_locale() {
         sudo locale-gen en_US.UTF-8
         success "Locale en_US.UTF-8 generated"
     fi
-
-    # Set system-wide default
-    info "Setting system default locale..."
     sudo update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
-    success "System locale configured"
-}
 
-# Linux/WSL tweaks - locale and shell setup
-apply_linux_tweaks() {
-    setup_locale
-
-    if ! command -v zsh &>/dev/null; then
-        warn "zsh not installed, skipping shell change"
-        return 0
-    fi
-
-    local current_shell
-    current_shell=$(basename "$SHELL")
-
-    if [[ "$current_shell" == "zsh" ]]; then
-        info "Shell is already zsh"
-        return 0
-    fi
+    # Set zsh as default shell
+    command -v zsh &>/dev/null || { warn "zsh not installed"; return 0; }
+    [[ "$(basename "$SHELL")" == "zsh" ]] && { info "Shell is already zsh"; return 0; }
 
     info "Changing default shell to zsh..."
-
-    # Ensure zsh is in /etc/shells
-    if ! grep -q "$(which zsh)" /etc/shells 2>/dev/null; then
-        info "Adding zsh to /etc/shells..."
-        which zsh | sudo tee -a /etc/shells > /dev/null
-    fi
+    grep -q "$(which zsh)" /etc/shells 2>/dev/null || which zsh | sudo tee -a /etc/shells > /dev/null
 
     if chsh -s "$(which zsh)"; then
         success "Default shell changed to zsh (log out and back in to apply)"
@@ -126,43 +107,16 @@ apply_linux_tweaks() {
 
 # GNU Stow symlinks
 apply_stow() {
-    if ! command -v stow &>/dev/null; then
-        error "GNU Stow not installed. Install it first:"
-        echo "  macOS: brew install stow"
-        echo "  Linux: sudo apt install stow"
-        return 1
-    fi
-
+    command -v stow &>/dev/null || { error "GNU Stow not installed"; return 1; }
     info "Applying dotfiles via GNU Stow..."
-
-    pushd "$DOTFILES_DIR" >/dev/null
-
-    local -a stow_args=("-v" "--restow" "--target=$HOME")
-
-    # Dry-run mode
-    if [[ "${DOTFILES_STOW_SIMULATE:-}" == "1" ]]; then
-        stow_args=("-n" "${stow_args[@]}")
-        info "Running in dry-run mode"
-    fi
-
-    if stow "${stow_args[@]}" .; then
-        success "Stow completed"
-    else
-        error "Stow encountered issues"
-    fi
-
-    popd >/dev/null
+    stow -v --restow -d "$DOTFILES_DIR" -t "$HOME" . && success "Stow completed"
 }
 
 main() {
     info "Dotfiles installer"
-    echo ""
-
     detect_platform
 
-    # Offer platform tweaks
-    echo ""
-    read -rn1 -p "Apply OS tweaks? (y/N) " apply_tweaks
+    read -rn1 -p $'\nApply OS tweaks? (y/N) ' apply_tweaks
     echo ""
     if [[ "$apply_tweaks" =~ ^[Yy]$ ]]; then
         case "$PLATFORM" in
@@ -172,11 +126,7 @@ main() {
         esac
     fi
 
-    # Apply stow
-    echo ""
     apply_stow
-
-    echo ""
     success "Done!"
 }
 
