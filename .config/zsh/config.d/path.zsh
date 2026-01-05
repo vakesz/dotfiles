@@ -1,4 +1,4 @@
-# shellcheck shell=sh
+# shellcheck shell=bash disable=SC2168
 # ============================================================================
 # PATH Configuration
 # ============================================================================
@@ -31,8 +31,6 @@ add_keg_only() {
 # Platform-Specific PATH Setup
 # ----------------------------------------------------------------------------
 
-# shellcheck shell=sh
-
 if [[ "$OS_TYPE" == "macos" ]]; then
   # macOS Homebrew initialization (cached for speed)
   local brew_path
@@ -54,7 +52,7 @@ if [[ "$OS_TYPE" == "macos" ]]; then
   # macOS Homebrew keg-only packages
   add_keg_only "curl"
 
-  # Python 3.13 (explicit version to avoid 3.14 compatibility issues)
+  # NOTE: Update python version when upgrading (brew list | grep python)
   add_keg_only "python@3.13"
 
   add_keg_only "llvm"

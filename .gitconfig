@@ -1,77 +1,71 @@
 [user]
-	name     = Gabor Pinkova
-	email    = vakesz@users.noreply.github.com
+	name = Gabor Pinkova
+	email = vakesz@users.noreply.github.com
 	username = vakesz
 
 [core]
-	editor     = nvim
+	editor = nvim
 	whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
-	repositoryformatversion = 0
-	bare       = false
 	excludesfile = ~/.config/git/ignore
-	pager      = delta
 
 [pull]
 	rebase = true
 
 [push]
-    default = current
-    autoSetupRemote = true
+	default = current
+	autoSetupRemote = true
 
 [branch]
-    autosetupmerge = simple
+	autosetupmerge = simple
 
 [alias]
-    # Sync current branch from upstream to your fork (origin)
-    sync-fork = "!sh -c '\
-        branch=$(git symbolic-ref --short HEAD) && \
-        git fetch upstream && \
-        git merge --ff-only upstream/$branch && \
-        git push origin $branch \
-        '"
-    # Optional shorthand
-    sf = sync-fork
+	# Sync current branch from upstream to your fork (origin)
+	sync-fork = "!sh -c '\
+		branch=$(git symbolic-ref --short HEAD) && \
+		git fetch upstream && \
+		git merge --ff-only upstream/$branch && \
+		git push origin $branch \
+		'"
+	sf = sync-fork
 	lol = log --graph --oneline --decorate --all
 
 [diff]
-	tool = vimdiff
+	external = difft
+	tool = difftastic
 	colorMoved = default
 
 [difftool]
 	prompt = false
 
-[interactive]
-	diffFilter = delta --color-only
+[difftool "difftastic"]
+	cmd = difft "$LOCAL" "$REMOTE"
 
-[delta]
-	navigate = true    # use n and N to move between diff sections
-	light = false      # set to true if you're in a terminal w/ a light background color
-	side-by-side = true
-	line-numbers = true
-	syntax-theme = GitHub
+[pager]
+	difftool = true
 
 [merge]
+	tool = kdiff3
 	conflictstyle = diff3
 
+[mergetool]
+	keepBackup = false
+
+[mergetool "kdiff3"]
+	trustExitCode = true
+
 [credential]
-	helper = store
+	# Git Credential Manager (cross-platform): brew install git-credential-manager
+	helper = git-credential-manager
 
 [color]
 	ui = auto
 
 [color "branch"]
 	current = yellow bold
-	local   = green  bold
-	remote  = cyan   bold
-
-[color "diff"]
-	meta       = yellow bold
-	frag       = magenta bold
-	old        = red     bold
-	new        = green   bold
-	whitespace = red     reverse
+	local = green bold
+	remote = cyan bold
 
 [color "status"]
-	added     = green  bold
-	changed   = yellow bold
-	untracked = red    bold
+	added = green bold
+	changed = yellow bold
+	untracked = red bold

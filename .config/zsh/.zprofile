@@ -20,12 +20,12 @@ export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 # ----------------------------------------------------------------------------
 
 # Ensure XDG directories exist
-mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME"
+mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME" 2>/dev/null
 
 # Create subdirectories for specific tools
-mkdir -p "${XDG_STATE_HOME}/zsh"       # zsh history
-mkdir -p "${XDG_CACHE_HOME}/zsh"       # zsh cache
-mkdir -p "${XDG_DATA_HOME}/zinit"      # zinit plugins
+mkdir -p "${XDG_STATE_HOME}/zsh" 2>/dev/null       # zsh history
+mkdir -p "${XDG_CACHE_HOME}/zsh" 2>/dev/null       # zsh cache
+mkdir -p "${XDG_DATA_HOME}/zinit" 2>/dev/null      # zinit plugins
 
 # ----------------------------------------------------------------------------
 # macOS-Specific Login Shell Configuration
