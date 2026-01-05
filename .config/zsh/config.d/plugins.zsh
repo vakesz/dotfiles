@@ -35,25 +35,6 @@ zinit light-mode lucid for \
 zinit wait'0a' lucid for \
     zsh-users/zsh-syntax-highlighting
 
-# Completions - defer
-zinit wait'0b' lucid blockf for \
-    zsh-users/zsh-completions
-
-# FZF Tab - defer after completions
-zinit wait'0c' lucid for \
-    Aloxaf/fzf-tab
-
-# ----------------------------------------------------------------------------
-# Oh-My-Zsh Snippets (deferred)
-# ----------------------------------------------------------------------------
-
-zinit wait'1' lucid for \
-    OMZP::git \
-    OMZP::sudo
-
-zinit wait'2' lucid for \
-    OMZP::command-not-found
-
 # ----------------------------------------------------------------------------
 # Tool Integrations (cached)
 # ----------------------------------------------------------------------------

@@ -98,7 +98,6 @@ export BAT_STYLE="numbers,changes,header"
 export HISTSIZE=10000
 export SAVEHIST=$HISTSIZE
 export HISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history"
-export HISTDUP=erase
 
 # ----------------------------------------------------------------------------
 # Compilation Flags

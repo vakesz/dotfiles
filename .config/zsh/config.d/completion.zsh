@@ -24,12 +24,6 @@ if ! (( ${+_comps} )); then
   fi
 fi
 
-# Replay Zinit completions after compinit is loaded
-# This must come after compinit to avoid errors
-if (( ${+functions[zinit]} )); then
-  zinit cdreplay -q
-fi
-
 # ----------------------------------------------------------------------------
 # Zsh Options
 # ----------------------------------------------------------------------------
@@ -73,17 +67,6 @@ zstyle ':completion:*:*:*:*:*' menu select
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#) ([0-9a-z-]#)*=01;34=0=01'
 zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm -w -w"
 
-# Don't complete uninteresting users
-zstyle ':completion:*:*:*:users' ignored-patterns \
-  adm amanda apache at avahi avahi-autoipd beaglidx bin cacti canna \
-  clamav daemon dbus distcache dnsmasq dovecot fax ftp games gdm \
-  gkrellmd gopher hacluster haldaemon halt hsqldb ident junkbust kdm \
-  ldap lp mail mailman mailnull man messagebus mldonkey mysql nagios \
-  named netdump news nfsnobody nobody nscd ntp nut nx obsrun openvpn \
-  operator pcap polkitd postfix postgres privoxy pulse pvm quagga radvd \
-  rpc rpcuser rpm rtkit scard shutdown squid sshd statd svn sync tftp \
-  usbmux uucp vcsa wwwrun xfs '_*'
-
 # Ignore completion for commands we don't have
 zstyle ':completion:*:functions' ignored-patterns '_*'
 
@@ -124,23 +107,6 @@ setopt HIST_IGNORE_ALL_DUPS   # Remove older duplicate entries from history
 setopt HIST_REDUCE_BLANKS     # Remove superfluous blanks from history items
 setopt HIST_IGNORE_SPACE      # Don't record commands starting with space
 setopt SHARE_HISTORY          # Share history between all sessions
-setopt APPEND_HISTORY         # Append to history file
 setopt INC_APPEND_HISTORY     # Write to history file immediately
 setopt HIST_FIND_NO_DUPS      # Don't show duplicates when searching
 setopt HIST_SAVE_NO_DUPS      # Don't write duplicates to history file
-
-# ----------------------------------------------------------------------------
-# FZF-Tab Configuration
-# ----------------------------------------------------------------------------
-
-# Disable sort when completing `git checkout`
-zstyle ':completion:*:git-checkout:*' sort false
-
-# Set descriptions format to enable group support
-zstyle ':completion:*:descriptions' format '[%d]'
-
-# Preview directory's content with ls when completing cd
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -1 --color=always $realpath'
-
-# Switch group using `,` and `.`
-zstyle ':fzf-tab:*' switch-group ',' '.'

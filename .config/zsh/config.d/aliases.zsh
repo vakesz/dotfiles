@@ -88,14 +88,18 @@ __auto_venv
 # Navigation
 # ----------------------------------------------------------------------------
 
-alias ..='cd ..'
-alias ...='cd ../..'
-
-# Colorized ls aliases
-alias ls='ls --color=auto'
-alias ll='ls -la --color=auto'
-alias la='ls -A --color=auto'
-alias l='ls -CF --color=auto'
+# Colorized ls aliases (macOS uses -G, Linux uses --color=auto)
+if [[ "$OS_TYPE" == "macos" ]]; then
+  alias ls='ls -G'
+  alias ll='ls -laG'
+  alias la='ls -AG'
+  alias l='ls -CFG'
+else
+  alias ls='ls --color=auto'
+  alias ll='ls -la --color=auto'
+  alias la='ls -A --color=auto'
+  alias l='ls -CF --color=auto'
+fi
 
 alias home='cd ~'
 alias dots='cd ~/dotfiles'
