@@ -102,7 +102,9 @@ else
 fi
 
 alias home='cd ~'
-alias dots='cd ~/dotfiles'
+alias dots='cd ~/.dotfiles'
+alias p='cd ~/projects'
+alias proj='cd ~/projects'
 
 # ----------------------------------------------------------------------------
 # macOS-Specific
