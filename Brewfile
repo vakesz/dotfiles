@@ -75,7 +75,6 @@ brew "curl"
 brew "wget"
 brew "httpie"
 brew "nmap"
-brew "iperf3"
 
 # Utilities
 brew "jq"
@@ -97,7 +96,6 @@ cask "iterm2"
 cask "docker"
 cask "devcleaner"
 cask "claude-code"
-# copilot-cli removed - install via: npm install -g @githubnext/github-copilot-cli
 cask "libreoffice"
 cask "coteditor"
 cask "ungoogled-chromium"
