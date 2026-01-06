@@ -41,8 +41,8 @@ zinit wait'0a' lucid for \
 
 # Zoxide - cached initialization
 if have zoxide; then
-  local zoxide_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zoxide-init.zsh"
-  local zoxide_bin
+  zoxide_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zoxide-init.zsh"
+  zoxide_bin=""
   zoxide_bin=$(command -v zoxide)
   if [[ ! -f "$zoxide_cache" || "$zoxide_bin" -nt "$zoxide_cache" ]]; then
     mkdir -p "${zoxide_cache:h}"
@@ -53,8 +53,8 @@ fi
 
 # FZF - cached initialization
 if have fzf; then
-  local fzf_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/fzf-init.zsh"
-  local fzf_bin
+  fzf_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/fzf-init.zsh"
+  fzf_bin=""
   fzf_bin=$(command -v fzf)
   if [[ ! -f "$fzf_cache" || "$fzf_bin" -nt "$fzf_cache" ]]; then
     mkdir -p "${fzf_cache:h}"

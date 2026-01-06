@@ -38,9 +38,9 @@ source_if_exists "$CONFIG_DIR/aliases.zsh"
 
 # Initialize Oh My Posh with zen theme (cached for speed)
 if have oh-my-posh; then
-  local omp_config="${XDG_CONFIG_HOME:-$HOME/.config}/oh-my-posh/zen.toml"
-  local omp_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/oh-my-posh-init.zsh"
-  local omp_bin
+  omp_config="${XDG_CONFIG_HOME:-$HOME/.config}/oh-my-posh/zen.toml"
+  omp_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/oh-my-posh-init.zsh"
+  omp_bin=""
   omp_bin=$(command -v oh-my-posh)
 
   if [[ ! -f "$omp_cache" ]] || \

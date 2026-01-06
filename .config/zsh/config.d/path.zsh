@@ -33,7 +33,7 @@ add_keg_only() {
 
 if [[ "$OS_TYPE" == "macos" ]]; then
   # macOS Homebrew initialization (cached for speed)
-  local brew_path
+  brew_path=""
   if [[ -f "/opt/homebrew/bin/brew" ]]; then
     brew_path="/opt/homebrew/bin/brew"
   elif [[ -f "/usr/local/bin/brew" ]]; then
@@ -41,7 +41,7 @@ if [[ "$OS_TYPE" == "macos" ]]; then
   fi
 
   if [[ -n "$brew_path" ]]; then
-    local brew_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/brew_shellenv.zsh"
+    brew_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/brew_shellenv.zsh"
     if [[ ! -f "$brew_cache" || "$brew_cache" -ot "$brew_path" ]]; then
       mkdir -p "${brew_cache:h}"
       "$brew_path" shellenv > "$brew_cache" 2>/dev/null
@@ -69,10 +69,20 @@ elif [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
     export PATH="/snap/bin:$PATH"
   fi
 
-  # NVM (Node Version Manager) - Linux/WSL only
+  # NVM (Node Version Manager) - Linux/WSL only, lazy-loaded for faster startup
   export NVM_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/nvm"
-  [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
-  [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
+  if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+    # Lazy-load NVM: define stub functions that load NVM on first use
+    _nvm_load() {
+      unfunction nvm node npm npx 2>/dev/null
+      source "$NVM_DIR/nvm.sh"
+      [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
+    }
+    nvm() { _nvm_load && nvm "$@"; }
+    node() { _nvm_load && node "$@"; }
+    npm() { _nvm_load && npm "$@"; }
+    npx() { _nvm_load && npx "$@"; }
+  fi
 fi
 
 # ----------------------------------------------------------------------------

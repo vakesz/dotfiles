@@ -76,19 +76,87 @@ apply_macos_tweaks() {
     success "macOS defaults applied"
 }
 
+set_locale_systemd() {
+    if command -v localectl >/dev/null 2>&1; then
+        sudo localectl set-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+    else
+        warn "localectl not found; writing /etc/locale.conf directly"
+        {
+            echo "LANG=en_US.UTF-8"
+            echo "LC_ALL=en_US.UTF-8"
+        } | sudo tee /etc/locale.conf >/dev/null
+    fi
+}
+
 # Linux/WSL tweaks - locale and shell setup
 apply_linux_tweaks() {
+    local distro_id=""
+    local distro_like=""
+    local is_debian_like=""
+    local is_fedora_like=""
+    local is_arch_like=""
+
+    if [[ -r /etc/os-release ]]; then
+        # shellcheck disable=SC1091
+        . /etc/os-release
+        distro_id="${ID:-}"
+        distro_like="${ID_LIKE:-}"
+    fi
+
+    if [[ "$distro_id" == "debian" || "$distro_id" == "ubuntu" || "$distro_like" == *"debian"* ]]; then
+        is_debian_like=1
+    elif [[ "$distro_id" == "fedora" || "$distro_like" == *"rhel"* || "$distro_like" == *"fedora"* ]]; then
+        is_fedora_like=1
+    elif [[ "$distro_id" == "arch" || "$distro_like" == *"arch"* ]]; then
+        is_arch_like=1
+    fi
+
     # Setup locale
-    if locale -a 2>/dev/null | grep -qE '^en_US\.UTF-8$|^en_US\.utf8$'; then
+    if locale -a 2>/dev/null | grep -qiE '^en_US\.utf-?8$'; then
         info "Locale en_US.UTF-8 already available"
     else
         info "Installing en_US.UTF-8 locale..."
-        sudo apt-get update -qq
-        sudo apt-get install -y locales
-        sudo locale-gen en_US.UTF-8
-        success "Locale en_US.UTF-8 generated"
+        if [[ -n "$is_debian_like" ]]; then
+            if command -v apt-get >/dev/null 2>&1; then
+                sudo apt-get update -qq
+                sudo apt-get install -y locales
+                sudo locale-gen en_US.UTF-8
+                success "Locale en_US.UTF-8 generated"
+            else
+                warn "apt-get not found; skipping locale install"
+            fi
+        elif [[ -n "$is_fedora_like" ]]; then
+            if command -v dnf >/dev/null 2>&1; then
+                sudo dnf install -y glibc-langpack-en
+                success "Locale en_US.UTF-8 installed"
+            elif command -v yum >/dev/null 2>&1; then
+                sudo yum install -y glibc-langpack-en
+                success "Locale en_US.UTF-8 installed"
+            else
+                warn "dnf/yum not found; skipping locale install"
+            fi
+        elif [[ -n "$is_arch_like" ]]; then
+            if [[ -f /etc/locale.gen ]]; then
+                sudo sed -i 's/^# *\(en_US.UTF-8 UTF-8\)/\1/' /etc/locale.gen
+                sudo locale-gen
+                success "Locale en_US.UTF-8 generated"
+            else
+                warn "/etc/locale.gen not found; skipping locale generation"
+            fi
+        else
+            warn "Unsupported Linux distro for locale setup; skipping"
+        fi
     fi
-    sudo update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+
+    if [[ -n "$is_debian_like" ]]; then
+        if command -v update-locale >/dev/null 2>&1; then
+            sudo update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+        else
+            set_locale_systemd
+        fi
+    elif [[ -n "$is_fedora_like" || -n "$is_arch_like" ]]; then
+        set_locale_systemd
+    fi
 
     # Set zsh as default shell
     command -v zsh &>/dev/null || { warn "zsh not installed"; return 0; }
@@ -116,8 +184,13 @@ main() {
     info "Dotfiles installer"
     detect_platform
 
-    read -rn1 -p $'\nApply OS tweaks? (y/N) ' apply_tweaks
-    echo ""
+    local apply_tweaks="n"
+    if [[ -t 0 ]]; then
+        read -rn1 -p $'\nApply OS tweaks? (y/N) ' apply_tweaks || true
+        echo ""
+    else
+        info "Non-interactive shell; skipping OS tweaks"
+    fi
     if [[ "$apply_tweaks" =~ ^[Yy]$ ]]; then
         case "$PLATFORM" in
             macos) apply_macos_tweaks ;;

@@ -8,7 +8,7 @@ Cross-platform dotfiles for macOS, Linux, and WSL. Managed with [GNU Stow](https
 ./install.sh
 ```
 
-**Prerequisites:** GNU Stow (`brew install stow` or `apt install stow`)
+**Prerequisites:** GNU Stow (`brew install stow` or `apt install stow`), Neovim 0.10+ for the nvim config
 
 ### OS Tweaks (Optional)
 
@@ -23,7 +23,7 @@ The installer prompts to apply platform-specific settings:
 - Disable Tips notifications
 
 **Linux/WSL:**
-- Configure en_US.UTF-8 locale
+- Configure en_US.UTF-8 locale (Debian/Ubuntu, Fedora/RHEL, Arch)
 - Set zsh as default shell
 
 ## What's Included
