@@ -90,41 +90,37 @@ fi
 # ----------------------------------------------------------------------------
 
 # Go
-export GOPATH="${XDG_DATA_HOME:-$HOME/.local/share}/go"
 export GOBIN="${GOBIN:-$GOPATH/bin}"
 export PATH="$GOBIN:$PATH"
 
-# Rust/Cargo
-export CARGO_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/cargo"
+# Rust/Cargo (using XDG from env.zsh)
 export PATH="$CARGO_HOME/bin:$PATH"
 
 # Rustup (Linux only - macOS uses brew rust)
 if [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
-  export RUSTUP_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/rustup"
+  export RUSTUP_HOME="${XDG_DATA_HOME}/rustup"
 fi
 
-# Node.js - npm config (XDG-compliant, without NPM_CONFIG_PREFIX)
-export NPM_CONFIG_USERCONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/npm/npmrc"
-export NPM_CONFIG_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/npm"
+# Node.js - npm config (XDG-compliant, already set in env.zsh)
+export NPM_CONFIG_CACHE="${XDG_CACHE_HOME}/npm"
 
 # Node.js - pnpm (XDG-compliant)
-export PNPM_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/pnpm"
+export PNPM_HOME="${XDG_DATA_HOME}/pnpm"
 export PATH="$PNPM_HOME:$PATH"
 
 # Python pipx
-export PIPX_HOME="${PIPX_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/pipx}"
+export PIPX_HOME="${PIPX_HOME:-${XDG_DATA_HOME}/pipx}"
 export PIPX_BIN_DIR="${PIPX_BIN_DIR:-$PIPX_HOME/bin}"
 export PATH="$PIPX_BIN_DIR:$PATH"
 
 # Deno (Linux only - macOS uses brew deno)
 if [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
-  export DENO_INSTALL="${XDG_DATA_HOME:-$HOME/.local/share}/deno"
-  export PATH="$DENO_INSTALL/bin:$PATH"
+  export PATH="$DENO_INSTALL_ROOT/bin:$PATH"
 fi
 
-# Swift Package Manager (XDG compliant)
-export SWIFTPM_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/swiftpm"
-export PATH="$SWIFTPM_HOME/bin:$PATH"
+# Bun (XDG-compliant)
+export PATH="$BUN_INSTALL/bin:$PATH"
 
-# tldr / tealdeer (XDG compliant)
-export TEALDEER_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/tealdeer"
+# Swift Package Manager (XDG compliant)
+export SWIFTPM_HOME="${XDG_DATA_HOME}/swiftpm"
+export PATH="$SWIFTPM_HOME/bin:$PATH"

@@ -1,0 +1,23 @@
+# Tealdeer (tldr) configuration
+# https://github.com/dbrgn/tealdeer
+
+[directories]
+# Cache directory for tldr pages
+cache_dir = ""
+
+[display]
+# Compact mode (less whitespace)
+compact = false
+
+# Use color output
+use_pager = false
+
+[style]
+# Syntax highlighting
+# Available: "base16", "github", "monokai"
+syntax = "github"
+
+[updates]
+# Automatically update the cache
+auto_update = true
+auto_update_interval_hours = 720  # 30 days

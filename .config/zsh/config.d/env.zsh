@@ -35,19 +35,47 @@ export GPG_TTY=$(tty 2>/dev/null || echo "not a tty")
 
 # Less: Better default options
 export LESS='-R -i -M -W -x4 -F -X'
-export LESSHISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/less/history"
+export LESSHISTFILE="${XDG_STATE_HOME}/less/history"
 
 # Ripgrep config
-export RIPGREP_CONFIG_PATH="${XDG_CONFIG_HOME:-$HOME/.config}/ripgrep/config"
+export RIPGREP_CONFIG_PATH="${XDG_CONFIG_HOME}/ripgrep/config"
 
 # Wget config (use XDG location for wgetrc)
-export WGETRC="${XDG_CONFIG_HOME:-$HOME/.config}/wget/wgetrc"
+export WGETRC="${XDG_CONFIG_HOME}/wget/wgetrc"
+
+# Curl config
+export CURL_HOME="${XDG_CONFIG_HOME}/curl"
 
 # Python: Use XDG for pycache (Python 3.8+)
-export PYTHONPYCACHEPREFIX="${XDG_CACHE_HOME:-$HOME/.cache}/python"
+export PYTHONPYCACHEPREFIX="${XDG_CACHE_HOME}/python"
 
 # Elixir Mix: Enable XDG support
 export MIX_XDG=1
+
+# ----------------------------------------------------------------------------
+# Programming Language Environments (XDG-Compliant)
+# ----------------------------------------------------------------------------
+
+# Go
+export GOPATH="${XDG_DATA_HOME}/go"
+export GOMODCACHE="${XDG_CACHE_HOME}/go/mod"
+
+# Rust
+export RUSTUP_HOME="${XDG_DATA_HOME}/rustup"
+export CARGO_HOME="${XDG_DATA_HOME}/cargo"
+
+# Ruby
+export GEM_HOME="${XDG_DATA_HOME}/gem"
+export GEM_SPEC_CACHE="${XDG_CACHE_HOME}/gem"
+
+# Node.js / Deno / Bun
+export NODE_REPL_HISTORY="${XDG_STATE_HOME}/node_repl_history"
+export NPM_CONFIG_USERCONFIG="${XDG_CONFIG_HOME}/npm/npmrc"
+export DENO_INSTALL_ROOT="${XDG_DATA_HOME}/deno"
+export BUN_INSTALL="${XDG_DATA_HOME}/bun"
+
+# Docker
+export DOCKER_CONFIG="${XDG_CONFIG_HOME}/docker"
 
 # ----------------------------------------------------------------------------
 # Application-Specific XDG Compliance
@@ -55,19 +83,25 @@ export MIX_XDG=1
 # These prevent individual apps from polluting HOME
 
 # Node.js version managers
-export N_PREFIX="${XDG_DATA_HOME:-$HOME/.local/share}/node"
+export N_PREFIX="${XDG_DATA_HOME}/node"
 # NVM_DIR is set in path.zsh where nvm is initialized
 
 # Ruby bundler
-export BUNDLE_USER_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/bundle"
-export BUNDLE_USER_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/bundle"
-export BUNDLE_USER_PLUGIN="${XDG_DATA_HOME:-$HOME/.local/share}/bundle"
+export BUNDLE_USER_CONFIG="${XDG_CONFIG_HOME}/bundle"
+export BUNDLE_USER_CACHE="${XDG_CACHE_HOME}/bundle"
+export BUNDLE_USER_PLUGIN="${XDG_DATA_HOME}/bundle"
 
 # GnuPG
-export GNUPGHOME="${XDG_DATA_HOME:-$HOME/.local/share}/gnupg"
+export GNUPGHOME="${XDG_DATA_HOME}/gnupg"
+
+# Git Credential Manager (cross-platform)
+export GCM_CREDENTIAL_CACHE_DIR="${XDG_CACHE_HOME}/git-credential-manager"
+
+# Tealdeer (tldr)
+export TEALDEER_CONFIG_DIR="${XDG_CONFIG_HOME}/tealdeer"
 
 # Local and user binary location (XDG-compliant)
-export XDG_BIN_HOME="${XDG_BIN_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/bin}"
+export XDG_BIN_HOME="${XDG_BIN_HOME:-${XDG_DATA_HOME}/bin}"
 export PATH="$XDG_BIN_HOME:$PATH"
 
 # Ensure XDG_BIN_HOME exists for interactive shells
@@ -97,7 +131,7 @@ export BAT_STYLE="numbers,changes,header"
 # ----------------------------------------------------------------------------
 export HISTSIZE=10000
 export SAVEHIST=$HISTSIZE
-export HISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history"
+export HISTFILE="${XDG_STATE_HOME}/zsh/history"
 
 # ----------------------------------------------------------------------------
 # Compilation Flags
