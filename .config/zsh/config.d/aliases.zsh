@@ -105,15 +105,3 @@ alias home='cd ~'
 alias dots='cd ~/.dotfiles'
 alias p='cd ~/projects'
 alias proj='cd ~/projects'
-
-# ----------------------------------------------------------------------------
-# macOS-Specific
-# ----------------------------------------------------------------------------
-
-if [[ "$OS_TYPE" == "macos" ]]; then
-  alias showfiles='defaults write com.apple.finder AppleShowAllFiles YES; killall Finder'
-  alias hidefiles='defaults write com.apple.finder AppleShowAllFiles NO; killall Finder'
-  alias flushdns='sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder'
-  alias emptytrash='sudo rm -rf ~/.Trash/*'
-  alias lock='/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend'
-fi

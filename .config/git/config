@@ -6,7 +6,7 @@
 [core]
 	editor = nvim
 	whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
-	excludesfile = ~/.config/git/ignore
+	excludesfile = $XDG_CONFIG_HOME/git/ignore
 
 [pull]
 	rebase = true

@@ -74,9 +74,6 @@ export NPM_CONFIG_USERCONFIG="${XDG_CONFIG_HOME}/npm/npmrc"
 export DENO_INSTALL_ROOT="${XDG_DATA_HOME}/deno"
 export BUN_INSTALL="${XDG_DATA_HOME}/bun"
 
-# Docker
-export DOCKER_CONFIG="${XDG_CONFIG_HOME}/docker"
-
 # ----------------------------------------------------------------------------
 # Application-Specific XDG Compliance
 # ----------------------------------------------------------------------------
