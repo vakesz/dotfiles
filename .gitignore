@@ -80,3 +80,7 @@ __pycache__/
 .local/lib/
 
 CLAUDE.md
+.config/linearmouse/linearmouse.json
+.config/cagent/.cagent_first_run
+.config/github-copilot/versions.json
+.config/iterm2/AppSupport

@@ -31,6 +31,7 @@ brew "difftastic"
 cask "kdiff3"
 
 # Languages
+brew "node"
 brew "python@3.13"
 brew "pipx"
 brew "go"
@@ -93,21 +94,35 @@ brew "gnupg"
 
 # Apps
 cask "iterm2"
-cask "docker"
+cask "docker-desktop"
 cask "devcleaner"
 cask "claude-code"
-cask "libreoffice"
 cask "coteditor"
 cask "ungoogled-chromium"
 cask "whatsapp"
 cask "alt-tab"
-cask "bitwarden"
 cask "hiddenbar"
 cask "meetingbar"
 cask "font-fira-code-nerd-font"
+cask "linearmouse"
+cask "discord"
+cask "steam"
+
+# Development
+cask "visual-studio-code"
+cask "lm-studio"
+
+# Microsoft Office
+cask "microsoft-word"
+cask "microsoft-excel"
+cask "microsoft-powerpoint"
+cask "microsoft-outlook"
+cask "microsoft-teams"
+cask "intune-company-portal"
 
 # Mac App Store
 mas "Xcode", id: 497799835
 mas "TestFlight", id: 899247664
 mas "uBlock Origin Lite", id: 6745342698
 mas "Userscripts", id: 1463298887
+mas "Bitwarden", id: 1352778147
