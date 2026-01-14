@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Dotfiles installer - symlinks configs via GNU Stow with optional OS tweaks.
+# Dotfiles installer - symlinks configs with optional OS tweaks.
 #
 
 set -euo pipefail
@@ -173,11 +173,44 @@ apply_linux_tweaks() {
     fi
 }
 
-# GNU Stow symlinks
-apply_stow() {
-    command -v stow &>/dev/null || { error "GNU Stow not installed"; return 1; }
-    info "Applying dotfiles via GNU Stow..."
-    stow -v --restow -d "$DOTFILES_DIR" -t "$HOME" . && success "Stow completed"
+# Ensure ~/.config exists as a real directory (not a symlink)
+ensure_config_dir() {
+    if [[ -L "$HOME/.config" ]]; then
+        warn "~/.config is a symlink - removing it"
+        rm "$HOME/.config"
+    fi
+    if [[ ! -d "$HOME/.config" ]]; then
+        info "Creating ~/.config directory"
+        mkdir -p "$HOME/.config"
+    fi
+}
+
+# Symlink dotfiles
+apply_symlinks() {
+    ensure_config_dir
+
+    info "Creating symlinks..."
+
+    # Symlink each config directory/file
+    for item in "$DOTFILES_DIR/config"/*; do
+        local name
+        name=$(basename "$item")
+        local target="$HOME/.config/$name"
+
+        if [[ -e "$target" && ! -L "$target" ]]; then
+            warn "Skipping $name: $target exists and is not a symlink"
+            continue
+        fi
+
+        ln -sfn "$item" "$target"
+        info "  Linked: ~/.config/$name"
+    done
+
+    # Root-level dotfiles
+    ln -sf "$DOTFILES_DIR/.zshenv" "$HOME/.zshenv"
+    info "  Linked: ~/.zshenv"
+
+    success "Symlinks created"
 }
 
 main() {
@@ -199,7 +232,7 @@ main() {
         esac
     fi
 
-    apply_stow
+    apply_symlinks
     success "Done!"
 }
 
