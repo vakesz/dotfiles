@@ -57,23 +57,54 @@ apply_macos_tweaks() {
     defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
 
     # Dock
-    defaults write com.apple.dock tilesize -int 36
+    defaults write com.apple.dock tilesize -int 32
     defaults write com.apple.dock mineffect -string "scale"
     defaults write com.apple.dock minimize-to-application -bool true
     defaults write com.apple.dock show-process-indicators -bool true
+    defaults write com.apple.dock autohide -bool false
+    defaults write com.apple.dock show-recents -bool false
+
+    # Mission Control
+    defaults write com.apple.dock mru-spaces -bool false
+    defaults write com.apple.dock expose-group-apps -bool true
+    defaults write NSGlobalDomain AppleSpacesSwitchOnActivate -bool true
+
+    # Hot corners: all disabled (0 = no action)
+    defaults write com.apple.dock wvous-tl-corner -int 0
+    defaults write com.apple.dock wvous-tl-modifier -int 0
+    defaults write com.apple.dock wvous-tr-corner -int 0
+    defaults write com.apple.dock wvous-tr-modifier -int 0
+    defaults write com.apple.dock wvous-bl-corner -int 0
+    defaults write com.apple.dock wvous-bl-modifier -int 0
+    defaults write com.apple.dock wvous-br-corner -int 0
+    defaults write com.apple.dock wvous-br-modifier -int 0
 
     # Screenshots
     defaults write com.apple.screencapture location -string "${HOME}/Desktop"
     defaults write com.apple.screencapture type -string "png"
 
-    # Tips
+    # Safari Developer
+    defaults write com.apple.Safari IncludeDevelopMenu -bool true
+    defaults write com.apple.Safari WebKitDeveloperExtrasEnabledPreferenceKey -bool true
+    defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2DeveloperExtrasEnabled -bool true
+    defaults write NSGlobalDomain WebKitDeveloperExtras -bool true
+
+    # Tips - completely disabled
     defaults write com.apple.tips TipsEnabled -bool false
+    defaults write com.apple.tips CloudKitSyncingEnabled -bool false
+    defaults write com.apple.tips NotificationsEnabled -bool false
 
     # Restart affected services
     killall Finder 2>/dev/null || true
     killall Dock 2>/dev/null || true
 
     success "macOS defaults applied"
+
+    # Xcode CLI tools
+    if ! xcode-select -p &>/dev/null; then
+        info "Installing Xcode Command Line Tools..."
+        xcode-select --install
+    fi
 }
 
 set_locale_systemd() {
@@ -176,7 +207,7 @@ apply_linux_tweaks() {
 # Ensure ~/.config exists as a real directory (not a symlink)
 ensure_config_dir() {
     if [[ -L "$HOME/.config" ]]; then
-        warn "~/.config is a symlink - removing it"
+        warn "$HOME/.config is a symlink - removing it"
         rm "$HOME/.config"
     fi
     if [[ ! -d "$HOME/.config" ]]; then
