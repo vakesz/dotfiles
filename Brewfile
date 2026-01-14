@@ -107,6 +107,7 @@ cask "font-fira-code-nerd-font"
 cask "linearmouse"
 cask "discord"
 cask "steam"
+cask "iina"
 
 # Development
 cask "visual-studio-code"
