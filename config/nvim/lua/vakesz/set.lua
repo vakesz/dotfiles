@@ -50,3 +50,7 @@ vim.opt.updatetime = 50
 
 -- Visually mark the 80‑character column to encourage shorter lines
 vim.opt.colorcolumn = "80"
+
+-- Spell checking for prose (enable per-buffer with :set spell)
+vim.opt.spelllang = "en_us"
+vim.opt.spelloptions = "camel"  -- Check camelCase words separately

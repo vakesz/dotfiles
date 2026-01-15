@@ -4,6 +4,7 @@
 tap "oven-sh/bun"
 
 # Shell & Terminal
+brew "oh-my-posh"
 brew "zsh"
 brew "zsh-autosuggestions"
 brew "zsh-completions"
@@ -19,7 +20,6 @@ brew "bat"
 brew "tree"
 brew "zoxide"
 brew "midnight-commander"
-brew "stow"
 brew "tealdeer"
 
 # Git

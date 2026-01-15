@@ -106,3 +106,19 @@ alias home='cd ~'
 alias dots='cd ~/.dotfiles'
 alias p='cd ~/projects'
 alias proj='cd ~/projects'
+
+# ----------------------------------------------------------------------------
+# Git Aliases
+# ----------------------------------------------------------------------------
+
+alias gs='git status'
+alias gd='git diff'
+alias gds='git diff --staged'
+alias gc='git commit'
+alias gca='git commit --amend'
+alias ga='git add'
+alias gaa='git add --all'
+alias gco='git checkout'
+alias gb='git branch'
+alias gp='git push'
+alias gpl='git pull'

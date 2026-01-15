@@ -83,10 +83,10 @@ apply_macos_tweaks() {
     defaults write com.apple.screencapture location -string "${HOME}/Desktop"
     defaults write com.apple.screencapture type -string "png"
 
-    # Safari Developer
-    defaults write com.apple.Safari IncludeDevelopMenu -bool true
-    defaults write com.apple.Safari WebKitDeveloperExtrasEnabledPreferenceKey -bool true
-    defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2DeveloperExtrasEnabled -bool true
+    # Safari Developer (may fail without Full Disk Access due to sandbox)
+    defaults write com.apple.Safari IncludeDevelopMenu -bool true 2>/dev/null || true
+    defaults write com.apple.Safari WebKitDeveloperExtrasEnabledPreferenceKey -bool true 2>/dev/null || true
+    defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2DeveloperExtrasEnabled -bool true 2>/dev/null || true
     defaults write NSGlobalDomain WebKitDeveloperExtras -bool true
 
     # Tips - completely disabled
