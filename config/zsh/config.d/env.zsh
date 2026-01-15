@@ -49,6 +49,12 @@ export CURL_HOME="${XDG_CONFIG_HOME}/curl"
 # Python: Use XDG for pycache (Python 3.8+)
 export PYTHONPYCACHEPREFIX="${XDG_CACHE_HOME}/python"
 
+# UV (Python package manager)
+export UV_CACHE_DIR="${XDG_CACHE_HOME}/uv"
+export UV_TOOL_DIR="${XDG_DATA_HOME}/uv/tools"
+export UV_TOOL_BIN_DIR="${XDG_DATA_HOME}/uv/bin"
+export UV_PYTHON_INSTALL_DIR="${XDG_DATA_HOME}/uv/python"
+
 # Elixir Mix: Enable XDG support
 export MIX_XDG=1
 

@@ -52,20 +52,12 @@ if [[ "$OS_TYPE" == "macos" ]]; then
   # macOS Homebrew keg-only packages
   add_keg_only "curl"
 
-  # NOTE: Update python version when upgrading (brew list | grep python)
-  # Use libexec/bin for unversioned python3/pip3 symlinks
-  # TODO: Consider migrating to uv for Python version management
-  add_keg_only "python@3.13" "libexec/bin"
-
   add_keg_only "llvm"
   add_keg_only "ruby"
   add_keg_only "make" "libexec/gnubin"
   add_keg_only "node"
 
 elif [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
-  # Python user packages
-  export PATH="${XDG_DATA_HOME:-$HOME/.local/share}/python/bin:$PATH"
-
   # Snap packages (Ubuntu/Debian)
   if [[ -d "/snap/bin" ]]; then
     export PATH="/snap/bin:$PATH"
@@ -110,10 +102,8 @@ export NPM_CONFIG_CACHE="${XDG_CACHE_HOME}/npm"
 export PNPM_HOME="${XDG_DATA_HOME}/pnpm"
 export PATH="$PNPM_HOME:$PATH"
 
-# Python pipx
-export PIPX_HOME="${PIPX_HOME:-${XDG_DATA_HOME}/pipx}"
-export PIPX_BIN_DIR="${PIPX_BIN_DIR:-$PIPX_HOME/bin}"
-export PATH="$PIPX_BIN_DIR:$PATH"
+# UV (Python package manager)
+export PATH="${UV_TOOL_BIN_DIR}:$PATH"
 
 # Deno (Linux only - macOS uses brew deno)
 if [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then

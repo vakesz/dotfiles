@@ -28,12 +28,13 @@ if have nvim; then
 fi
 
 # ----------------------------------------------------------------------------
-# Python
+# Python (UV-based)
 # ----------------------------------------------------------------------------
 
-alias py='python3'
+alias uv-tools='uv tool list'
+alias uv-python='uv python list'
 
-# Virtual environment helper with error handling
+# Virtual environment helper using UV
 venv() {
   local venv_dir="${1:-.venv}"
 
@@ -45,14 +46,14 @@ venv() {
       return 1
     fi
   else
-    if ! have python3; then
-      echo "Error: python3 not found" >&2
+    if ! have uv; then
+      echo "Error: uv not found" >&2
       return 1
     fi
-    echo "Creating virtualenv in $venv_dir..."
-    if python3 -m venv "$venv_dir"; then
+    echo "Creating virtualenv with uv in $venv_dir..."
+    if uv venv "$venv_dir"; then
       source "$venv_dir/bin/activate"
-      pip install --upgrade pip --quiet
+      # UV manages everything - no need to upgrade pip
     else
       echo "Error: Failed to create virtualenv" >&2
       return 1

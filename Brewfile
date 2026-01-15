@@ -32,8 +32,7 @@ cask "kdiff3"
 
 # Languages
 brew "node"
-brew "python@3.13"
-brew "pipx"
+brew "uv"
 brew "go"
 brew "zig"
 brew "ruby"
