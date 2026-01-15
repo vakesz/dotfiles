@@ -53,7 +53,9 @@ if [[ "$OS_TYPE" == "macos" ]]; then
   add_keg_only "curl"
 
   # NOTE: Update python version when upgrading (brew list | grep python)
-  add_keg_only "python@3.13"
+  # Use libexec/bin for unversioned python3/pip3 symlinks
+  # TODO: Consider migrating to uv for Python version management
+  add_keg_only "python@3.13" "libexec/bin"
 
   add_keg_only "llvm"
   add_keg_only "ruby"
