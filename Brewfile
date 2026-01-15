@@ -35,7 +35,6 @@ brew "node"
 brew "python@3.13"
 brew "pipx"
 brew "go"
-brew "rustup-init"
 brew "zig"
 brew "ruby"
 brew "lua"
@@ -54,7 +53,6 @@ brew "xcinfo"
 
 # C/C++ Toolchain
 brew "gcc"
-brew "llvm"
 brew "gdb"
 brew "cmake"
 brew "ninja"
@@ -92,26 +90,37 @@ brew "pngquant"
 brew "hugo"
 brew "gnupg"
 
-# Apps
+# Development
 cask "iterm2"
+cask "visual-studio-code"
 cask "docker-desktop"
-cask "devcleaner"
+cask "claude"
 cask "claude-code"
+cask "dbeaver-community"
+cask "devcleaner"
+
+# Productivity & Utilities
+cask "tailscale"
 cask "coteditor"
-cask "ungoogled-chromium"
-cask "whatsapp"
 cask "alt-tab"
 cask "hiddenbar"
 cask "meetingbar"
-cask "font-fira-code-nerd-font"
 cask "linearmouse"
+cask "mountain-duck"
+cask "pearcleaner"
+
+# Media & Communication
+cask "iina"
+cask "pinta"
+cask "whatsapp"
 cask "discord"
 cask "steam"
-cask "iina"
 
-# Development
-cask "visual-studio-code"
-cask "lm-studio"
+# Browsers
+cask "ungoogled-chromium"
+
+# Fonts
+cask "font-fira-code-nerd-font"
 
 # Microsoft Office
 cask "microsoft-word"
