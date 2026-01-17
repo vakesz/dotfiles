@@ -125,10 +125,6 @@ export FZF_DEFAULT_OPTS='
   --color=marker:#87ff00,spinner:#af5fff,header:#87afaf
 '
 
-# BAT (cat with syntax highlighting)
-export BAT_THEME="TwoDark"
-export BAT_STYLE="numbers,changes,header"
-
 # ----------------------------------------------------------------------------
 # History
 # ----------------------------------------------------------------------------

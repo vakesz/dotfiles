@@ -9,12 +9,6 @@
 
 if [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
   alias_if_exists fd fdfind fdfind
-  alias_if_exists bat batcat batcat
-fi
-
-# Use bat instead of cat if available
-if have bat; then
-  alias cat='bat'
 fi
 
 # ----------------------------------------------------------------------------

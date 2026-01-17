@@ -29,29 +29,8 @@
 	sf = sync-fork
 	lol = log --graph --oneline --decorate --all
 
-[diff]
-	external = difft
-	tool = difftastic
-	colorMoved = default
-
-[difftool]
-	prompt = false
-
-[difftool "difftastic"]
-	cmd = difft "$LOCAL" "$REMOTE"
-
 [pager]
 	difftool = true
-
-[merge]
-	tool = kdiff3
-	conflictstyle = diff3
-
-[mergetool]
-	keepBackup = false
-
-[mergetool "kdiff3"]
-	trustExitCode = true
 
 [credential]
 	# Git Credential Manager (cross-platform): brew install git-credential-manager
