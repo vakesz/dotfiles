@@ -34,7 +34,7 @@
 
 [credential]
 	# Git Credential Manager (cross-platform): brew install git-credential-manager
-	helper = git-credential-manager
+	helper = manager
 
 [color]
 	ui = auto
