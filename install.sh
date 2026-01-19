@@ -210,6 +210,9 @@ apply_symlinks() {
 
     cd "$DOTFILES_DIR"
 
+    # Remove .DS_Store files that interfere with stow
+    find . -name ".DS_Store" -delete 2>/dev/null
+
     # Ensure ~/.config exists
     mkdir -p "$HOME/.config"
 
