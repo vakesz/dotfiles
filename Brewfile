@@ -103,6 +103,7 @@ cask "linearmouse"
 cask "mountain-duck"
 cask "pearcleaner"
 cask "topnotch"
+cask "dockdoor"
 
 # Media & Communication
 cask "iina"
