@@ -1,0 +1,11 @@
+# macOS metadata
+\.DS_Store
+\.AppleDouble
+\.LSOverride
+\._.*
+
+# Editor temp/swap files
+.*\.swp
+.*\.swo
+.*~
+\#.*\#

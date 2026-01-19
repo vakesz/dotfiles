@@ -70,6 +70,7 @@ brew "httpie"
 brew "nmap"
 
 # Utilities
+brew "stow"
 brew "jq"
 brew "glow"
 brew "coreutils"

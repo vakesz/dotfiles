@@ -5,6 +5,10 @@ Cross-platform dotfiles for macOS, Linux, and WSL.
 ## Installation
 
 ```bash
+# Install packages (macOS)
+brew bundle install
+
+# Create symlinks (uses GNU Stow)
 ./install.sh
 ```
 
@@ -58,7 +62,9 @@ See [KEYMAPS.md](KEYMAPS.md) for keybindings.
 
 ```tree
 dotfiles/
-├── config/
+├── home/                 # stow -t ~ (root dotfiles)
+│   └── .zshenv           # Sets ZDOTDIR
+├── config/               # stow -t ~/.config
 │   ├── fd/               # fd (find alternative) config
 │   ├── git/
 │   │   ├── config        # Git settings
@@ -70,8 +76,9 @@ dotfiles/
 │   ├── tmux/             # tmux config
 │   ├── topgrade.toml     # Update tool
 │   └── zsh/              # Zsh config
-├── .zshenv               # Sets ZDOTDIR
-└── install.sh            # Installer
+├── apps/                 # Not stowed (iTerm themes, etc.)
+├── Brewfile              # Homebrew packages
+└── install.sh            # Installer (uses GNU Stow)
 ```
 
 ## XDG Compliance
@@ -83,5 +90,6 @@ Configs use XDG Base Directory spec to keep `$HOME` clean:
 
 ## Resources
 
+- [GNU Stow](https://www.gnu.org/software/stow/) - Symlink farm manager
 - [XDG Base Directory](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html)
 - [Oh My Posh](https://ohmyposh.dev/)

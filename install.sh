@@ -204,42 +204,20 @@ apply_linux_tweaks() {
     fi
 }
 
-# Ensure ~/.config exists as a real directory (not a symlink)
-ensure_config_dir() {
-    if [[ -L "$HOME/.config" ]]; then
-        warn "$HOME/.config is a symlink - removing it"
-        rm "$HOME/.config"
-    fi
-    if [[ ! -d "$HOME/.config" ]]; then
-        info "Creating ~/.config directory"
-        mkdir -p "$HOME/.config"
-    fi
-}
-
-# Symlink dotfiles
+# Symlink dotfiles using GNU Stow
 apply_symlinks() {
-    ensure_config_dir
+    info "Creating symlinks with stow..."
 
-    info "Creating symlinks..."
+    cd "$DOTFILES_DIR"
 
-    # Symlink each config directory/file
-    for item in "$DOTFILES_DIR/config"/*; do
-        local name
-        name=$(basename "$item")
-        local target="$HOME/.config/$name"
+    # Ensure ~/.config exists
+    mkdir -p "$HOME/.config"
 
-        if [[ -e "$target" && ! -L "$target" ]]; then
-            warn "Skipping $name: $target exists and is not a symlink"
-            continue
-        fi
+    # Stow home/ to ~ (for .zshenv and other root-level dotfiles)
+    stow -t ~ home
 
-        ln -sfn "$item" "$target"
-        info "  Linked: ~/.config/$name"
-    done
-
-    # Root-level dotfiles
-    ln -sf "$DOTFILES_DIR/.zshenv" "$HOME/.zshenv"
-    info "  Linked: ~/.zshenv"
+    # Stow config/ to ~/.config
+    stow -t ~/.config config
 
     success "Symlinks created"
 }
