@@ -45,7 +45,7 @@ disable = ["shell", "containers", "yarn", "deno"]
 # set_title = true
 
 # Display the time in step titles (default: true)
-# display_time = true
+display_time = true
 
 # Don't ask for confirmations (no default value)
 # assume_yes = true
@@ -108,6 +108,9 @@ skip_notify = true
 [commands]
 # Zinit update - runs in interactive shell (prefix with -i)
 "zinit" = "-i zinit self-update && zinit update --all"
+"Neovim plugins" = "nvim --headless '+Lazy! sync' +qa"
+"UV tools" = "uv tool upgrade --all"
+"gh extensions" = "gh extension upgrade --all"
 # "Python Environment" = "~/dev/.env/bin/pip install -i https://pypi.python.org/simple -U --upgrade-strategy eager jupyter"
 # "Custom command using interactive shell (unix)" = "-i vim_upgrade"
 
@@ -144,19 +147,19 @@ skip_notify = true
 # For the BrewCask step
 # If `Repo Cask Upgrade` exists, then use the `-a` option.
 # Otherwise, use the `--greedy` option.
-# greedy_cask = true
+greedy_cask = true
 
 # For the BrewCask step
 # If `Repo Cask Upgrade` does not exist, then use the `--greedy_latest` option.
 # NOTE: the above entry `greedy_cask` contains this entry, though you can enable
 # both of them, they won't clash with each other.
-# greedy_latest = true
+greedy_latest = true
 
 # For the BrewCask step
 # If `Repo Cask Upgrade` does not exist, then use the `--greedy_auto_updates` option.
 # NOTE: the above entry `greedy_cask` contains this entry, though you can enable
 # both of them, they won't clash with each other.
-# greedy_auto_updates = true
+greedy_auto_updates = true
 
 # For the BrewFormula step
 # Execute `brew autoremove` after the step.

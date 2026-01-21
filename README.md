@@ -88,6 +88,20 @@ Configs use XDG Base Directory spec to keep `$HOME` clean:
 - `~/.local/share` - data
 - `~/.local/state` - history
 
+## Update Strategy
+
+All updates run through `topgrade`. Apps have auto-update disabled; topgrade handles them via `brew upgrade --greedy-auto-updates`.
+
+| Category | What | Method |
+|----------|------|--------|
+| Packages | Homebrew formulae/casks | Native (greedy mode) |
+| Packages | Mac App Store | Native (mas) |
+| Shell | Zinit plugins | Custom command |
+| Editor | Neovim plugins | Custom command |
+| Python | UV tools | Custom command |
+| GitHub | gh extensions | Custom command |
+| System | Firmware | Native |
+
 ## Resources
 
 - [GNU Stow](https://www.gnu.org/software/stow/) - Symlink farm manager

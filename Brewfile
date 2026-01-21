@@ -93,6 +93,8 @@ cask "claude"
 cask "claude-code"
 cask "dbeaver-community"
 cask "devcleaner"
+cask "lm-studio"
+cask "sf-symbols"
 
 # Productivity & Utilities
 cask "tailscale"
@@ -102,7 +104,9 @@ cask "hiddenbar"
 cask "meetingbar"
 cask "linearmouse"
 cask "mountain-duck"
+cask "onyx"
 cask "pearcleaner"
+cask "stats"
 cask "topnotch"
 cask "dockdoor"
 
@@ -114,6 +118,7 @@ cask "discord"
 cask "steam"
 
 # Browsers
+cask "firefox"
 cask "ungoogled-chromium"
 
 # Fonts
