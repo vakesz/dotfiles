@@ -39,6 +39,17 @@
 	# Git Credential Manager (cross-platform): brew install git-credential-manager
 	helper = manager
 
+[diff]
+	algorithm = histogram
+	colorMoved = default
+
+[merge]
+	conflictstyle = zdiff3
+
+[rebase]
+	autosquash = true
+	autostash = true
+
 [color]
 	ui = auto
 

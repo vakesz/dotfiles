@@ -89,17 +89,17 @@ return {
         -- LSP keybindings (on attach)
         vim.api.nvim_create_autocmd('LspAttach', {
             callback = function(e)
-                local opts = { buffer = e.buf }
-                vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
-                vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
-                vim.keymap.set("n", "<leader>vws", vim.lsp.buf.workspace_symbol, opts)
-                vim.keymap.set("n", "<leader>vd", vim.diagnostic.open_float, opts)
-                vim.keymap.set("n", "<leader>vca", vim.lsp.buf.code_action, opts)
-                vim.keymap.set("n", "<leader>vrr", vim.lsp.buf.references, opts)
-                vim.keymap.set("n", "<leader>vrn", vim.lsp.buf.rename, opts)
-                vim.keymap.set("i", "<C-h>", vim.lsp.buf.signature_help, opts)
-                vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
-                vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
+                local function map(mode, lhs, rhs, desc)
+                    vim.keymap.set(mode, lhs, rhs, { buffer = e.buf, desc = desc })
+                end
+                map("n", "gd", vim.lsp.buf.definition, "Go to definition")
+                map("n", "K", vim.lsp.buf.hover, "Hover documentation")
+                map("n", "<leader>vws", vim.lsp.buf.workspace_symbol, "Workspace symbol search")
+                map("n", "<leader>vd", vim.diagnostic.open_float, "Show line diagnostics")
+                map("n", "<leader>vca", vim.lsp.buf.code_action, "Code actions")
+                map("n", "<leader>vrr", vim.lsp.buf.references, "Show references")
+                map("n", "<leader>vrn", vim.lsp.buf.rename, "Rename symbol")
+                map("i", "<C-h>", vim.lsp.buf.signature_help, "Signature help")
             end
         })
     end

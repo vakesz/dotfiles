@@ -9,7 +9,7 @@ return {
         {
             "<leader>f",
             function()
-                require("conform").format({ async = true, lsp_fallback = true })
+                require("conform").format({ async = true, lsp_format = "fallback" })
             end,
             mode = { "n", "v" },
             desc = "Format buffer",
@@ -39,14 +39,13 @@ return {
                 objcpp = { "clang_format" },
                 swift = { "swift_format" },
                 rust = { "rustfmt" },
-                zig = { "zigfmt" },
             },
             format_on_save = function(bufnr)
                 -- Disable format on save for certain filetypes
                 local disable_filetypes = { c = true, cpp = true }
                 return {
                     timeout_ms = 500,
-                    lsp_fallback = not disable_filetypes[vim.bo[bufnr].filetype],
+                    lsp_format = disable_filetypes[vim.bo[bufnr].filetype] and "never" or "fallback",
                 }
             end,
         })

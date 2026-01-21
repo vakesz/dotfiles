@@ -29,7 +29,8 @@ return {
         { "<leader>pWs", function()
             require("telescope.builtin").grep_string({ search = vim.fn.expand("<cWORD>") })
         end, desc = "Grep WORD under cursor" },
-        { "<leader>pv", "<cmd>Telescope file_browser path=%:p:h select_buffer=true<cr>", desc = "File browser" },
+        { "<leader>pv", vim.cmd.Ex, desc = "Open netrw" },
+        { "<leader>pe", "<cmd>Telescope file_browser path=%:p:h select_buffer=true<cr>", desc = "File browser" },
     },
 
     config = function()

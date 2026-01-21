@@ -134,7 +134,6 @@ Buffer-local keymaps, active when LSP attaches.
 | `<leader>vrr` | n | Show references |
 | `<leader>vrn` | n | Rename symbol |
 | `<C-h>` | i | Signature help |
-| `[d` / `]d` | n | Previous / next diagnostic |
 
 ### Completion (nvim-cmp)
 
@@ -166,41 +165,12 @@ Buffer-local keymaps, active when LSP attaches.
 | `<C-p>` | Git tracked files |
 | `<leader>ps` | Live grep (search text) |
 | `<leader>pb` | Browse open buffers |
-| `<leader>pv` | File browser (current dir) |
+| `<leader>pv` | Open netrw (file explorer) |
+| `<leader>pe` | File browser (Telescope) |
 | `<leader>pws` | Grep word under cursor |
 | `<leader>pWs` | Grep WORD under cursor |
 | `<leader>vh` | Help tags |
 | `<leader>ft` | Find TODO comments |
-
----
-
-## Testing (neotest)
-
-Supports Go, Python, and Zig test adapters.
-
-| Keys | Action |
-|------|--------|
-| `<leader>tc` | Run nearest test |
-| `<leader>tf` | Run current test file |
-| `<leader>td` | Debug nearest test (DAP) |
-| `<leader>ts` | Toggle test summary |
-| `<leader>to` | Open test output |
-| `<leader>tS` | Stop running tests |
-
----
-
-## Debugging (nvim-dap)
-
-Supports Go, Python, C/C++/Rust debuggers.
-
-| Keys | Action |
-|------|--------|
-| `<leader>dt` | Toggle breakpoint |
-| `<leader>dc` | Start / Continue |
-| `<leader>dx` | Terminate session |
-| `<leader>do` | Step over |
-
-UI opens/closes automatically with debug sessions.
 
 ---
 
@@ -293,12 +263,10 @@ Press `<leader>` and wait to see available commands:
 |--------|----------|
 | `<leader>b` | Buffer |
 | `<leader>c` | Code |
-| `<leader>d` | Debug |
 | `<leader>f` | Format |
 | `<leader>g` | Git |
 | `<leader>h` | Git Hunks |
 | `<leader>p` | Project/Find |
-| `<leader>t` | Test |
 | `<leader>v` | LSP |
 | `<leader>?` | Show buffer keymaps |
 
