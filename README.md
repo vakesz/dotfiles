@@ -18,7 +18,7 @@ The installer prompts to apply platform-specific settings:
 
 **macOS:**
 
-- Finder: show hidden files, extensions, path bar, list view, folders first
+- Finder: show extensions, path bar, list view, folders first
 - Keyboard: fast key repeat, disable auto-correct/substitution
 - Dock: smaller tiles, scale effect
 - Trackpad: tap to click
