@@ -235,6 +235,11 @@ apply_symlinks() {
 
 main() {
     info "Dotfiles installer"
+
+    # Check prerequisites
+    command -v git >/dev/null 2>&1 || { error "git is required but not installed"; exit 1; }
+    command -v stow >/dev/null 2>&1 || { error "stow is required but not installed"; exit 1; }
+
     detect_platform
 
     local apply_tweaks="n"

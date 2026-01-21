@@ -5,26 +5,11 @@
 # All PATH modifications and package manager initialization
 
 # ----------------------------------------------------------------------------
-# Helper: Add Homebrew keg-only packages to PATH
+# Helper: Add Homebrew keg-only package to PATH
 # ----------------------------------------------------------------------------
 add_keg_only() {
-  local pkg="$1"
-  local bin_path="${2:-bin}"
-
-  if [[ -n "$HOMEBREW_PREFIX" && -d "$HOMEBREW_PREFIX/opt/$pkg/$bin_path" ]]; then
-    export PATH="$HOMEBREW_PREFIX/opt/$pkg/$bin_path:$PATH"
-
-    # Add build flags if library directories exist
-    if [[ -d "$HOMEBREW_PREFIX/opt/$pkg/lib" ]]; then
-      export LDFLAGS="-L$HOMEBREW_PREFIX/opt/$pkg/lib${LDFLAGS:+ $LDFLAGS}"
-    fi
-    if [[ -d "$HOMEBREW_PREFIX/opt/$pkg/include" ]]; then
-      export CPPFLAGS="-I$HOMEBREW_PREFIX/opt/$pkg/include${CPPFLAGS:+ $CPPFLAGS}"
-    fi
-    if [[ -d "$HOMEBREW_PREFIX/opt/$pkg/lib/pkgconfig" ]]; then
-      export PKG_CONFIG_PATH="$HOMEBREW_PREFIX/opt/$pkg/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
-    fi
-  fi
+  local pkg="$1" bin="${2:-bin}"
+  [[ -d "$HOMEBREW_PREFIX/opt/$pkg/$bin" ]] && export PATH="$HOMEBREW_PREFIX/opt/$pkg/$bin:$PATH"
 }
 
 # ----------------------------------------------------------------------------
@@ -51,11 +36,8 @@ if [[ "$OS_TYPE" == "macos" ]]; then
 
   # macOS Homebrew keg-only packages
   add_keg_only "curl"
-
-  add_keg_only "llvm"
   add_keg_only "ruby"
   add_keg_only "make" "libexec/gnubin"
-  add_keg_only "node"
 
 elif [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
   # Snap packages (Ubuntu/Debian)
@@ -84,35 +66,34 @@ fi
 # ----------------------------------------------------------------------------
 
 # Go
+export GOPATH="${XDG_DATA_HOME}/go"
 export GOBIN="${GOBIN:-$GOPATH/bin}"
+export GOMODCACHE="${XDG_CACHE_HOME}/go/mod"
 export PATH="$GOBIN:$PATH"
 
-# Rust/Cargo (using XDG from env.zsh)
+# Rust
+export RUSTUP_HOME="${XDG_DATA_HOME}/rustup"
+export CARGO_HOME="${XDG_DATA_HOME}/cargo"
 export PATH="$CARGO_HOME/bin:$PATH"
 
-# Rustup (Linux only - macOS uses brew rust)
-if [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
-  export RUSTUP_HOME="${XDG_DATA_HOME}/rustup"
-fi
-
-# Node.js - npm config (XDG-compliant, already set in env.zsh)
+# Node.js - npm
 export NPM_CONFIG_CACHE="${XDG_CACHE_HOME}/npm"
 
-# Node.js - pnpm (XDG-compliant)
+# Node.js - pnpm
 export PNPM_HOME="${XDG_DATA_HOME}/pnpm"
 export PATH="$PNPM_HOME:$PATH"
 
 # UV (Python package manager)
+export UV_CACHE_DIR="${XDG_CACHE_HOME}/uv"
+export UV_TOOL_DIR="${XDG_DATA_HOME}/uv/tools"
+export UV_TOOL_BIN_DIR="${XDG_DATA_HOME}/uv/bin"
+export UV_PYTHON_INSTALL_DIR="${XDG_DATA_HOME}/uv/python"
 export PATH="${UV_TOOL_BIN_DIR}:$PATH"
 
-# Deno (Linux only - macOS uses brew deno)
-if [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
-  export PATH="$DENO_INSTALL_ROOT/bin:$PATH"
-fi
-
-# Bun (XDG-compliant)
+# Bun
+export BUN_INSTALL="${XDG_DATA_HOME}/bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
-# Swift Package Manager (XDG compliant)
+# Swift Package Manager
 export SWIFTPM_HOME="${XDG_DATA_HOME}/swiftpm"
 export PATH="$SWIFTPM_HOME/bin:$PATH"

@@ -15,6 +15,9 @@
 	default = current
 	autoSetupRemote = true
 
+[init]
+	defaultBranch = main
+
 [branch]
 	autosetupmerge = simple
 

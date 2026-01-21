@@ -49,45 +49,20 @@ export CURL_HOME="${XDG_CONFIG_HOME}/curl"
 # Python: Use XDG for pycache (Python 3.8+)
 export PYTHONPYCACHEPREFIX="${XDG_CACHE_HOME}/python"
 
-# UV (Python package manager)
-export UV_CACHE_DIR="${XDG_CACHE_HOME}/uv"
-export UV_TOOL_DIR="${XDG_DATA_HOME}/uv/tools"
-export UV_TOOL_BIN_DIR="${XDG_DATA_HOME}/uv/bin"
-export UV_PYTHON_INSTALL_DIR="${XDG_DATA_HOME}/uv/python"
-
 # Elixir Mix: Enable XDG support
 export MIX_XDG=1
-
-# ----------------------------------------------------------------------------
-# Programming Language Environments (XDG-Compliant)
-# ----------------------------------------------------------------------------
-
-# Go
-export GOPATH="${XDG_DATA_HOME}/go"
-export GOMODCACHE="${XDG_CACHE_HOME}/go/mod"
-
-# Rust
-export RUSTUP_HOME="${XDG_DATA_HOME}/rustup"
-export CARGO_HOME="${XDG_DATA_HOME}/cargo"
 
 # Ruby
 export GEM_HOME="${XDG_DATA_HOME}/gem"
 export GEM_SPEC_CACHE="${XDG_CACHE_HOME}/gem"
 
-# Node.js / Deno / Bun
+# Node.js
 export NODE_REPL_HISTORY="${XDG_STATE_HOME}/node_repl_history"
 export NPM_CONFIG_USERCONFIG="${XDG_CONFIG_HOME}/npm/npmrc"
-export DENO_INSTALL_ROOT="${XDG_DATA_HOME}/deno"
-export BUN_INSTALL="${XDG_DATA_HOME}/bun"
 
 # ----------------------------------------------------------------------------
 # Application-Specific XDG Compliance
 # ----------------------------------------------------------------------------
-# These prevent individual apps from polluting HOME
-
-# Node.js version managers
-export N_PREFIX="${XDG_DATA_HOME}/node"
-# NVM_DIR is set in path.zsh where nvm is initialized
 
 # Ruby bundler
 export BUNDLE_USER_CONFIG="${XDG_CONFIG_HOME}/bundle"

@@ -96,10 +96,8 @@ else
   alias l='ls -CF --color=auto'
 fi
 
-alias home='cd ~'
 alias dots='cd ~/.dotfiles'
 alias p='cd ~/projects'
-alias proj='cd ~/projects'
 
 # ----------------------------------------------------------------------------
 # Git Aliases
