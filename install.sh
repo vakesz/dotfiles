@@ -204,6 +204,14 @@ apply_linux_tweaks() {
     fi
 }
 
+# Install Hungarian keyboard layout (macOS only)
+install_keyboard_layout() {
+    info "Installing Hungarian keyboard layout..."
+    mkdir -p "$HOME/Library/Keyboard Layouts"
+    cp "$DOTFILES_DIR/apps/Hungarian_Win.keylayout" "$HOME/Library/Keyboard Layouts/"
+    success "Keyboard layout installed"
+}
+
 # Symlink dotfiles using GNU Stow
 apply_symlinks() {
     info "Creating symlinks with stow..."
@@ -242,6 +250,15 @@ main() {
             linux|wsl) apply_linux_tweaks ;;
             *) warn "No tweaks for platform: $PLATFORM" ;;
         esac
+    fi
+
+    if [[ "$PLATFORM" == "macos" && -t 0 ]]; then
+        local install_layout="n"
+        read -rn1 -p $'\nInstall Hungarian keyboard layout? (y/N) ' install_layout || true
+        echo ""
+        if [[ "$install_layout" =~ ^[Yy]$ ]]; then
+            install_keyboard_layout
+        fi
     fi
 
     apply_symlinks
