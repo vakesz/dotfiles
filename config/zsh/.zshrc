@@ -1,20 +1,4 @@
-# ============================================================================
-# .zshrc - Zsh Configuration for Interactive Shells
-# ============================================================================
-# This file loads modular configuration from config.d/
-#
-# Load order:
-#   1. platform.zsh  - OS detection and helper functions
-#   2. path.zsh      - PATH configuration
-#   3. env.zsh       - Environment variables
-#   4. plugins.zsh   - Zinit plugins
-#   5. completion.zsh - Completion system
-#   6. aliases.zsh   - Aliases and functions
-#   7. prompt        - Oh My Posh prompt
-
-# ----------------------------------------------------------------------------
-# Source Configuration Modules
-# ----------------------------------------------------------------------------
+# .zshrc - Modular config loaded from config.d/
 
 source "$ZDOTDIR/config.d/platform.zsh"
 source "$ZDOTDIR/config.d/path.zsh"
@@ -23,11 +7,7 @@ source "$ZDOTDIR/config.d/plugins.zsh"
 source "$ZDOTDIR/config.d/completion.zsh"
 source "$ZDOTDIR/config.d/aliases.zsh"
 
-# ----------------------------------------------------------------------------
-# Oh My Posh Prompt
-# ----------------------------------------------------------------------------
-
-# Initialize Oh My Posh (cached for speed)
+# Oh My Posh (cached for speed)
 if have oh-my-posh; then
   omp_config="$XDG_CONFIG_HOME/oh-my-posh/zen.toml"
   omp_cache="$XDG_CACHE_HOME/zsh/oh-my-posh-init.zsh"
@@ -42,9 +22,5 @@ else
   PROMPT='%F{#9ccfd8}%~%f %F{#908caa}❯%f '
 fi
 
-# ----------------------------------------------------------------------------
-# Local Customizations
-# ----------------------------------------------------------------------------
-
-# Source local customizations (not tracked in git)
+# Local overrides (not tracked in git)
 [[ -f "$ZDOTDIR/.zshrc.local" ]] && source "$ZDOTDIR/.zshrc.local"

@@ -1,15 +1,8 @@
--- Load custom key remappings from vakesz/remap.lua
 require("vakesz.remap")
-
--- Load custom settings from vakesz/set.lua
 require("vakesz.set")
-
--- Load lazy.nvim plugin manager
 require("vakesz.lazy_init")
 
 local augroup = vim.api.nvim_create_augroup
-local vakeszGrp = augroup('vakesz', {})
-
 local autocmd = vim.api.nvim_create_autocmd
 local yank_group = augroup('HighlightYank', {})
 
@@ -28,10 +21,4 @@ autocmd('TextYankPost', {
             timeout = 40,
         })
     end,
-})
-
-autocmd({"BufWritePre"}, {
-    group = vakeszGrp,
-    pattern = "*",
-    command = [[%s/\s\+$//e]],
 })

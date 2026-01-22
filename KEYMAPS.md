@@ -268,6 +268,7 @@ Press `<leader>` and wait to see available commands:
 | `<leader>h` | Git Hunks |
 | `<leader>p` | Project/Find |
 | `<leader>v` | LSP |
+| `<leader>x` | Diagnostics |
 | `<leader>?` | Show buffer keymaps |
 
 ---

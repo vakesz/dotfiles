@@ -1,19 +1,8 @@
-# ============================================================================
 # Environment Variables
-# ============================================================================
-# All environment variable exports (non-PATH)
 
-# ----------------------------------------------------------------------------
-# Locale
-# ----------------------------------------------------------------------------
 export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
-export LANGUAGE="en_US.UTF-8"
-export LC_CTYPE="en_US.UTF-8"
 
-# ----------------------------------------------------------------------------
-# Editor
-# ----------------------------------------------------------------------------
 if have nvim; then
   export EDITOR="nvim"
   export VISUAL="nvim"
@@ -23,71 +12,30 @@ else
   export VISUAL="vim"
 fi
 
-# ----------------------------------------------------------------------------
-# GPG
-# ----------------------------------------------------------------------------
-# Always set GPG_TTY to current terminal
-export GPG_TTY=$(tty 2>/dev/null || echo "not a tty")
+[[ -t 0 ]] && export GPG_TTY=$(tty)
 
-# ----------------------------------------------------------------------------
-# Development Tools (XDG-Compliant)
-# ----------------------------------------------------------------------------
-
-# Less: Better default options
+# XDG paths for tools
 export LESS='-R -i -M -W -x4 -F -X'
 export LESSHISTFILE="${XDG_STATE_HOME}/less/history"
-
-# Ripgrep config
 export RIPGREP_CONFIG_PATH="${XDG_CONFIG_HOME}/ripgrep/config"
-
-# Wget config (use XDG location for wgetrc)
 export WGETRC="${XDG_CONFIG_HOME}/wget/wgetrc"
-
-# Curl config
 export CURL_HOME="${XDG_CONFIG_HOME}/curl"
-
-# Python: Use XDG for pycache (Python 3.8+)
 export PYTHONPYCACHEPREFIX="${XDG_CACHE_HOME}/python"
-
-# Elixir Mix: Enable XDG support
 export MIX_XDG=1
-
-# Ruby
 export GEM_HOME="${XDG_DATA_HOME}/gem"
 export GEM_SPEC_CACHE="${XDG_CACHE_HOME}/gem"
-
-# Node.js
 export NODE_REPL_HISTORY="${XDG_STATE_HOME}/node_repl_history"
 export NPM_CONFIG_USERCONFIG="${XDG_CONFIG_HOME}/npm/npmrc"
-
-# ----------------------------------------------------------------------------
-# Application-Specific XDG Compliance
-# ----------------------------------------------------------------------------
-
-# Ruby bundler
 export BUNDLE_USER_CONFIG="${XDG_CONFIG_HOME}/bundle"
 export BUNDLE_USER_CACHE="${XDG_CACHE_HOME}/bundle"
 export BUNDLE_USER_PLUGIN="${XDG_DATA_HOME}/bundle"
-
-# GnuPG
 export GNUPGHOME="${XDG_DATA_HOME}/gnupg"
-
-# Git Credential Manager (cross-platform)
 export GCM_CREDENTIAL_CACHE_DIR="${XDG_CACHE_HOME}/git-credential-manager"
-
-# Tealdeer (tldr)
 export TEALDEER_CONFIG_DIR="${XDG_CONFIG_HOME}/tealdeer"
 
-# Local and user binary location (XDG-compliant)
 export XDG_BIN_HOME="${XDG_BIN_HOME:-${XDG_DATA_HOME}/bin}"
 export PATH="$XDG_BIN_HOME:$PATH"
 
-# Ensure XDG_BIN_HOME exists for interactive shells
-if [[ -n "$ZSH_NAME" ]] && [[ ! -d "$XDG_BIN_HOME" ]]; then
-  mkdir -p "$XDG_BIN_HOME" 2>/dev/null || true
-fi
-
-# FZF default options
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
 export FZF_DEFAULT_OPTS='
   --height 40%
@@ -100,17 +48,11 @@ export FZF_DEFAULT_OPTS='
   --color=marker:#87ff00,spinner:#af5fff,header:#87afaf
 '
 
-# ----------------------------------------------------------------------------
 # History
-# ----------------------------------------------------------------------------
 export HISTSIZE=10000
 export SAVEHIST=$HISTSIZE
 export HISTFILE="${XDG_STATE_HOME}/zsh/history"
 
-# ----------------------------------------------------------------------------
-# Compilation Flags
-# ----------------------------------------------------------------------------
-# Set architecture flags for compilation (mainly for macOS M1/M2)
 if [[ "$OS_TYPE" == "macos" ]]; then
   export ARCHFLAGS="-arch $(uname -m)"
 fi

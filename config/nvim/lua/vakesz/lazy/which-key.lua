@@ -26,6 +26,7 @@ return {
             { "<leader>h", group = "Git Hunks" },
             { "<leader>p", group = "Project/Find" },
             { "<leader>v", group = "LSP" },
+            { "<leader>x", group = "Diagnostics" },
         })
     end,
 }

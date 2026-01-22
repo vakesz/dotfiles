@@ -1,8 +1,4 @@
-# ============================================================================
-# Platform Detection
-# ============================================================================
-# Detects the operating system and sets OS_TYPE variable
-# Values: macos, linux, wsl, unknown
+# Platform Detection (sets OS_TYPE: macos, linux, wsl, unknown)
 
 case "$OSTYPE" in
   darwin*)
@@ -20,12 +16,10 @@ case "$OSTYPE" in
     ;;
 esac
 
-# Helper function to check if command exists
 have() {
   command -v "$1" >/dev/null 2>&1
 }
 
-# Helper function to create alias only if command exists
 alias_if_exists() {
   have "$2" && alias "$1=$3"
 }

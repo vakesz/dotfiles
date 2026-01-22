@@ -1,30 +1,17 @@
-# ============================================================================
 # Aliases and Functions
-# ============================================================================
-# Minimal, essential aliases only
-
-# ----------------------------------------------------------------------------
-# Platform-Specific Command Aliases
-# ----------------------------------------------------------------------------
 
 if [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
   alias_if_exists fd fdfind fdfind
 fi
 
-# ----------------------------------------------------------------------------
-# Editor Aliases
-# ----------------------------------------------------------------------------
-
+# Neovim aliases
 if have nvim; then
   alias vi='nvim'
   alias vim='nvim'
   alias v='nvim'
 fi
 
-# ----------------------------------------------------------------------------
-# Python (UV-based)
-# ----------------------------------------------------------------------------
-
+# Python (UV)
 alias uv-tools='uv tool list'
 alias uv-python='uv python list'
 
@@ -32,34 +19,25 @@ alias uv-python='uv python list'
 venv() {
   local venv_dir="${1:-.venv}"
 
-  if [[ -d "$venv_dir" ]]; then
-    if [[ -f "$venv_dir/bin/activate" ]]; then
-      source "$venv_dir/bin/activate"
-    else
-      echo "Error: $venv_dir exists but is not a valid virtualenv" >&2
-      return 1
-    fi
-  else
-    if ! have uv; then
-      echo "Error: uv not found" >&2
-      return 1
-    fi
-    echo "Creating virtualenv with uv in $venv_dir..."
-    if uv venv "$venv_dir"; then
-      source "$venv_dir/bin/activate"
-      # UV manages everything - no need to upgrade pip
-    else
-      echo "Error: Failed to create virtualenv" >&2
-      return 1
-    fi
+  if [[ -f "$venv_dir/bin/activate" ]]; then
+    source "$venv_dir/bin/activate"
+    return
   fi
+
+  if [[ -d "$venv_dir" ]]; then
+    echo "Error: $venv_dir exists but is not a valid virtualenv" >&2
+    return 1
+  fi
+
+  have uv || { echo "Error: uv not found" >&2; return 1; }
+  echo "Creating virtualenv with uv in $venv_dir..."
+  uv venv "$venv_dir" && source "$venv_dir/bin/activate"
 }
 
 alias venv-off='deactivate'
 
-# Auto-activate .venv on directory change
+# Auto-activate/deactivate .venv on directory change
 __auto_venv() {
-  # Deactivate if we left a venv directory
   if [[ -n "$VIRTUAL_ENV" ]]; then
     local venv_parent="${VIRTUAL_ENV:h}"
     if [[ "$PWD" != "$venv_parent"* ]]; then
@@ -67,7 +45,6 @@ __auto_venv() {
     fi
   fi
 
-  # Activate if .venv exists in current dir
   if [[ -z "$VIRTUAL_ENV" && -f ".venv/bin/activate" ]]; then
     source .venv/bin/activate
   fi
@@ -75,34 +52,22 @@ __auto_venv() {
 
 autoload -Uz add-zsh-hook
 add-zsh-hook chpwd __auto_venv
-
-# Run once on shell start (for initial directory)
 __auto_venv
 
-# ----------------------------------------------------------------------------
 # Navigation
-# ----------------------------------------------------------------------------
-
-# Colorized ls aliases (macOS uses -G, Linux uses --color=auto)
 if [[ "$OS_TYPE" == "macos" ]]; then
   alias ls='ls -G'
-  alias ll='ls -laG'
-  alias la='ls -AG'
-  alias l='ls -CFG'
 else
   alias ls='ls --color=auto'
-  alias ll='ls -la --color=auto'
-  alias la='ls -A --color=auto'
-  alias l='ls -CF --color=auto'
 fi
+alias ll='ls -la'
+alias la='ls -A'
+alias l='ls -CF'
 
 alias dots='cd ~/.dotfiles'
 alias p='cd ~/projects'
 
-# ----------------------------------------------------------------------------
-# Git Aliases
-# ----------------------------------------------------------------------------
-
+# Git
 alias gs='git status'
 alias gd='git diff'
 alias gds='git diff --staged'
@@ -114,3 +79,7 @@ alias gco='git checkout'
 alias gb='git branch'
 alias gp='git push'
 alias gpl='git pull'
+
+# Docker
+alias dcu='docker compose up'
+alias dcd='docker compose down'

@@ -1,22 +1,10 @@
-# ============================================================================
 # Completion Configuration
-# ============================================================================
-# Zsh completion system settings and customization
 
-# ----------------------------------------------------------------------------
-# Completion System Initialization
-# ----------------------------------------------------------------------------
-
-# Only initialize if not already done (prevents double initialization)
 if ! (( ${+_comps} )); then
-  # Load and initialize the completion system
   autoload -Uz compinit
-
-  # Store completion dump in cache directory (XDG-compliant)
-  # This is a cache file, not configuration, so it belongs in XDG_CACHE_HOME
   ZSH_COMPDUMP="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/.zcompdump"
 
-  # Only regenerate compdump once a day for faster startup
+  # Only regenerate compdump once a day
   if [[ -n ${ZSH_COMPDUMP}(#qN.mh+24) ]]; then
     compinit -d "$ZSH_COMPDUMP"
   else
@@ -24,11 +12,7 @@ if ! (( ${+_comps} )); then
   fi
 fi
 
-# ----------------------------------------------------------------------------
 # Zsh Options
-# ----------------------------------------------------------------------------
-
-# Completion
 setopt ALWAYS_TO_END          # Move cursor to end of word after completion
 setopt AUTO_MENU              # Show completion menu on successive tab press
 setopt AUTO_PARAM_SLASH       # Add trailing slash to directory completions
@@ -37,72 +21,42 @@ setopt LIST_PACKED            # Make completion list smaller
 setopt MENU_COMPLETE          # Auto-select first completion entry
 unsetopt FLOW_CONTROL         # Disable flow control (Ctrl-S/Ctrl-Q)
 
-# Navigation
 setopt AUTO_CD                # Type directory name to cd into it
 setopt AUTO_PUSHD             # Push old directory onto stack
 setopt PUSHD_IGNORE_DUPS      # Don't push duplicates
 setopt PUSHD_SILENT           # Don't print stack after pushd/popd
 
-# Globbing
 setopt EXTENDED_GLOB          # Extended glob patterns (#, ~, ^)
 setopt GLOB_DOTS              # Include dotfiles in globs
 
-# Safety & Convenience
 setopt INTERACTIVE_COMMENTS   # Allow comments in interactive shell
 
-# ----------------------------------------------------------------------------
 # Completion Styling
-# ----------------------------------------------------------------------------
-
-# Case-insensitive, partial-word, and substring completion
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
-
-# Use colors in completion
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
-
-# Menu selection
 zstyle ':completion:*:*:*:*:*' menu select
-
-# Complete processes for kill command
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#) ([0-9a-z-]#)*=01;34=0=01'
 zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm -w -w"
-
-# Ignore completion for commands we don't have
 zstyle ':completion:*:functions' ignored-patterns '_*'
-
-# Directory completion
 zstyle ':completion:*:cd:*' tag-order local-directories directory-stack path-directories
 zstyle ':completion:*:*:cd:*' ignore-parents parent pwd
 zstyle ':completion:*' squeeze-slashes true
-
-# Cache completions
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/completion-cache"
-
-# Group results by category
 zstyle ':completion:*' group-name ''
-
-# Descriptions for different completion types
 zstyle ':completion:*:descriptions' format '[%d]'
 zstyle ':completion:*:corrections' format '%F{green}-- %d (errors: %e) --%f'
 zstyle ':completion:*:messages' format '%F{purple}-- %d --%f'
 zstyle ':completion:*:warnings' format '%F{red}-- no matches found --%f'
 
-# ----------------------------------------------------------------------------
-# History Search with Arrow Keys
-# ----------------------------------------------------------------------------
-# Type partial command, press Up/Down to search history
-
+# History search with arrow keys
 autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
 zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
 bindkey '^[[A' up-line-or-beginning-search    # Up arrow
 bindkey '^[[B' down-line-or-beginning-search  # Down arrow
 
-# ----------------------------------------------------------------------------
-# History Options
-# ----------------------------------------------------------------------------
-
+# History
 setopt HIST_IGNORE_ALL_DUPS   # Remove older duplicate entries from history
 setopt HIST_REDUCE_BLANKS     # Remove superfluous blanks from history items
 setopt HIST_IGNORE_SPACE      # Don't record commands starting with space

@@ -37,15 +37,22 @@ The installer prompts to apply platform-specific settings:
 - **Zsh** with XDG-compliant setup
 - **Oh My Posh** prompt
 - **Zinit** plugin manager
+- **zoxide** smart cd
+- **fzf** fuzzy finder
 
 ### Neovim
 
 - **lazy.nvim** package manager
 - **Mason** for LSP/formatters
 - **Telescope** fuzzy finder
+- **Treesitter** syntax highlighting
 - **nvim-cmp** completion with Copilot
 - **conform.nvim** formatting
+- **mini.nvim** statusline, indentscope, surround, bufremove
+- **Trouble** diagnostics list
+- **which-key** keybinding discovery
 - **fugitive + gitsigns** Git integration
+- **undotree** undo history
 
 See [KEYMAPS.md](KEYMAPS.md) for keybindings.
 
@@ -92,18 +99,12 @@ Configs use XDG Base Directory spec to keep `$HOME` clean:
 
 All updates run through `topgrade`. Apps have auto-update disabled; topgrade handles them via `brew upgrade --greedy-auto-updates`.
 
-| Category | What | Method |
-|----------|------|--------|
-| Packages | Homebrew formulae/casks | Native (greedy mode) |
-| Packages | Mac App Store | Native (mas) |
-| Shell | Zinit plugins | Custom command |
-| Editor | Neovim plugins | Custom command |
-| Python | UV tools | Custom command |
-| GitHub | gh extensions | Custom command |
-| System | Firmware | Native |
-
 ## Resources
 
 - [GNU Stow](https://www.gnu.org/software/stow/) - Symlink farm manager
-- [XDG Base Directory](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html)
-- [Oh My Posh](https://ohmyposh.dev/)
+- [XDG Base Directory](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html) - Directory spec for clean `$HOME`
+- [Oh My Posh](https://ohmyposh.dev/) - Cross-shell prompt theme engine
+- [Zinit](https://github.com/zdharma-continuum/zinit) - Zsh plugin manager
+- [zoxide](https://github.com/ajeetdsouza/zoxide) - Smarter cd command
+- [fzf](https://github.com/junegunn/fzf) - General-purpose fuzzy finder
+- [topgrade](https://github.com/topgrade-rs/topgrade) - System-wide updater

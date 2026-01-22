@@ -1,23 +1,13 @@
 # shellcheck shell=bash disable=SC2168
-# ============================================================================
 # PATH Configuration
-# ============================================================================
-# All PATH modifications and package manager initialization
 
-# ----------------------------------------------------------------------------
-# Helper: Add Homebrew keg-only package to PATH
-# ----------------------------------------------------------------------------
 add_keg_only() {
   local pkg="$1" bin="${2:-bin}"
   [[ -d "$HOMEBREW_PREFIX/opt/$pkg/$bin" ]] && export PATH="$HOMEBREW_PREFIX/opt/$pkg/$bin:$PATH"
 }
 
-# ----------------------------------------------------------------------------
-# Platform-Specific PATH Setup
-# ----------------------------------------------------------------------------
-
 if [[ "$OS_TYPE" == "macos" ]]; then
-  # macOS Homebrew initialization (cached for speed)
+  # Homebrew (cached for speed)
   brew_path=""
   if [[ -f "/opt/homebrew/bin/brew" ]]; then
     brew_path="/opt/homebrew/bin/brew"
@@ -34,21 +24,18 @@ if [[ "$OS_TYPE" == "macos" ]]; then
     source "$brew_cache"
   fi
 
-  # macOS Homebrew keg-only packages
   add_keg_only "curl"
   add_keg_only "ruby"
   add_keg_only "make" "libexec/gnubin"
 
 elif [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
-  # Snap packages (Ubuntu/Debian)
   if [[ -d "/snap/bin" ]]; then
     export PATH="/snap/bin:$PATH"
   fi
 
-  # NVM (Node Version Manager) - Linux/WSL only, lazy-loaded for faster startup
+  # NVM (lazy-loaded)
   export NVM_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/nvm"
   if [[ -s "$NVM_DIR/nvm.sh" ]]; then
-    # Lazy-load NVM: define stub functions that load NVM on first use
     _nvm_load() {
       unfunction nvm node npm npx 2>/dev/null
       source "$NVM_DIR/nvm.sh"
@@ -61,39 +48,29 @@ elif [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
   fi
 fi
 
-# ----------------------------------------------------------------------------
-# Cross-Platform Development Tools (XDG-Compliant)
-# ----------------------------------------------------------------------------
+# Development tools (XDG paths)
 
-# Go
 export GOPATH="${XDG_DATA_HOME}/go"
 export GOBIN="${GOBIN:-$GOPATH/bin}"
 export GOMODCACHE="${XDG_CACHE_HOME}/go/mod"
 export PATH="$GOBIN:$PATH"
 
-# Rust
 export RUSTUP_HOME="${XDG_DATA_HOME}/rustup"
 export CARGO_HOME="${XDG_DATA_HOME}/cargo"
 export PATH="$CARGO_HOME/bin:$PATH"
 
-# Node.js - npm
 export NPM_CONFIG_CACHE="${XDG_CACHE_HOME}/npm"
-
-# Node.js - pnpm
 export PNPM_HOME="${XDG_DATA_HOME}/pnpm"
 export PATH="$PNPM_HOME:$PATH"
 
-# UV (Python package manager)
 export UV_CACHE_DIR="${XDG_CACHE_HOME}/uv"
 export UV_TOOL_DIR="${XDG_DATA_HOME}/uv/tools"
 export UV_TOOL_BIN_DIR="${XDG_DATA_HOME}/uv/bin"
 export UV_PYTHON_INSTALL_DIR="${XDG_DATA_HOME}/uv/python"
 export PATH="${UV_TOOL_BIN_DIR}:$PATH"
 
-# Bun
 export BUN_INSTALL="${XDG_DATA_HOME}/bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
-# Swift Package Manager
 export SWIFTPM_HOME="${XDG_DATA_HOME}/swiftpm"
 export PATH="$SWIFTPM_HOME/bin:$PATH"
