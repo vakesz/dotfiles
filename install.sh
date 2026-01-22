@@ -63,6 +63,7 @@ apply_macos_tweaks() {
     defaults write com.apple.dock show-process-indicators -bool true
     defaults write com.apple.dock autohide -bool false
     defaults write com.apple.dock show-recents -bool false
+    defaults write com.apple.dock size-immutable -bool true
 
     # Mission Control
     defaults write com.apple.dock mru-spaces -bool false
@@ -212,6 +213,17 @@ install_keyboard_layout() {
     success "Keyboard layout installed"
 }
 
+# Clean up .DS_Store files from entire filesystem (macOS only)
+cleanup_ds_store() {
+    info "Cleaning up .DS_Store files from entire filesystem..."
+    if command -v fd >/dev/null 2>&1; then
+        sudo fd -H "^\.DS_Store$" / -x rm -f 2>/dev/null || true
+    else
+        sudo find / -name ".DS_Store" -delete 2>/dev/null || true
+    fi
+    success ".DS_Store files removed"
+}
+
 # Symlink dotfiles using GNU Stow
 apply_symlinks() {
     info "Creating symlinks with stow..."
@@ -263,6 +275,13 @@ main() {
         echo ""
         if [[ "$install_layout" =~ ^[Yy]$ ]]; then
             install_keyboard_layout
+        fi
+
+        local cleanup_ds="n"
+        read -rn1 -p $'\nClean up .DS_Store files from entire filesystem? (y/N) ' cleanup_ds || true
+        echo ""
+        if [[ "$cleanup_ds" =~ ^[Yy]$ ]]; then
+            cleanup_ds_store
         fi
     fi
 
