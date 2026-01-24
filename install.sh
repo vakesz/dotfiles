@@ -227,22 +227,21 @@ cleanup_ds_store() {
 # Symlink dotfiles using GNU Stow
 apply_symlinks() {
     info "Creating symlinks with stow..."
-
     cd "$DOTFILES_DIR"
 
-    # Remove .DS_Store files that interfere with stow
-    find . -name ".DS_Store" -delete 2>/dev/null
+    # Remove .DS_Store files that interfere with stow (only in stow source dirs)
+    fd -HI -g '.DS_Store' home config -x rm
 
-    # Ensure ~/.config exists
     mkdir -p "$HOME/.config"
 
-    # Stow home/ to ~ (for .zshenv and other root-level dotfiles)
-    stow -t ~ home
-
-    # Stow config/ to ~/.config
-    stow -t ~/.config config
+    stow --adopt -t ~ home
+    stow --adopt -t ~/.config config
 
     success "Symlinks created"
+
+    if ! git diff --quiet 2>/dev/null; then
+        warn "Existing files were adopted into the repo. Review with: git diff"
+    fi
 }
 
 main() {
@@ -251,6 +250,7 @@ main() {
     # Check prerequisites
     command -v git >/dev/null 2>&1 || { error "git is required but not installed"; exit 1; }
     command -v stow >/dev/null 2>&1 || { error "stow is required but not installed"; exit 1; }
+    command -v fd >/dev/null 2>&1 || { error "fd is required but not installed"; exit 1; }
 
     detect_platform
 
