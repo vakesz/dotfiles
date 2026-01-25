@@ -104,6 +104,11 @@ cask "stats"
 cask "topnotch"
 cask "dockdoor"
 
+# QuickLook Plugins
+cask "qlstephen"
+cask "webpquicklook"
+cask "qlcolorcode"
+
 # Media & Communication
 cask "iina"
 cask "pinta"
