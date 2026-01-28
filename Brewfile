@@ -124,6 +124,7 @@ cask "ungoogled-chromium"
 cask "font-fira-code-nerd-font"
 
 # Microsoft Office
+cask "libreoffice"
 cask "microsoft-word"
 cask "microsoft-excel"
 cask "microsoft-powerpoint"
