@@ -37,8 +37,9 @@ apply_macos_tweaks() {
     defaults write NSGlobalDomain AppleShowAllExtensions -bool true
     defaults write com.apple.finder ShowStatusBar -bool true
     defaults write com.apple.finder ShowPathbar -bool true
-    defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
+    defaults write com.apple.finder FXPreferredViewStyle -string "icnv"
     defaults write com.apple.finder _FXSortFoldersFirst -bool true
+    defaults write com.apple.finder FXArrangeGroupViewBy -string "Name"
     defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
     defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
     defaults write com.apple.finder FXEnableExtensionChangeWarning -bool false
