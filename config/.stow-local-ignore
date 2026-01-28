@@ -25,3 +25,8 @@ _darcs
 .*\.swo
 .+~
 \#.*\#
+
+# Generated artifacts
+^/zsh/\.zsh_history$
+^/zsh/\.zcompdump.*
+^/tealdeer/tldr-pages(/|$)

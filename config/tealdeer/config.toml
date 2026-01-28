@@ -3,7 +3,7 @@
 
 [directories]
 # Cache directory for tldr pages
-cache_dir = ""
+cache_dir = "$XDG_CACHE_HOME/tealdeer"
 
 [display]
 # Compact mode (less whitespace)

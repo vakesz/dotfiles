@@ -79,4 +79,5 @@ __pycache__/
 .local/state/
 .local/lib/
 
+AGENTS.md
 CLAUDE.md
