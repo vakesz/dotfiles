@@ -44,16 +44,13 @@ brew "xcinfo"
 
 # C/C++ Toolchain
 brew "gcc"
-brew "gdb"
 brew "cmake"
-brew "ninja"
 brew "make"
 
 # Linters & Formatters
 brew "shellcheck"
 brew "prettier"
 brew "eslint"
-brew "black"
 brew "ruff"
 brew "clang-format"
 brew "cppcheck"
@@ -63,19 +60,16 @@ brew "pre-commit"
 # Networking
 brew "curl"
 brew "wget"
-brew "httpie"
 brew "nmap"
 
 # Utilities
 brew "stow"
 brew "jq"
-brew "glow"
 brew "coreutils"
 brew "diffutils"
 brew "topgrade"
 brew "cloc"
 brew "mas"
-brew "sqlite"
 brew "pngquant"
 brew "hugo"
 brew "gnupg"
@@ -101,13 +95,6 @@ cask "mountain-duck"
 cask "onyx"
 cask "pearcleaner"
 cask "stats"
-cask "TheBoredTeam/boring-notch/boring-notch"
-cask "dockdoor"
-
-# QuickLook Plugins
-cask "qlstephen"
-cask "webpquicklook"
-cask "qlcolorcode"
 
 # Media & Communication
 cask "iina"

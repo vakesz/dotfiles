@@ -55,6 +55,7 @@ apply_macos_tweaks() {
     # Trackpad
     defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
     defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+    defaults write com.apple.dock showAppExposeGestureEnabled -bool true
 
     # Dock
     defaults write com.apple.dock tilesize -int 32
