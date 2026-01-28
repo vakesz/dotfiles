@@ -101,7 +101,7 @@ cask "mountain-duck"
 cask "onyx"
 cask "pearcleaner"
 cask "stats"
-cask "topnotch"
+cask "TheBoredTeam/boring-notch/boring-notch"
 cask "dockdoor"
 
 # QuickLook Plugins
