@@ -9,7 +9,7 @@ Quick reference for all keymaps in this Neovim configuration.
 ## Core Editing & Navigation
 
 | Keys | Mode | Action |
-|------|------|--------|
+| ------ | ------ | -------- |
 | `J` | n | Join line below, keep cursor in place |
 | `J` / `K` | v | Move selected lines down / up |
 | `<C-d>` / `<C-u>` | n | Half-page down / up & center view |
@@ -36,7 +36,7 @@ Quick reference for all keymaps in this Neovim configuration.
 ### Movement
 
 | Motion | Action |
-|--------|--------|
+| -------- | -------- |
 | `w` / `b` | Next / previous word start |
 | `e` / `ge` | Next / previous word end |
 | `0` / `^` / `$` | Line start / first non-blank / line end |
@@ -56,7 +56,7 @@ Quick reference for all keymaps in this Neovim configuration.
 Use with operators (d, c, y, v): `{operator}{a/i}{object}`
 
 | Object | Inner (`i`) | Around (`a`) |
-|--------|-------------|--------------|
+| -------- | ------------- | -------------- |
 | `w` | Word | Word + space |
 | `s` | Sentence | Sentence + space |
 | `p` | Paragraph | Paragraph + blank lines |
@@ -68,6 +68,7 @@ Use with operators (d, c, y, v): `{operator}{a/i}{object}`
 | `t` | Inside XML/HTML tag | Including tag |
 
 Examples:
+
 - `ciw` - Change inner word
 - `da"` - Delete around quotes (including quotes)
 - `yip` - Yank inner paragraph
@@ -76,7 +77,7 @@ Examples:
 ### Visual Selection
 
 | Keys | Action |
-|------|--------|
+| ------ | -------- |
 | `v` | Start character-wise visual |
 | `V` | Start line-wise visual |
 | `<C-v>` | Start block visual (column) |
@@ -86,7 +87,7 @@ Examples:
 ### Operators
 
 | Operator | Action |
-|----------|--------|
+| ---------- | -------- |
 | `d` | Delete |
 | `c` | Change (delete + insert) |
 | `y` | Yank (copy) |
@@ -97,7 +98,7 @@ Examples:
 ### Registers
 
 | Register | Description |
-|----------|-------------|
+| ---------- | ------------- |
 | `""` | Unnamed (default) |
 | `"0` | Last yank |
 | `"1-9` | Delete history |
@@ -110,7 +111,7 @@ Usage: `"{register}{operator}` e.g., `"+y` to yank to clipboard
 ### Marks
 
 | Keys | Action |
-|------|--------|
+| ------ | -------- |
 | `m{a-z}` | Set local mark |
 | `m{A-Z}` | Set global mark |
 | `` `{mark} `` | Jump to mark (exact position) |
@@ -125,7 +126,7 @@ Usage: `"{register}{operator}` e.g., `"+y` to yank to clipboard
 Buffer-local keymaps, active when LSP attaches.
 
 | Keys | Mode | Action |
-|------|------|--------|
+| ------ | ------ | -------- |
 | `gd` | n | Go to definition |
 | `K` | n | Hover documentation |
 | `<leader>vws` | n | Workspace symbol search |
@@ -138,7 +139,7 @@ Buffer-local keymaps, active when LSP attaches.
 ### Completion (nvim-cmp)
 
 | Keys | Mode | Action |
-|------|------|--------|
+| ------ | ------ | -------- |
 | `<C-p>` | i | Previous completion item |
 | `<C-n>` | i | Next completion item |
 | `<C-y>` | i | Confirm selection |
@@ -149,7 +150,7 @@ Buffer-local keymaps, active when LSP attaches.
 ## Copilot (AI Completion)
 
 | Keys | Mode | Action |
-|------|------|--------|
+| ------ | ------ | -------- |
 | `<M-l>` | i | Accept suggestion (Alt+l) |
 | `<M-]>` | i | Next suggestion (Alt+]) |
 | `<M-[>` | i | Previous suggestion (Alt+[) |
@@ -160,7 +161,7 @@ Buffer-local keymaps, active when LSP attaches.
 ## Telescope (Fuzzy Finding)
 
 | Keys | Action |
-|------|--------|
+| ------ | -------- |
 | `<leader>pf` | Find files |
 | `<C-p>` | Git tracked files |
 | `<leader>ps` | Live grep (search text) |
@@ -177,7 +178,7 @@ Buffer-local keymaps, active when LSP attaches.
 ## Diagnostics (Trouble.nvim)
 
 | Keys | Action |
-|------|--------|
+| ------ | -------- |
 | `<leader>xx` | Toggle workspace diagnostics |
 | `<leader>xX` | Toggle buffer diagnostics |
 | `<leader>cs` | Toggle symbols outline |
@@ -190,7 +191,7 @@ Buffer-local keymaps, active when LSP attaches.
 ## Buffer Management (mini.bufremove)
 
 | Keys | Action |
-|------|--------|
+| ------ | -------- |
 | `<leader>bd` | Delete buffer (keep layout) |
 | `<leader>bD` | Force delete buffer |
 
@@ -199,12 +200,13 @@ Buffer-local keymaps, active when LSP attaches.
 ## Surround Operations (mini.surround)
 
 | Keys | Mode | Action |
-|------|------|--------|
+| ------ | ------ | -------- |
 | `sa{motion}{char}` | n | Add surrounding |
 | `sd{char}` | n | Delete surrounding |
 | `sr{old}{new}` | n | Replace surrounding |
 
 Examples:
+
 - `saiw"` - Surround word with quotes
 - `sd(` - Delete surrounding parens
 - `sr"'` - Replace double with single quotes
@@ -214,7 +216,7 @@ Examples:
 ## Undo History
 
 | Keys | Action |
-|------|--------|
+| ------ | -------- |
 | `<leader>u` | Toggle Undotree panel |
 
 ---
@@ -222,7 +224,7 @@ Examples:
 ## TODO Comments
 
 | Keys | Action |
-|------|--------|
+| ------ | -------- |
 | `]t` | Next TODO comment |
 | `[t` | Previous TODO comment |
 | `<leader>ft` | Find TODOs with Telescope |
@@ -232,7 +234,7 @@ Examples:
 ## Git (vim-fugitive)
 
 | Keys | Context | Action |
-|------|---------|--------|
+| ------ | --------- | -------- |
 | `<leader>gs` | any | Open Git status |
 | `<leader>gp` | fugitive | Git push |
 | `<leader>gP` | fugitive | Git pull --rebase |
@@ -245,7 +247,7 @@ Examples:
 ## Git Hunks (gitsigns.nvim)
 
 | Keys | Mode | Action |
-|------|------|--------|
+| ------ | ------ | -------- |
 | `]h` / `[h` | n | Next / previous hunk |
 | `<leader>hs` | n,v | Stage hunk |
 | `<leader>hr` | n,v | Reset hunk |
@@ -260,7 +262,7 @@ Examples:
 Press `<leader>` and wait to see available commands:
 
 | Prefix | Category |
-|--------|----------|
+| -------- | ---------- |
 | `<leader>b` | Buffer |
 | `<leader>c` | Code |
 | `<leader>f` | Format |
@@ -276,7 +278,7 @@ Press `<leader>` and wait to see available commands:
 ## Built-In Essentials
 
 | Action | Keys |
-|--------|------|
+| -------- | ------ |
 | Save | `:w` |
 | Quit | `:q`, `:q!`, `:wq` |
 | Vertical split | `:vsp` |
@@ -297,7 +299,7 @@ Press `<leader>` and wait to see available commands:
 ## Plugin Commands
 
 | Plugin | Command |
-|--------|---------|
+| -------- | --------- |
 | lazy.nvim | `:Lazy` |
 | mason.nvim | `:Mason` |
 | telescope.nvim | `:Telescope` |
@@ -321,6 +323,7 @@ Add more via `:Mason`.
 ## Maintenance
 
 When adding keymaps:
+
 1. Plugin keymaps go in `lua/vakesz/lazy/*.lua`
 2. LSP keymaps are in `lua/vakesz/lazy/lsp.lua`
 3. Core keymaps are in `lua/vakesz/remap.lua`

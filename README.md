@@ -20,7 +20,7 @@ The installer prompts to apply platform-specific settings:
 
 - Finder: show extensions, path bar, list view, folders first
 - Keyboard: fast key repeat, disable auto-correct/substitution
-- Dock: smaller tiles, scale effect
+- Dock: smaller tiles, no effect
 - Trackpad: tap to click
 - Screenshots: save to Desktop as PNG
 - Disable Tips notifications
@@ -91,6 +91,7 @@ dotfiles/
 ## XDG Compliance
 
 Configs use XDG Base Directory spec to keep `$HOME` clean:
+
 - `~/.config` - configs
 - `~/.local/share` - data
 - `~/.local/state` - history

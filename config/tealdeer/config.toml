@@ -1,10 +1,6 @@
 # Tealdeer (tldr) configuration
 # https://github.com/dbrgn/tealdeer
 
-[directories]
-# Cache directory for tldr pages
-cache_dir = "$XDG_CACHE_HOME/tealdeer"
-
 [display]
 # Compact mode (less whitespace)
 compact = false
