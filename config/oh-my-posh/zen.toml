@@ -47,6 +47,16 @@ final_space = true
     [blocks.segments.properties]
       fetch_status = true
 
+  [[blocks.segments]]
+    template = ' Py'
+    foreground = 'p:gold'
+    type = 'python'
+    style = 'plain'
+
+    [blocks.segments.properties]
+      fetch_virtual_env = true
+      display_default = false
+
 [[blocks]]
   type = 'rprompt'
   overflow = 'hidden'

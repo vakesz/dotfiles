@@ -12,7 +12,10 @@ else
   export VISUAL="vim"
 fi
 
-[[ -t 0 ]] && export GPG_TTY=$(tty)
+if [[ -t 0 ]]; then
+  GPG_TTY=$(tty)
+  export GPG_TTY
+fi
 
 # XDG paths for tools
 export LESS='-R -i -M -W -x4 -F -X'
@@ -33,7 +36,7 @@ export GNUPGHOME="${XDG_DATA_HOME}/gnupg"
 export GCM_CREDENTIAL_CACHE_DIR="${XDG_CACHE_HOME}/git-credential-manager"
 export TEALDEER_CONFIG_DIR="${XDG_CONFIG_HOME}/tealdeer"
 
-export XDG_BIN_HOME="${XDG_BIN_HOME:-${XDG_DATA_HOME}/bin}"
+export XDG_BIN_HOME="${XDG_BIN_HOME:-$XDG_DATA_HOME/bin}"
 export PATH="$XDG_BIN_HOME:$PATH"
 
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
@@ -49,10 +52,11 @@ export FZF_DEFAULT_OPTS='
 '
 
 # History
-export HISTSIZE=10000
+export HISTSIZE=100000
 export SAVEHIST=$HISTSIZE
 export HISTFILE="${XDG_STATE_HOME}/zsh/history"
 
 if [[ "$OS_TYPE" == "macos" ]]; then
-  export ARCHFLAGS="-arch $(uname -m)"
+  ARCHFLAGS="-arch $(uname -m)"
+  export ARCHFLAGS
 fi

@@ -50,6 +50,10 @@
 	autosquash = true
 	autostash = true
 
+[fetch]
+	prune = true
+	pruneTags = true
+
 [color]
 	ui = auto
 

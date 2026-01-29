@@ -40,7 +40,7 @@ alias venv-off='deactivate'
 __auto_venv() {
   if [[ -n "$VIRTUAL_ENV" ]]; then
     local venv_parent="${VIRTUAL_ENV:h}"
-    if [[ "$PWD" != "$venv_parent"* ]]; then
+    if [[ "$PWD" != "${venv_parent}/"* && "$PWD" != "$venv_parent" ]]; then
       deactivate
     fi
   fi

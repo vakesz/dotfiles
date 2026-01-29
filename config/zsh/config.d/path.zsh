@@ -16,8 +16,8 @@ if [[ "$OS_TYPE" == "macos" ]]; then
   fi
 
   if [[ -n "$brew_path" ]]; then
-    brew_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/brew_shellenv.zsh"
-    if [[ ! -f "$brew_cache" || "$brew_cache" -ot "$brew_path" ]]; then
+    local brew_cache="$XDG_CACHE_HOME/zsh/brew_shellenv.zsh"
+    if [[ ! -f "$brew_cache" || "$brew_path" -nt "$brew_cache" ]]; then
       mkdir -p "${brew_cache:h}"
       "$brew_path" shellenv > "$brew_cache" 2>/dev/null
     fi
@@ -34,7 +34,7 @@ elif [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
   fi
 
   # NVM (lazy-loaded)
-  export NVM_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/nvm"
+  export NVM_DIR="${XDG_DATA_HOME}/nvm"
   if [[ -s "$NVM_DIR/nvm.sh" ]]; then
     _nvm_load() {
       unfunction nvm node npm npx 2>/dev/null

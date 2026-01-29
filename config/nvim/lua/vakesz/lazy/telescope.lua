@@ -41,7 +41,17 @@ return {
                 layout_config = {
                     prompt_position = "top",
                 },
-                file_ignore_patterns = { "node_modules", ".git/" },
+                file_ignore_patterns = {
+                    "node_modules/",
+                    ".git/",
+                    "dist/",
+                    "build/",
+                    ".next/",
+                    "vendor/",
+                    "target/",
+                    ".venv/",
+                    "__pycache__/",
+                },
             },
             extensions = {
                 fzf = {
