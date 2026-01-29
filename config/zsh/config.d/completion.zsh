@@ -1,5 +1,11 @@
 # Completion Configuration
 
+# Homebrew completions (docker, docker-compose, docker-buildx, etc.)
+if (( $+commands[brew] )); then
+  local brew_prefix="${HOMEBREW_PREFIX:-/opt/homebrew}"
+  fpath=("$brew_prefix/share/zsh/site-functions" $fpath)
+fi
+
 if ! (( ${+_comps} )); then
   autoload -Uz compinit
   ZSH_COMPDUMP="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/.zcompdump"

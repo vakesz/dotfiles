@@ -77,6 +77,7 @@ brew "gnupg"
 # Docker & Virtualization
 brew "colima"
 brew "docker"
+brew "docker-buildx"
 brew "docker-compose"
 brew "docker-credential-helper"
 

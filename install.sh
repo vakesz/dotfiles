@@ -13,6 +13,14 @@ success() { printf '\033[32m[OK]\033[0m %s\n' "$1"; }
 warn()    { printf '\033[33m[WARN]\033[0m %s\n' "$1"; }
 error()   { printf '\033[31m[ERROR]\033[0m %s\n' "$1"; }
 
+# Interactive prompt helper
+ask() {
+    local answer="n"
+    read -rn1 -p $'\n'"$1"$' (y/N) ' answer || true
+    echo ""
+    [[ "$answer" =~ ^[Yy]$ ]]
+}
+
 # Platform detection
 detect_platform() {
     case "$OSTYPE" in
@@ -226,8 +234,10 @@ cleanup_ds_store() {
     success ".DS_Store files removed"
 }
 
-# Set up Docker (Colima runtime + compose CLI plugin)
+# Set up Docker (Colima runtime + compose/buildx CLI plugins)
 setup_docker() {
+    local docker_config="$HOME/.docker"
+
     # Start Colima runtime
     if command -v colima >/dev/null 2>&1; then
         if ! colima status &>/dev/null; then
@@ -242,9 +252,17 @@ setup_docker() {
     # Register docker-compose as CLI plugin
     if command -v docker-compose >/dev/null 2>&1; then
         info "Setting up docker-compose CLI plugin..."
-        mkdir -p "$HOME/.docker/cli-plugins"
-        ln -sfn "$(brew --prefix docker-compose)/bin/docker-compose" "$HOME/.docker/cli-plugins/docker-compose"
+        mkdir -p "$docker_config/cli-plugins"
+        ln -sfn "$(brew --prefix docker-compose)/bin/docker-compose" "$docker_config/cli-plugins/docker-compose"
         success "docker-compose CLI plugin linked"
+    fi
+
+    # Register docker-buildx as CLI plugin
+    if command -v docker-buildx >/dev/null 2>&1; then
+        info "Setting up docker-buildx CLI plugin..."
+        mkdir -p "$docker_config/cli-plugins"
+        ln -sfn "$(brew --prefix docker-buildx)/bin/docker-buildx" "$docker_config/cli-plugins/docker-buildx"
+        success "docker-buildx CLI plugin linked"
     fi
 }
 
@@ -256,10 +274,19 @@ apply_symlinks() {
     # Remove .DS_Store files that interfere with stow (only in stow source dirs)
     fd -HI -g '.DS_Store' home config -x rm
 
-    mkdir -p "$HOME/.config"
+    local xdg_config="${XDG_CONFIG_HOME:-$HOME/.config}"
+
+    # Pre-create all directories so stow links individual files, not whole trees
+    (cd home && fd -t d) | while read -r dir; do
+        mkdir -p "$HOME/$dir"
+    done
+
+    (cd config && fd -t d) | while read -r dir; do
+        mkdir -p "$xdg_config/$dir"
+    done
 
     stow --adopt -t ~ home
-    stow --adopt -t ~/.config config
+    stow --adopt -t "$xdg_config" config
 
     success "Symlinks created"
 
@@ -272,50 +299,27 @@ main() {
     info "Dotfiles installer"
 
     # Check prerequisites
-    command -v git >/dev/null 2>&1 || { error "git is required but not installed"; exit 1; }
-    command -v stow >/dev/null 2>&1 || { error "stow is required but not installed"; exit 1; }
-    command -v fd >/dev/null 2>&1 || { error "fd is required but not installed"; exit 1; }
+    command -v git  >/dev/null 2>&1 || { error "git is required"; exit 1; }
+    command -v stow >/dev/null 2>&1 || { error "stow is required"; exit 1; }
+    command -v fd   >/dev/null 2>&1 || { error "fd is required"; exit 1; }
 
     detect_platform
 
-    local apply_tweaks="n"
     if [[ -t 0 ]]; then
-        read -rn1 -p $'\nApply OS tweaks? (y/N) ' apply_tweaks || true
-        echo ""
-    else
-        info "Non-interactive shell; skipping OS tweaks"
-    fi
-    if [[ "$apply_tweaks" =~ ^[Yy]$ ]]; then
-        case "$PLATFORM" in
-            macos) apply_macos_tweaks ;;
+        ask "Apply OS tweaks?" && case "$PLATFORM" in
+            macos)     apply_macos_tweaks ;;
             linux|wsl) apply_linux_tweaks ;;
-            *) warn "No tweaks for platform: $PLATFORM" ;;
+            *)         warn "No tweaks for platform: $PLATFORM" ;;
         esac
-    fi
 
-    if [[ "$PLATFORM" == "macos" && -t 0 ]]; then
-        local install_layout="n"
-        read -rn1 -p $'\nInstall Hungarian keyboard layout? (y/N) ' install_layout || true
-        echo ""
-        if [[ "$install_layout" =~ ^[Yy]$ ]]; then
-            install_keyboard_layout
+        if [[ "$PLATFORM" == "macos" ]]; then
+            ask "Install Hungarian keyboard layout?" && install_keyboard_layout
+            ask "Clean up .DS_Store files from entire filesystem?" && cleanup_ds_store
         fi
 
-        local cleanup_ds="n"
-        read -rn1 -p $'\nClean up .DS_Store files from entire filesystem? (y/N) ' cleanup_ds || true
-        echo ""
-        if [[ "$cleanup_ds" =~ ^[Yy]$ ]]; then
-            cleanup_ds_store
-        fi
-    fi
-
-    if [[ -t 0 ]]; then
-        local setup_dock="n"
-        read -rn1 -p $'\nSet up Docker (Colima + compose plugin)? (y/N) ' setup_dock || true
-        echo ""
-        if [[ "$setup_dock" =~ ^[Yy]$ ]]; then
-            setup_docker
-        fi
+        ask "Set up Docker (Colima + compose/buildx plugins)?" && setup_docker
+    else
+        info "Non-interactive shell; skipping optional steps"
     fi
 
     apply_symlinks

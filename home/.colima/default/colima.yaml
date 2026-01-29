@@ -1,0 +1,40 @@
+cpu: 4
+disk: 100
+memory: 6
+arch: aarch64
+runtime: docker
+hostname: colima
+kubernetes:
+  enabled: false
+  version: v1.33.4+k3s1
+  k3sArgs:
+    - --disable=traefik
+  port: 0
+autoActivate: true
+
+# Network configurations for the virtual machine.
+network:
+  address: false
+  mode: shared
+  interface: en0
+  preferredRoute: false
+  dns: []
+  dnsHosts: {}
+  hostAddresses: false
+forwardAgent: false
+docker: {}
+vmType: vz
+portForwarder: ssh
+rosetta: false
+binfmt: true
+nestedVirtualization: false
+mountType: virtiofs
+mountInotify: true
+cpuType: ""
+provision: []
+sshConfig: true
+sshPort: 0
+mounts: []
+diskImage: ""
+rootDisk: 20
+env: {}
