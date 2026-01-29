@@ -74,10 +74,15 @@ brew "pngquant"
 brew "hugo"
 brew "gnupg"
 
+# Docker & Virtualization
+brew "colima"
+brew "docker"
+brew "docker-compose"
+brew "docker-credential-helper"
+
 # Development
 cask "iterm2"
 cask "visual-studio-code"
-cask "docker-desktop"
 cask "claude-code"
 brew "opencode" 
 cask "dbeaver-community"

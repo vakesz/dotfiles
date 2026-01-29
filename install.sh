@@ -226,6 +226,28 @@ cleanup_ds_store() {
     success ".DS_Store files removed"
 }
 
+# Set up Docker (Colima runtime + compose CLI plugin)
+setup_docker() {
+    # Start Colima runtime
+    if command -v colima >/dev/null 2>&1; then
+        if ! colima status &>/dev/null; then
+            info "Starting Colima..."
+            brew services start colima
+            success "Colima started"
+        else
+            info "Colima already running"
+        fi
+    fi
+
+    # Register docker-compose as CLI plugin
+    if command -v docker-compose >/dev/null 2>&1; then
+        info "Setting up docker-compose CLI plugin..."
+        mkdir -p "$HOME/.docker/cli-plugins"
+        ln -sfn "$(brew --prefix docker-compose)/bin/docker-compose" "$HOME/.docker/cli-plugins/docker-compose"
+        success "docker-compose CLI plugin linked"
+    fi
+}
+
 # Symlink dotfiles using GNU Stow
 apply_symlinks() {
     info "Creating symlinks with stow..."
@@ -284,6 +306,15 @@ main() {
         echo ""
         if [[ "$cleanup_ds" =~ ^[Yy]$ ]]; then
             cleanup_ds_store
+        fi
+    fi
+
+    if [[ -t 0 ]]; then
+        local setup_dock="n"
+        read -rn1 -p $'\nSet up Docker (Colima + compose plugin)? (y/N) ' setup_dock || true
+        echo ""
+        if [[ "$setup_dock" =~ ^[Yy]$ ]]; then
+            setup_docker
         fi
     fi
 
