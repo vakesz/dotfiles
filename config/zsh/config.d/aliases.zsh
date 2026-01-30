@@ -83,3 +83,14 @@ alias gpl='git pull'
 # Docker
 alias dcu='docker compose up'
 alias dcd='docker compose down'
+
+# Caffeinate
+if is_mac; then
+  nosleep() {
+    if [[ -n "$1" ]]; then
+      caffeinate -u -t "$1"
+    else
+      caffeinate -u -s
+    fi
+  }
+fi
