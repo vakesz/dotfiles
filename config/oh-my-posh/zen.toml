@@ -1,3 +1,4 @@
+# NOTE: Changes to this config require removing ~/.cache/oh-my-posh for updates to take effect
 console_title_template = '{{ .Shell }} in {{ .Folder }}'
 version = 3
 final_space = true
