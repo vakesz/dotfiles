@@ -66,7 +66,4 @@ bindkey '^[[B' down-line-or-beginning-search  # Down arrow
 setopt HIST_IGNORE_ALL_DUPS   # Remove older duplicate entries from history
 setopt HIST_REDUCE_BLANKS     # Remove superfluous blanks from history items
 setopt HIST_IGNORE_SPACE      # Don't record commands starting with space
-setopt SHARE_HISTORY          # Share history between all sessions
-setopt INC_APPEND_HISTORY     # Write to history file immediately
-setopt HIST_FIND_NO_DUPS      # Don't show duplicates when searching
-setopt HIST_SAVE_NO_DUPS      # Don't write duplicates to history file
+setopt SHARE_HISTORY          # Share history between all sessions (implies INC_APPEND_HISTORY)

@@ -3,8 +3,6 @@ vim.g.mapleader = " "
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { desc = "Move selection down" })
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv", { desc = "Move selection up" })
 
-vim.keymap.set("n", "<leader>tp", "<Plug>PlenaryTestFile", { remap = true, silent = false, desc = "Run Plenary test file" })
-
 vim.keymap.set("n", "J", "mzJ`z", { desc = "Join lines, keep cursor" })
 vim.keymap.set("n", "<C-d>", "<C-d>zz", { desc = "Half-page down, center" })
 vim.keymap.set("n", "<C-u>", "<C-u>zz", { desc = "Half-page up, center" })

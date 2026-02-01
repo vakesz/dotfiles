@@ -29,10 +29,8 @@ brew "uv"
 brew "go"
 brew "ruby"
 brew "lua"
-brew "luajit"
 brew "oven-sh/bun/bun"
 brew "deno"
-brew "typescript"
 
 # Apple/iOS Development
 brew "swiftlint"

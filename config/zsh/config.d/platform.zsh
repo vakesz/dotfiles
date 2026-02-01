@@ -20,10 +20,6 @@ have() {
   command -v "$1" >/dev/null 2>&1
 }
 
-alias_if_exists() {
-  have "$2" && alias "$1=$3"
-}
-
 # Cache a tool's init output, regenerating when the binary changes.
 # Usage: _cache_init <binary> <cache_file> <command>
 _cache_init() {

@@ -54,3 +54,11 @@ vim.opt.colorcolumn = "80"
 -- Spell checking for prose (enable per-buffer with :set spell)
 vim.opt.spelllang = "en_us"
 vim.opt.spelloptions = "camel"  -- Check camelCase words separately
+
+-- Enable conceal for markdown rendering (render-markdown.nvim)
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = "markdown",
+    callback = function()
+        vim.opt_local.conceallevel = 2
+    end,
+})

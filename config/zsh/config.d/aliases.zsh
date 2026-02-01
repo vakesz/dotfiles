@@ -1,7 +1,7 @@
 # Aliases and Functions
 
 if [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
-  alias_if_exists fd fdfind fdfind
+  have fdfind && alias fd=fdfind
 fi
 
 # Neovim aliases
