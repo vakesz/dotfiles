@@ -88,6 +88,7 @@ cask "dbeaver-community"
 cask "devcleaner"
 cask "lm-studio"
 cask "sf-symbols"
+cask "keyboard-cleaner"
 
 # Productivity & Utilities
 cask "tailscale-app"
@@ -116,6 +117,7 @@ cask "font-fira-code-nerd-font"
 
 # Microsoft Office
 cask "libreoffice"
+cask "microsoft-auto-update"
 cask "microsoft-word"
 cask "microsoft-excel"
 cask "microsoft-powerpoint"
