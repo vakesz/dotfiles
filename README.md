@@ -16,6 +16,9 @@ brew bundle install
 
 The installer prompts to apply platform-specific settings:
 
+- Confirm OS tweaks
+- Confirm `stow --adopt` before creating symlinks
+
 **macOS:**
 
 - Finder: show extensions, path bar, list view, folders first

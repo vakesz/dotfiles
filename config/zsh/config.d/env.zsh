@@ -18,7 +18,7 @@ if [[ -t 0 ]]; then
 fi
 
 # XDG paths for tools
-export LESS='-R -i -M -W -x4 -F -X'
+export LESS='-R -i -M -W -x4 -F'
 export LESSHISTFILE="${XDG_STATE_HOME}/less/history"
 export RIPGREP_CONFIG_PATH="${XDG_CONFIG_HOME}/ripgrep/config"
 export WGETRC="${XDG_CONFIG_HOME}/wget/wgetrc"
@@ -45,16 +45,21 @@ export FZF_DEFAULT_OPTS='
   --layout=reverse
   --border
   --info=inline
-  --color=fg:-1,bg:-1,hl:#5f87af
-  --color=fg+:#d0d0d0,bg+:#262626,hl+:#5fd7ff
-  --color=info:#afaf87,prompt:#d7005f,pointer:#af5fff
-  --color=marker:#87ff00,spinner:#af5fff,header:#87afaf
+  --color=fg:#908caa,bg:-1,hl:#9ccfd8
+  --color=fg+:#e0def4,bg+:#26233a,hl+:#9ccfd8
+  --color=info:#f6c177,prompt:#eb6f92,pointer:#c4a7e7
+  --color=marker:#9ccfd8,spinner:#c4a7e7,header:#6e6a86
 '
 
 # History
 export HISTSIZE=100000
 export SAVEHIST=$HISTSIZE
 export HISTFILE="${XDG_STATE_HOME}/zsh/history"
+setopt HIST_IGNORE_ALL_DUPS   # Remove older duplicate entries from history
+setopt HIST_REDUCE_BLANKS     # Remove superfluous blanks from history items
+setopt HIST_IGNORE_SPACE      # Don't record commands starting with space
+setopt SHARE_HISTORY          # Share history between all sessions (implies INC_APPEND_HISTORY)
+setopt HIST_VERIFY            # Show expanded history command before executing
 
 if [[ "$OS_TYPE" == "macos" ]]; then
   ARCHFLAGS="-arch $(uname -m)"

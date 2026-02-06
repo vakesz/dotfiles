@@ -285,6 +285,12 @@ apply_symlinks() {
         mkdir -p "$xdg_config/$dir"
     done
 
+    warn "stow --adopt will overwrite repo files with any existing system files."
+    warn "Review changes afterward with: git diff"
+    if [[ -t 0 ]]; then
+        ask "Continue with stow --adopt?" || { info "Skipping symlink setup"; return 0; }
+    fi
+
     stow --adopt -t ~ home
     stow --adopt -t "$xdg_config" config
 

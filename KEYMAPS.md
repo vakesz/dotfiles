@@ -21,7 +21,6 @@ Quick reference for all keymaps in this Neovim configuration.
 | `<leader>d` | n,v | Delete without yanking (blackhole) |
 | `<C-c>` | i | Escape to Normal mode |
 | `Q` | n | Disabled (no-op) |
-| `<leader>tp` | n | Run Plenary test file |
 | `<leader>f` | n,v | Format buffer via conform.nvim |
 | `<C-k>` / `<C-j>` | n | Next / previous quickfix item |
 | `<leader>k` / `<leader>j` | n | Next / previous location list item |
@@ -182,7 +181,7 @@ Buffer-local keymaps, active when LSP attaches.
 | `<leader>xx` | Toggle workspace diagnostics |
 | `<leader>xX` | Toggle buffer diagnostics |
 | `<leader>cs` | Toggle symbols outline |
-| `<leader>cl` | Toggle LSP references panel |
+| `<leader>cl` | Toggle LSP items panel (definitions/references/etc) |
 | `<leader>xL` | Toggle location list |
 | `<leader>xQ` | Toggle quickfix list |
 
@@ -265,7 +264,7 @@ Press `<leader>` and wait to see available commands:
 | -------- | ---------- |
 | `<leader>b` | Buffer |
 | `<leader>c` | Code |
-| `<leader>f` | Format |
+| `<leader>f` | Format command |
 | `<leader>g` | Git |
 | `<leader>h` | Git Hunks |
 | `<leader>p` | Project/Find |

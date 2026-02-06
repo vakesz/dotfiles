@@ -61,9 +61,3 @@ zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
 bindkey '^[[A' up-line-or-beginning-search    # Up arrow
 bindkey '^[[B' down-line-or-beginning-search  # Down arrow
-
-# History
-setopt HIST_IGNORE_ALL_DUPS   # Remove older duplicate entries from history
-setopt HIST_REDUCE_BLANKS     # Remove superfluous blanks from history items
-setopt HIST_IGNORE_SPACE      # Don't record commands starting with space
-setopt SHARE_HISTORY          # Share history between all sessions (implies INC_APPEND_HISTORY)

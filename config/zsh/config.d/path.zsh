@@ -51,26 +51,25 @@ fi
 # Development tools (XDG paths)
 
 export GOPATH="${XDG_DATA_HOME}/go"
-export GOBIN="${GOBIN:-$GOPATH/bin}"
 export GOMODCACHE="${XDG_CACHE_HOME}/go/mod"
-export PATH="$GOBIN:$PATH"
+[[ -d "$GOPATH/bin" ]] && export PATH="$GOPATH/bin:$PATH"
 
 export RUSTUP_HOME="${XDG_DATA_HOME}/rustup"
 export CARGO_HOME="${XDG_DATA_HOME}/cargo"
-export PATH="$CARGO_HOME/bin:$PATH"
+[[ -d "$CARGO_HOME/bin" ]] && export PATH="$CARGO_HOME/bin:$PATH"
 
 export NPM_CONFIG_CACHE="${XDG_CACHE_HOME}/npm"
 export PNPM_HOME="${XDG_DATA_HOME}/pnpm"
-export PATH="$PNPM_HOME:$PATH"
+[[ -d "$PNPM_HOME" ]] && export PATH="$PNPM_HOME:$PATH"
 
 export UV_CACHE_DIR="${XDG_CACHE_HOME}/uv"
 export UV_TOOL_DIR="${XDG_DATA_HOME}/uv/tools"
 export UV_TOOL_BIN_DIR="${XDG_DATA_HOME}/uv/bin"
 export UV_PYTHON_INSTALL_DIR="${XDG_DATA_HOME}/uv/python"
-export PATH="${UV_TOOL_BIN_DIR}:$PATH"
+[[ -d "$UV_TOOL_BIN_DIR" ]] && export PATH="${UV_TOOL_BIN_DIR}:$PATH"
 
 export BUN_INSTALL="${XDG_DATA_HOME}/bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
+[[ -d "$BUN_INSTALL/bin" ]] && export PATH="$BUN_INSTALL/bin:$PATH"
 
 export SWIFTPM_HOME="${XDG_DATA_HOME}/swiftpm"
-export PATH="$SWIFTPM_HOME/bin:$PATH"
+[[ -d "$SWIFTPM_HOME/bin" ]] && export PATH="$SWIFTPM_HOME/bin:$PATH"
