@@ -31,14 +31,12 @@ return {
                 json = { "prettier" },
                 yaml = { "prettier" },
                 markdown = { "prettier" },
-                elixir = { "mix" },
                 python = { "ruff_fix", "ruff_format" },
                 c = { "clang_format" },
                 cpp = { "clang_format" },
                 objc = { "clang_format" },
                 objcpp = { "clang_format" },
                 swift = { "swift_format" },
-                rust = { "rustfmt" },
             },
             format_on_save = function(bufnr)
                 -- Disable format on save for certain filetypes
