@@ -4,7 +4,6 @@
 return {
     "williamboman/mason.nvim",
     dependencies = {
-        "williamboman/mason-lspconfig.nvim",
         "neovim/nvim-lspconfig", -- Provides lsp/*.lua server configs for vim.lsp.config
         "hrsh7th/cmp-nvim-lsp",
         "hrsh7th/cmp-buffer",
@@ -49,14 +48,18 @@ return {
             end,
         })
 
-        -- clangd and ts_ls use defaults (no custom config needed)
+        -- sourcekit-lsp (Xcode) uses xcode-build-server via buildServer.json
+        vim.lsp.config('sourcekit', {
+            cmd = { 'sourcekit-lsp' },
+            filetypes = { 'swift' },
+        })
+
+        -- All servers installed system-wide via Homebrew (see Brewfile)
+        -- clangd provided by Xcode Command Line Tools
+        vim.lsp.enable({ 'lua_ls', 'pyright', 'clangd', 'ts_ls', 'gopls', 'ruby_lsp', 'bashls', 'sourcekit' })
 
         require("fidget").setup({})
         require("mason").setup()
-        require("mason-lspconfig").setup({
-            ensure_installed = { "lua_ls", "pyright", "clangd", "ts_ls" },
-            automatic_enable = true, -- Calls vim.lsp.enable() for installed servers
-        })
 
         -- nvim-cmp setup
         local cmp_select = { behavior = cmp.SelectBehavior.Select }

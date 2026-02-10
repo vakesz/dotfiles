@@ -60,6 +60,14 @@ brew "cppcheck"
 brew "stylua"
 brew "pre-commit"
 
+# LSP Servers
+brew "lua-language-server"
+brew "pyright"
+brew "typescript-language-server"
+brew "gopls"
+brew "ruby-lsp"
+brew "bash-language-server"
+
 # Networking
 brew "curl"
 brew "wget"
