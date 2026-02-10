@@ -32,6 +32,9 @@ brew "lua"
 brew "oven-sh/bun/bun"
 brew "deno"
 
+# Android
+cask "android-platform-tools"
+
 # Apple/iOS Development
 brew "swiftlint"
 brew "swiftgen"
@@ -112,7 +115,6 @@ cask "steam"
 
 # Browsers
 cask "firefox"
-cask "ungoogled-chromium"
 
 # Fonts
 cask "font-fira-code-nerd-font"
@@ -120,6 +122,7 @@ cask "font-fira-code-nerd-font"
 # Microsoft Office
 cask "libreoffice"
 cask "microsoft-auto-update"
+cask "microsoft-edge"
 cask "microsoft-word"
 cask "microsoft-excel"
 cask "microsoft-powerpoint"
