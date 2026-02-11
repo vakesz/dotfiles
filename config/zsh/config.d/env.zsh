@@ -45,10 +45,10 @@ export FZF_DEFAULT_OPTS='
   --layout=reverse
   --border
   --info=inline
-  --color=fg:#908caa,bg:-1,hl:#9ccfd8
-  --color=fg+:#e0def4,bg+:#26233a,hl+:#9ccfd8
-  --color=info:#f6c177,prompt:#eb6f92,pointer:#c4a7e7
-  --color=marker:#9ccfd8,spinner:#c4a7e7,header:#6e6a86
+  --color=fg:#737aa2,bg:-1,hl:#7dcfff
+  --color=fg+:#c0caf5,bg+:#292e42,hl+:#7dcfff
+  --color=info:#e0af68,prompt:#f7768e,pointer:#bb9af7
+  --color=marker:#7dcfff,spinner:#bb9af7,header:#565f89
 '
 
 # History

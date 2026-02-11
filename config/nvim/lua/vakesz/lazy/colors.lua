@@ -1,24 +1,24 @@
 return {
-    "rose-pine/neovim",
-    name = "rose-pine",
+    "folke/tokyonight.nvim",
+    name = "tokyonight",
     lazy = false,
     priority = 1000,
 
     config = function()
-        require("rose-pine").setup({
-            dark_variant = "moon",
+        require("tokyonight").setup({
+            style = "night",
+            transparent = true,
             styles = {
-                bold = true,
-                italic = true,
-                transparency = true,
+                comments = { italic = true },
+                keywords = { bold = true },
+                sidebars = "transparent",
+                floats = "transparent",
             },
-            highlight_groups = {
-                Comment = { italic = true },
-                Keyword = { bold = true },
-                Type = { italic = true, bold = true },
-            },
+            on_highlights = function(hl, _)
+                hl.Type = { italic = true, bold = true }
+            end,
         })
 
-        vim.cmd.colorscheme("rose-pine-moon")
+        vim.cmd.colorscheme("tokyonight-night")
     end,
 }

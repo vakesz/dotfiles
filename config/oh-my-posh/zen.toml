@@ -4,18 +4,18 @@ version = 3
 final_space = true
 
 [palette]
-  base = '#191724'
-  surface = '#1f1d2e'
-  overlay = '#26233a'
-  muted = '#6e6a86'
-  subtle = '#908caa'
-  text = '#e0def4'
-  love = '#eb6f92'
-  gold = '#f6c177'
-  rose = '#ebbcba'
-  pine = '#31748f'
-  foam = '#9ccfd8'
-  iris = '#c4a7e7'
+  bg = '#1a1b26'
+  bg_dark = '#16161e'
+  bg_highlight = '#292e42'
+  comment = '#565f89'
+  subtle = '#737aa2'
+  fg = '#c0caf5'
+  red = '#f7768e'
+  yellow = '#e0af68'
+  orange = '#ff9e64'
+  teal = '#73daca'
+  cyan = '#7dcfff'
+  purple = '#bb9af7'
 
 [secondary_prompt]
   template = '❯❯ '
@@ -23,7 +23,7 @@ final_space = true
 
 [transient_prompt]
   template = '❯ '
-  foreground_templates = ['{{if gt .Code 0}}p:love{{end}}', '{{if eq .Code 0}}p:subtle{{end}}']
+  foreground_templates = ['{{if gt .Code 0}}p:red{{end}}', '{{if eq .Code 0}}p:subtle{{end}}']
 
 [[blocks]]
   type = 'prompt'
@@ -32,7 +32,7 @@ final_space = true
 
   [[blocks.segments]]
     template = '{{ .Path }}'
-    foreground = 'p:foam'
+    foreground = 'p:cyan'
     type = 'path'
     style = 'plain'
 
@@ -40,8 +40,8 @@ final_space = true
       style = 'full'
 
   [[blocks.segments]]
-    template = ' {{ .HEAD }}{{if or .Working.Changed .Staging.Changed}}*{{end}}<p:pine>{{if gt .Behind 0}}⇣{{end}}{{if gt .Ahead 0}}⇡{{end}}</>'
-    foreground = 'p:text'
+    template = ' {{ .HEAD }}{{if or .Working.Changed .Staging.Changed}}*{{end}}<p:teal>{{if gt .Behind 0}}⇣{{end}}{{if gt .Ahead 0}}⇡{{end}}</>'
+    foreground = 'p:fg'
     type = 'git'
     style = 'plain'
 
@@ -50,7 +50,7 @@ final_space = true
 
   [[blocks.segments]]
     template = ' Py'
-    foreground = 'p:gold'
+    foreground = 'p:yellow'
     type = 'python'
     style = 'plain'
 
@@ -64,7 +64,7 @@ final_space = true
 
   [[blocks.segments]]
     template = '{{ .FormattedMs }}'
-    foreground = 'p:gold'
+    foreground = 'p:yellow'
     type = 'executiontime'
     style = 'plain'
 
@@ -80,4 +80,4 @@ final_space = true
     template = ' ❯'
     type = 'text'
     style = 'plain'
-    foreground_templates = ['{{if gt .Code 0}}p:love{{end}}', '{{if eq .Code 0}}p:subtle{{end}}']
+    foreground_templates = ['{{if gt .Code 0}}p:red{{end}}', '{{if eq .Code 0}}p:subtle{{end}}']

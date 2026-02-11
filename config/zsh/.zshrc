@@ -10,7 +10,7 @@ source "$ZDOTDIR/config.d/aliases.zsh"
 # Oh My Posh prompt (cached via _lazy_init; clear cache after editing zen.toml)
 _lazy_init oh-my-posh "oh-my-posh init zsh --config $XDG_CONFIG_HOME/oh-my-posh/zen.toml"
 if ! have oh-my-posh; then
-  PROMPT='%F{#9ccfd8}%~%f %F{#908caa}❯%f '
+  PROMPT='%F{#7dcfff}%~%f %F{#737aa2}❯%f '
 fi
 
 # Local overrides (not tracked in git)
