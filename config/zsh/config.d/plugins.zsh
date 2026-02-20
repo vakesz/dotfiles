@@ -26,12 +26,5 @@ zinit light-mode lucid for \
 zinit wait'0a' lucid for \
     zsh-users/zsh-syntax-highlighting
 
-# Cached tool initialization (wraps _cache_init with have check)
-_lazy_init() {
-  local tool="$1" cmd="$2"
-  have "$tool" || return 0
-  _cache_init "$tool" "$XDG_CACHE_HOME/zsh/${tool}-init.zsh" "$cmd"
-}
-
 _lazy_init zoxide "zoxide init --cmd cd zsh"
 _lazy_init fzf "fzf --zsh"

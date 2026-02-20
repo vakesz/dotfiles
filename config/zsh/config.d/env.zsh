@@ -13,8 +13,7 @@ else
 fi
 
 if [[ -t 0 ]]; then
-  GPG_TTY=$(tty)
-  export GPG_TTY
+  export GPG_TTY=$TTY
 fi
 
 # XDG paths for tools
@@ -29,6 +28,7 @@ export GEM_HOME="${XDG_DATA_HOME}/gem"
 export GEM_SPEC_CACHE="${XDG_CACHE_HOME}/gem"
 export NODE_REPL_HISTORY="${XDG_STATE_HOME}/node_repl_history"
 export NPM_CONFIG_USERCONFIG="${XDG_CONFIG_HOME}/npm/npmrc"
+export NPM_CONFIG_CACHE="${XDG_CACHE_HOME}/npm"
 export BUNDLE_USER_CONFIG="${XDG_CONFIG_HOME}/bundle"
 export BUNDLE_USER_CACHE="${XDG_CACHE_HOME}/bundle"
 export BUNDLE_USER_PLUGIN="${XDG_DATA_HOME}/bundle"
@@ -51,6 +51,16 @@ export FZF_DEFAULT_OPTS='
   --color=marker:#7dcfff,spinner:#bb9af7,header:#565f89
 '
 
+# Shell options
+unsetopt FLOW_CONTROL         # Disable flow control (Ctrl-S/Ctrl-Q)
+setopt AUTO_CD                # Type directory name to cd into it
+setopt AUTO_PUSHD             # Push old directory onto stack
+setopt PUSHD_IGNORE_DUPS      # Don't push duplicates
+setopt PUSHD_SILENT           # Don't print stack after pushd/popd
+setopt EXTENDED_GLOB          # Extended glob patterns (#, ~, ^)
+setopt GLOB_DOTS              # Include dotfiles in globs
+setopt INTERACTIVE_COMMENTS   # Allow comments in interactive shell
+
 # History
 export HISTSIZE=100000
 export SAVEHIST=$HISTSIZE
@@ -61,7 +71,13 @@ setopt HIST_IGNORE_SPACE      # Don't record commands starting with space
 setopt SHARE_HISTORY          # Share history between all sessions (implies INC_APPEND_HISTORY)
 setopt HIST_VERIFY            # Show expanded history command before executing
 
+# History search with arrow keys
+autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
+zle -N up-line-or-beginning-search
+zle -N down-line-or-beginning-search
+bindkey '^[[A' up-line-or-beginning-search    # Up arrow
+bindkey '^[[B' down-line-or-beginning-search  # Down arrow
+
 if [[ "$OS_TYPE" == "macos" ]]; then
-  ARCHFLAGS="-arch $(uname -m)"
-  export ARCHFLAGS
+  export ARCHFLAGS="-arch $CPUTYPE"
 fi

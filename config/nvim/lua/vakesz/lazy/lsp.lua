@@ -1,10 +1,10 @@
 -- Language Server Protocol configuration
--- Docs: https://github.com/williamboman/mason.nvim
+-- Docs: https://github.com/neovim/nvim-lspconfig
 
 return {
-    "williamboman/mason.nvim",
+    "neovim/nvim-lspconfig",
+    event = { "BufReadPre", "BufNewFile" },
     dependencies = {
-        "neovim/nvim-lspconfig", -- Provides lsp/*.lua server configs for vim.lsp.config
         "hrsh7th/cmp-nvim-lsp",
         "hrsh7th/cmp-buffer",
         "hrsh7th/cmp-path",
@@ -48,18 +48,12 @@ return {
             end,
         })
 
-        -- sourcekit-lsp (Xcode) uses xcode-build-server via buildServer.json
-        vim.lsp.config('sourcekit', {
-            cmd = { 'sourcekit-lsp' },
-            filetypes = { 'swift' },
-        })
-
         -- All servers installed system-wide via Homebrew (see Brewfile)
         -- clangd provided by Xcode Command Line Tools
+        -- sourcekit-lsp (Xcode) uses xcode-build-server via buildServer.json
         vim.lsp.enable({ 'lua_ls', 'pyright', 'clangd', 'ts_ls', 'gopls', 'ruby_lsp', 'bashls', 'sourcekit' })
 
         require("fidget").setup({})
-        require("mason").setup()
 
         -- nvim-cmp setup
         local cmp_select = { behavior = cmp.SelectBehavior.Select }
@@ -100,14 +94,13 @@ return {
                 local function map(mode, lhs, rhs, desc)
                     vim.keymap.set(mode, lhs, rhs, { buffer = e.buf, desc = desc })
                 end
-                map("n", "gd", vim.lsp.buf.definition, "Go to definition")
-                map("n", "K", vim.lsp.buf.hover, "Hover documentation")
                 map("n", "<leader>vws", vim.lsp.buf.workspace_symbol, "Workspace symbol search")
                 map("n", "<leader>vd", vim.diagnostic.open_float, "Show line diagnostics")
                 map("n", "<leader>vca", vim.lsp.buf.code_action, "Code actions")
                 map("n", "<leader>vrr", vim.lsp.buf.references, "Show references")
                 map("n", "<leader>vrn", vim.lsp.buf.rename, "Rename symbol")
                 map("i", "<C-h>", vim.lsp.buf.signature_help, "Signature help")
+                map("n", "<leader>zig", "<cmd>LspRestart<cr>", "Restart LSP")
             end
         })
     end

@@ -235,7 +235,13 @@ cleanup_ds_store() {
 }
 
 # Set up Docker (Colima runtime + compose/buildx CLI plugins)
+# Requires Homebrew (macOS only)
 setup_docker() {
+    if ! command -v brew >/dev/null 2>&1; then
+        warn "Homebrew not found; skipping Docker setup"
+        return 0
+    fi
+
     local docker_config="$HOME/.docker"
 
     # Start Colima runtime

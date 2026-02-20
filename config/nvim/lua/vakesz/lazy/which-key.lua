@@ -21,7 +21,7 @@ return {
         wk.add({
             { "<leader>b", group = "Buffer" },
             { "<leader>c", group = "Code" },
-            { "<leader>f", desc = "Format" },
+            { "<leader>f", group = "Format/Find" },
             { "<leader>g", group = "Git" },
             { "<leader>h", group = "Git Hunks" },
             { "<leader>p", group = "Project/Find" },

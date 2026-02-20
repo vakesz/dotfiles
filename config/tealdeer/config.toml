@@ -2,18 +2,28 @@
 # https://github.com/dbrgn/tealdeer
 
 [display]
-# Compact mode (less whitespace)
 compact = false
-
-# Use color output
+# Disable pager
 use_pager = false
 
-[style]
-# Syntax highlighting
-# Available: "base16", "github", "monokai"
-syntax = "github"
+# Tokyo Night color theme
+[style.description]
+foreground = { rgb = { r = 192, g = 202, b = 245 } }  # #c0caf5
+
+[style.command_name]
+foreground = { rgb = { r = 125, g = 207, b = 255 } }  # #7dcfff
+bold = true
+
+[style.example_text]
+foreground = { rgb = { r = 158, g = 206, b = 106 } }  # #9ece6a
+
+[style.example_code]
+foreground = { rgb = { r = 122, g = 162, b = 247 } }  # #7aa2f7
+
+[style.example_variable]
+foreground = { rgb = { r = 187, g = 154, b = 247 } }  # #bb9af7
+underline = true
 
 [updates]
-# Automatically update the cache
 auto_update = true
 auto_update_interval_hours = 720  # 30 days

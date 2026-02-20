@@ -13,6 +13,13 @@ return {
         require("render-markdown").setup(opts)
 
         local group = vim.api.nvim_create_augroup("RenderMarkdownToggle", { clear = true })
+        vim.api.nvim_create_autocmd("FileType", {
+            group = group,
+            pattern = "markdown",
+            callback = function()
+                vim.opt_local.conceallevel = 2
+            end,
+        })
         vim.api.nvim_create_autocmd("InsertEnter", {
             group = group,
             pattern = "*.md",

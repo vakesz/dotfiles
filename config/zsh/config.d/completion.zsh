@@ -8,7 +8,7 @@ fi
 
 if ! (( ${+_comps} )); then
   autoload -Uz compinit
-  ZSH_COMPDUMP="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/.zcompdump"
+  ZSH_COMPDUMP="${XDG_CACHE_HOME}/zsh/.zcompdump"
 
   # Only regenerate compdump once a day
   if [[ -n ${ZSH_COMPDUMP}(#qN.mh+24) ]]; then
@@ -18,24 +18,13 @@ if ! (( ${+_comps} )); then
   fi
 fi
 
-# Zsh Options
+# Completion options
 setopt ALWAYS_TO_END          # Move cursor to end of word after completion
 setopt AUTO_MENU              # Show completion menu on successive tab press
 setopt AUTO_PARAM_SLASH       # Add trailing slash to directory completions
 setopt COMPLETE_IN_WORD       # Complete from both ends of a word
 setopt LIST_PACKED            # Make completion list smaller
 setopt MENU_COMPLETE          # Auto-select first completion entry
-unsetopt FLOW_CONTROL         # Disable flow control (Ctrl-S/Ctrl-Q)
-
-setopt AUTO_CD                # Type directory name to cd into it
-setopt AUTO_PUSHD             # Push old directory onto stack
-setopt PUSHD_IGNORE_DUPS      # Don't push duplicates
-setopt PUSHD_SILENT           # Don't print stack after pushd/popd
-
-setopt EXTENDED_GLOB          # Extended glob patterns (#, ~, ^)
-setopt GLOB_DOTS              # Include dotfiles in globs
-
-setopt INTERACTIVE_COMMENTS   # Allow comments in interactive shell
 
 # Completion Styling
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
@@ -48,16 +37,10 @@ zstyle ':completion:*:cd:*' tag-order local-directories directory-stack path-dir
 zstyle ':completion:*:*:cd:*' ignore-parents parent pwd
 zstyle ':completion:*' squeeze-slashes true
 zstyle ':completion:*' use-cache on
-zstyle ':completion:*' cache-path "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/completion-cache"
+zstyle ':completion:*' cache-path "${XDG_CACHE_HOME}/zsh/completion-cache"
 zstyle ':completion:*' group-name ''
 zstyle ':completion:*:descriptions' format '[%d]'
 zstyle ':completion:*:corrections' format '%F{green}-- %d (errors: %e) --%f'
 zstyle ':completion:*:messages' format '%F{purple}-- %d --%f'
 zstyle ':completion:*:warnings' format '%F{red}-- no matches found --%f'
 
-# History search with arrow keys
-autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
-zle -N up-line-or-beginning-search
-zle -N down-line-or-beginning-search
-bindkey '^[[A' up-line-or-beginning-search    # Up arrow
-bindkey '^[[B' down-line-or-beginning-search  # Down arrow

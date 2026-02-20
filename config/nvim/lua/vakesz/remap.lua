@@ -9,8 +9,6 @@ vim.keymap.set("n", "<C-u>", "<C-u>zz", { desc = "Half-page up, center" })
 vim.keymap.set("n", "n", "nzzzv", { desc = "Next search, center" })
 vim.keymap.set("n", "N", "Nzzzv", { desc = "Prev search, center" })
 vim.keymap.set("n", "=ap", "ma=ap'a", { desc = "Format paragraph, keep cursor" })
-vim.keymap.set("n", "<leader>zig", "<cmd>LspRestart<cr>", { desc = "Restart LSP" })
-
 vim.keymap.set("x", "<leader>p", [["_dP]], { desc = "Paste without yanking" })
 vim.keymap.set({ "n", "v" }, "<leader>y", [["+y]], { desc = "Yank to clipboard" })
 vim.keymap.set("n", "<leader>Y", [["+Y]], { desc = "Yank line to clipboard" })
@@ -26,7 +24,7 @@ vim.keymap.set("n", "<leader>k", "<cmd>lnext<CR>zz", { desc = "Next loclist item
 vim.keymap.set("n", "<leader>j", "<cmd>lprev<CR>zz", { desc = "Prev loclist item" })
 
 vim.keymap.set("n", "<leader>s", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = "Search/replace word under cursor" })
-vim.keymap.set("n", "<leader>x", "<cmd>!chmod +x %<CR>", { silent = true, desc = "Make file executable" })
+vim.keymap.set("n", "<leader>cx", "<cmd>!chmod +x %<CR>", { silent = true, desc = "Make file executable" })
 
 vim.keymap.set("n", "<leader><leader>", function()
     vim.cmd("so")

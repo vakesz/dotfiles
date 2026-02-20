@@ -7,7 +7,6 @@ return {
     event = "InsertEnter",
     opts = {
         suggestion = {
-            enabled = true,
             auto_trigger = true,
             keymap = {
                 accept = "<M-l>",
@@ -18,7 +17,6 @@ return {
                 dismiss = "<C-]>",
             },
         },
-        panel = { enabled = true },
         filetypes = {
             yaml = false,
             markdown = false,

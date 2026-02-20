@@ -47,6 +47,7 @@ brew "xcinfo"
 brew "gcc"
 brew "cmake"
 brew "make"
+brew "tree-sitter"
 
 # Linters & Formatters
 brew "shellcheck"
@@ -93,6 +94,7 @@ brew "docker-compose"
 brew "docker-credential-helper"
 
 # Development
+cask "icon-composer"
 cask "iterm2"
 cask "visual-studio-code"
 cask "claude-code"
@@ -101,7 +103,6 @@ cask "dbeaver-community"
 cask "devcleaner"
 cask "lm-studio"
 cask "sf-symbols"
-cask "keyboard-cleaner"
 
 # Productivity & Utilities
 cask "tailscale-app"

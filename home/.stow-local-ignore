@@ -1,0 +1,27 @@
+# GNU Stow defaults (must include since custom file overrides built-ins)
+RCS
+.+,v
+CVS
+\.#.+
+\.cvsignore
+\.svn
+_darcs
+\.hg
+\.git
+\.gitignore
+\.gitmodules
+^/README.*
+^/LICENSE.*
+^/COPYING
+
+# macOS metadata
+\.DS_Store
+\.AppleDouble
+\.LSOverride
+\._.*
+
+# Editor temp/swap files
+.*\.swp
+.*\.swo
+.+~
+\#.*\#

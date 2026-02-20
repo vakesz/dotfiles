@@ -7,8 +7,8 @@ add_keg_only() {
 }
 
 if [[ "$OS_TYPE" == "macos" ]]; then
-  # Homebrew (cached for speed)
-  brew_path=""
+  # Homebrew (cached for speed; can't use _cache_init because brew isn't on PATH yet)
+  local brew_path=""
   if [[ -f "/opt/homebrew/bin/brew" ]]; then
     brew_path="/opt/homebrew/bin/brew"
   elif [[ -f "/usr/local/bin/brew" ]]; then
@@ -27,6 +27,7 @@ if [[ "$OS_TYPE" == "macos" ]]; then
   add_keg_only "curl"
   add_keg_only "ruby"
   add_keg_only "make" "libexec/gnubin"
+  unfunction add_keg_only
 
 elif [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
   if [[ -d "/snap/bin" ]]; then
@@ -37,7 +38,7 @@ elif [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
   export NVM_DIR="${XDG_DATA_HOME}/nvm"
   if [[ -s "$NVM_DIR/nvm.sh" ]]; then
     _nvm_load() {
-      unfunction nvm node npm npx 2>/dev/null
+      unfunction nvm node npm npx _nvm_load 2>/dev/null
       source "$NVM_DIR/nvm.sh"
       [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
     }
@@ -58,7 +59,6 @@ export RUSTUP_HOME="${XDG_DATA_HOME}/rustup"
 export CARGO_HOME="${XDG_DATA_HOME}/cargo"
 [[ -d "$CARGO_HOME/bin" ]] && export PATH="$CARGO_HOME/bin:$PATH"
 
-export NPM_CONFIG_CACHE="${XDG_CACHE_HOME}/npm"
 export PNPM_HOME="${XDG_DATA_HOME}/pnpm"
 [[ -d "$PNPM_HOME" ]] && export PATH="$PNPM_HOME:$PATH"
 
