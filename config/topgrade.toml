@@ -18,5 +18,8 @@ greedy_latest = true
 greedy_auto_updates = true
 autoremove = true
 
+[git]
+repos = ["~/projects/*/"]
+
 [firmware]
 upgrade = true

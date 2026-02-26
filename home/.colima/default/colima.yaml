@@ -6,11 +6,11 @@ cpu: 4
 # NOTE: value can only be increased after virtual machine has been created.
 #
 # Default: 100
-disk: 100
+disk: 40
 
 # Size of the memory in GiB to be allocated to the virtual machine.
 # Default: 2
-memory: 6
+memory: 8
 
 # Architecture of the virtual machine (x86_64, aarch64, host).
 #
@@ -24,10 +24,18 @@ arch: aarch64
 # Default: docker
 runtime: docker
 
+# AI model runner (docker, ramalama).
+# Both require krunkit VM type for GPU access.
+# docker: Uses Docker Model Runner.
+# ramalama: Uses Ramalama.
+#
+# Default: docker
+modelRunner: ""
+
 # Set custom hostname for the virtual machine.
 # Default: colima
 #          colima-profile_name for other profiles
-hostname: ""
+hostname: colima
 
 # Kubernetes configuration for the virtual machine.
 kubernetes:
