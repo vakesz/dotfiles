@@ -48,6 +48,8 @@ brew "gcc"
 brew "cmake"
 brew "make"
 brew "tree-sitter"
+brew "arm-linux-gnueabihf-binutils"
+brew "dtc"
 
 # Linters & Formatters
 brew "shellcheck"
@@ -106,12 +108,13 @@ cask "sf-symbols"
 
 # Productivity & Utilities
 cask "tailscale-app"
-cask "coteditor"
 cask "hiddenbar"
 cask "meetingbar"
 cask "linearmouse"
 cask "mountain-duck"
+cask "itsypad"
 cask "onyx"
+cask "betterdisplay"
 cask "pearcleaner"
 cask "stats"
 
