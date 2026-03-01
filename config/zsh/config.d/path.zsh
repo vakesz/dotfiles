@@ -59,9 +59,6 @@ export RUSTUP_HOME="${XDG_DATA_HOME}/rustup"
 export CARGO_HOME="${XDG_DATA_HOME}/cargo"
 [[ -d "$CARGO_HOME/bin" ]] && export PATH="$CARGO_HOME/bin:$PATH"
 
-export PNPM_HOME="${XDG_DATA_HOME}/pnpm"
-[[ -d "$PNPM_HOME" ]] && export PATH="$PNPM_HOME:$PATH"
-
 export UV_CACHE_DIR="${XDG_CACHE_HOME}/uv"
 export UV_TOOL_DIR="${XDG_DATA_HOME}/uv/tools"
 export UV_TOOL_BIN_DIR="${XDG_DATA_HOME}/uv/bin"
@@ -70,6 +67,3 @@ export UV_PYTHON_INSTALL_DIR="${XDG_DATA_HOME}/uv/python"
 
 export BUN_INSTALL="${XDG_DATA_HOME}/bun"
 [[ -d "$BUN_INSTALL/bin" ]] && export PATH="$BUN_INSTALL/bin:$PATH"
-
-export SWIFTPM_HOME="${XDG_DATA_HOME}/swiftpm"
-[[ -d "$SWIFTPM_HOME/bin" ]] && export PATH="$SWIFTPM_HOME/bin:$PATH"

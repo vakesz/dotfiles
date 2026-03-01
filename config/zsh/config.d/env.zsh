@@ -20,8 +20,6 @@ fi
 export LESS='-R -i -M -W -x4 -F'
 export LESSHISTFILE="${XDG_STATE_HOME}/less/history"
 export RIPGREP_CONFIG_PATH="${XDG_CONFIG_HOME}/ripgrep/config"
-export WGETRC="${XDG_CONFIG_HOME}/wget/wgetrc"
-export CURL_HOME="${XDG_CONFIG_HOME}/curl"
 export PYTHONPYCACHEPREFIX="${XDG_CACHE_HOME}/python"
 export MIX_XDG=1
 export GEM_HOME="${XDG_DATA_HOME}/gem"

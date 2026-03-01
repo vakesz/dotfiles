@@ -12,8 +12,10 @@ if have nvim; then
 fi
 
 # Python (UV)
-alias uv-tools='uv tool list'
-alias uv-python='uv python list'
+if have uv; then
+  alias uv-tools='uv tool list'
+  alias uv-python='uv python list'
+fi
 
 # Virtual environment helper using UV
 venv() {
@@ -81,8 +83,10 @@ alias gp='git push'
 alias gpl='git pull'
 
 # Docker
-alias dcu='docker compose up'
-alias dcd='docker compose down'
+if have docker; then
+  alias dcu='docker compose up'
+  alias dcd='docker compose down'
+fi
 
 # Caffeinate
 if [[ "$OS_TYPE" == "macos" ]]; then

@@ -1,8 +1,6 @@
 # Brewfile
 # Install: brew bundle install
 
-tap "oven-sh/bun"
-
 # Shell & Terminal
 brew "oh-my-posh"
 brew "zsh"
@@ -108,18 +106,19 @@ cask "sf-symbols"
 
 # Productivity & Utilities
 cask "tailscale-app"
-cask "hiddenbar"
 cask "meetingbar"
 cask "linearmouse"
 cask "mountain-duck"
-cask "itsypad"
+cask "nickustinov/tap/itsypad"
 cask "onyx"
+cask "thaw"
 cask "betterdisplay"
 cask "pearcleaner"
 cask "stats"
 
 # Media & Communication
 cask "iina"
+cask "transmission"
 cask "pinta"
 cask "whatsapp"
 cask "discord"

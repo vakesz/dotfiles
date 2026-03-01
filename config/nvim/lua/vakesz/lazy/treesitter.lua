@@ -9,13 +9,6 @@ return {
         config = function()
             require("nvim-treesitter").setup({})
 
-            -- Install parsers (async, no-op if already installed)
-            require("nvim-treesitter").install({
-                "vimdoc", "lua", "python", "javascript", "typescript", "tsx",
-                "bash", "go", "rust", "c", "cpp", "json", "yaml", "toml", "perl",
-                "markdown", "markdown_inline", "html", "css", "dockerfile",
-            })
-
             -- Enable treesitter highlighting and indentation for all filetypes
             vim.api.nvim_create_autocmd("FileType", {
                 callback = function(args)
