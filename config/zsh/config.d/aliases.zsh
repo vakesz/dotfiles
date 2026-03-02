@@ -88,6 +88,12 @@ if have docker; then
   alias dcd='docker compose down'
 fi
 
+# Claude Code
+have claude && alias cc='claude'
+
+# OpenCode
+have opencode && alias oc='opencode'
+
 # Caffeinate
 if [[ "$OS_TYPE" == "macos" ]]; then
   nosleep() {
