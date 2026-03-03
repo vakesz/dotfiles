@@ -234,6 +234,23 @@ cleanup_ds_store() {
     success ".DS_Store files removed"
 }
 
+# Install Rosetta for amd64 emulation (Apple Silicon only)
+install_rosetta() {
+    if [[ "$(uname -m)" != "arm64" ]]; then
+        info "Not Apple Silicon; skipping Rosetta"
+        return 0
+    fi
+
+    if /usr/bin/pgrep -q oahd; then
+        info "Rosetta already installed"
+        return 0
+    fi
+
+    info "Installing Rosetta..."
+    softwareupdate --install-rosetta --agree-to-license
+    success "Rosetta installed"
+}
+
 # Set up Docker (Colima runtime + compose/buildx CLI plugins)
 # Requires Homebrew (macOS only)
 setup_docker() {
@@ -327,6 +344,7 @@ main() {
         if [[ "$PLATFORM" == "macos" ]]; then
             ask "Install Hungarian keyboard layout?" && install_keyboard_layout
             ask "Clean up .DS_Store files from entire filesystem?" && cleanup_ds_store
+            ask "Install Rosetta for amd64 emulation?" && install_rosetta
         fi
 
         ask "Set up Docker (Colima + compose/buildx plugins)?" && setup_docker
