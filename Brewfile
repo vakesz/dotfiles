@@ -105,6 +105,7 @@ cask "lm-studio"
 cask "sf-symbols"
 
 # Productivity & Utilities
+cask "fenio/tap/anylinuxfs-gui"
 cask "tailscale-app"
 cask "meetingbar"
 cask "linearmouse"
