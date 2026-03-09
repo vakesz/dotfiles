@@ -1,6 +1,12 @@
 # Brewfile
 # Install: brew bundle install
 
+# Taps
+tap "anomalyco/tap"
+tap "fenio/tap"
+tap "nickustinov/tap"
+tap "oven-sh/bun"
+
 # Shell & Terminal
 brew "oh-my-posh"
 brew "zsh"
@@ -97,7 +103,7 @@ brew "docker-credential-helper"
 cask "icon-composer"
 cask "iterm2"
 cask "visual-studio-code"
-cask "claude-code"
+cask "copilot-cli"
 brew "anomalyco/tap/opencode"
 cask "dbeaver-community"
 cask "devcleaner"

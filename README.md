@@ -46,7 +46,7 @@ The installer prompts to apply platform-specific settings:
 ### Neovim
 
 - **lazy.nvim** package manager
-- **Mason** for LSP/formatters
+- **LSP servers** installed via Homebrew (see Brewfile)
 - **Telescope** fuzzy finder
 - **Treesitter** syntax highlighting
 - **nvim-cmp** completion with Copilot

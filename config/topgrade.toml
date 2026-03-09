@@ -7,7 +7,7 @@ cleanup = true
 skip_notify = true
 
 [commands]
-"zinit" = "-i zinit self-update && zinit update --all"
+"zinit" = "zsh -ic 'zinit self-update && zinit update --all'"
 "Neovim plugins" = "nvim --headless '+Lazy! sync' +qa"
 "UV tools" = "uv tool upgrade --all"
 "gh extensions" = "gh extension upgrade --all"

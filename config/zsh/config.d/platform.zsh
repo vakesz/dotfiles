@@ -26,11 +26,12 @@ have() {
 # Cache a tool's init output, regenerating when the binary changes.
 # Usage: _cache_init <binary> <cache_file> <command>
 _cache_init() {
-  local bin_path cache_file cmd
+  local bin_path cache_file cmd config_file
   bin_path=$(command -v "$1") || return 1
   cache_file="$2"
   cmd="$3"
-  if [[ ! -f "$cache_file" || "$bin_path" -nt "$cache_file" ]]; then
+  config_file="${4:-}"
+  if [[ ! -f "$cache_file" || "$bin_path" -nt "$cache_file" || ( -n "$config_file" && "$config_file" -nt "$cache_file" ) ]]; then
     mkdir -p "${cache_file:h}"
     eval "$cmd" > "$cache_file" 2>/dev/null
   fi
@@ -39,7 +40,7 @@ _cache_init() {
 
 # Cached tool initialization (wraps _cache_init with have check)
 _lazy_init() {
-  local tool="$1" cmd="$2"
+  local tool="$1" cmd="$2" config_file="${3:-}"
   have "$tool" || return 0
-  _cache_init "$tool" "$XDG_CACHE_HOME/zsh/${tool}-init.zsh" "$cmd"
+  _cache_init "$tool" "$XDG_CACHE_HOME/zsh/${tool}-init.zsh" "$cmd" "$config_file"
 }

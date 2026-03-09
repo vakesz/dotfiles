@@ -20,7 +20,6 @@ fi
 
 # Completion options
 setopt ALWAYS_TO_END          # Move cursor to end of word after completion
-setopt AUTO_MENU              # Show completion menu on successive tab press
 setopt AUTO_PARAM_SLASH       # Add trailing slash to directory completions
 setopt COMPLETE_IN_WORD       # Complete from both ends of a word
 setopt LIST_PACKED            # Make completion list smaller

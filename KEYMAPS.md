@@ -21,7 +21,7 @@ Quick reference for all keymaps in this Neovim configuration.
 | `<leader>d` | n,v | Delete without yanking (blackhole) |
 | `<C-c>` | i | Escape to Normal mode |
 | `Q` | n | Disabled (no-op) |
-| `<leader>f` | n,v | Format buffer via conform.nvim |
+| `<leader>ff` | n,v | Format buffer via conform.nvim |
 | `<C-k>` / `<C-j>` | n | Next / previous quickfix item |
 | `<leader>k` / `<leader>j` | n | Next / previous location list item |
 | `<leader>s` | n | Substitute word under cursor across file |
@@ -134,6 +134,7 @@ Buffer-local keymaps, active when LSP attaches.
 | `<leader>vrr` | n | Show references |
 | `<leader>vrn` | n | Rename symbol |
 | `<C-h>` | i | Signature help |
+| `[d` / `]d` | n | Previous / next diagnostic |
 
 ### Completion (nvim-cmp)
 
@@ -264,7 +265,7 @@ Press `<leader>` and wait to see available commands:
 | -------- | ---------- |
 | `<leader>b` | Buffer |
 | `<leader>c` | Code |
-| `<leader>f` | Format command |
+| `<leader>f` | Format |
 | `<leader>g` | Git |
 | `<leader>h` | Git Hunks |
 | `<leader>p` | Project/Find |
@@ -300,7 +301,6 @@ Press `<leader>` and wait to see available commands:
 | Plugin | Command |
 | -------- | --------- |
 | lazy.nvim | `:Lazy` |
-| mason.nvim | `:Mason` |
 | telescope.nvim | `:Telescope` |
 | trouble.nvim | `:Trouble` |
 | vim-fugitive | `:Git` |
@@ -308,14 +308,18 @@ Press `<leader>` and wait to see available commands:
 
 ---
 
-## LSP Servers (auto-installed)
+## LSP Servers (installed via Homebrew)
 
 - **Lua**: lua_ls
 - **Python**: pyright
 - **C/C++**: clangd
 - **TypeScript**: ts_ls
+- **Go**: gopls
+- **Ruby**: ruby_lsp
+- **Bash**: bashls
+- **Swift**: sourcekit
 
-Add more via `:Mason`.
+Add more via Homebrew and `vim.lsp.enable()` in `lsp.lua`.
 
 ---
 

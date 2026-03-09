@@ -1,4 +1,4 @@
-# NOTE: Changes to this config require removing ~/.cache/oh-my-posh for updates to take effect
+# Cache auto-invalidates when this file changes (via _lazy_init in .zshrc)
 console_title_template = '{{ .Shell }} in {{ .Folder }}'
 version = 3
 final_space = true

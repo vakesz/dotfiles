@@ -42,6 +42,7 @@ return {
                 -- Disable format on save for certain filetypes
                 local disable_filetypes = { c = true, cpp = true }
                 return {
+                    timeout_ms = 3000,
                     lsp_format = disable_filetypes[vim.bo[bufnr].filetype] and "never" or "fallback",
                 }
             end,

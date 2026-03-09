@@ -205,9 +205,9 @@ apply_linux_tweaks() {
     [[ "$(basename "$SHELL")" == "zsh" ]] && { info "Shell is already zsh"; return 0; }
 
     info "Changing default shell to zsh..."
-    grep -q "$(which zsh)" /etc/shells 2>/dev/null || which zsh | sudo tee -a /etc/shells > /dev/null
+    grep -q "$(command -v zsh)" /etc/shells 2>/dev/null || command -v zsh | sudo tee -a /etc/shells > /dev/null
 
-    if chsh -s "$(which zsh)"; then
+    if chsh -s "$(command -v zsh)"; then
         success "Default shell changed to zsh (log out and back in to apply)"
     else
         error "Failed to change shell"

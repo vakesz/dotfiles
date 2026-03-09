@@ -1,12 +1,10 @@
 [user]
 	name = Gabor Pinkova
 	email = vakesz@users.noreply.github.com
-	username = vakesz
 
 [core]
 	editor = nvim
 	whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
-	excludesfile = ~/.config/git/ignore
 
 [pull]
 	rebase = true

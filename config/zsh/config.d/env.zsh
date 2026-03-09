@@ -34,7 +34,7 @@ export GNUPGHOME="${XDG_DATA_HOME}/gnupg"
 export GCM_CREDENTIAL_CACHE_DIR="${XDG_CACHE_HOME}/git-credential-manager"
 export TEALDEER_CONFIG_DIR="${XDG_CONFIG_HOME}/tealdeer"
 
-export XDG_BIN_HOME="${XDG_BIN_HOME:-$XDG_DATA_HOME/bin}"
+export XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
 export PATH="$XDG_BIN_HOME:$PATH"
 
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
@@ -67,6 +67,7 @@ setopt HIST_IGNORE_ALL_DUPS   # Remove older duplicate entries from history
 setopt HIST_REDUCE_BLANKS     # Remove superfluous blanks from history items
 setopt HIST_IGNORE_SPACE      # Don't record commands starting with space
 setopt SHARE_HISTORY          # Share history between all sessions (implies INC_APPEND_HISTORY)
+setopt HIST_FIND_NO_DUPS      # Don't show duplicates when searching history
 setopt HIST_VERIFY            # Show expanded history command before executing
 
 # History search with arrow keys
