@@ -8,89 +8,79 @@ tap "nickustinov/tap"
 tap "oven-sh/bun"
 
 # Shell & Terminal
-brew "oh-my-posh"
-brew "zsh"
-brew "tmux"
 brew "neovim"
+brew "oh-my-posh"
+brew "tmux"
+brew "tree-sitter"
+brew "zsh"
+cask "iterm2"
 
 # File Navigation & Search
 brew "fd"
 brew "fzf"
+brew "midnight-commander"
 brew "ripgrep"
+brew "tealdeer"
 brew "tree"
 brew "zoxide"
-brew "midnight-commander"
-brew "tealdeer"
 
 # Git
-brew "git"
-cask "git-credential-manager"
 brew "gh"
+brew "git"
+brew "pre-commit"
+cask "git-credential-manager"
 
-# Languages
-brew "node"
-brew "uv"
-brew "go"
-brew "ruby"
-brew "lua"
-brew "oven-sh/bun/bun"
+# Languages & Runtimes
 brew "deno"
+brew "go"
+brew "lua"
+brew "node"
+brew "oven-sh/bun/bun"
+brew "ruby"
+brew "uv"
+
+# Apple/iOS Development
+brew "swiftgen"
+brew "swiftlint"
+brew "xcbeautify"
+brew "xcode-build-server"
+brew "xcodegen"
+brew "xcinfo"
 
 # Android
 cask "android-platform-tools"
 
-# Apple/iOS Development
-brew "swiftlint"
-brew "swiftgen"
-brew "xcodegen"
-brew "xcode-build-server"
-brew "xcbeautify"
-brew "xcinfo"
-
 # C/C++ Toolchain
-brew "gcc"
-brew "cmake"
-brew "make"
-brew "tree-sitter"
 brew "arm-linux-gnueabihf-binutils"
+brew "cmake"
 brew "dtc"
+brew "gcc"
+brew "make"
 
 # Linters & Formatters
-brew "shellcheck"
-brew "prettier"
-brew "eslint"
-brew "ruff"
 brew "clang-format"
-brew "goimports"
-brew "swift-format"
 brew "cppcheck"
+brew "eslint"
+brew "goimports"
+brew "prettier"
+brew "ruff"
+brew "shellcheck"
 brew "stylua"
-brew "pre-commit"
+brew "swift-format"
 
 # LSP Servers
+brew "bash-language-server"
+brew "gopls"
 brew "lua-language-server"
 brew "pyright"
-brew "typescript-language-server"
-brew "gopls"
 brew "ruby-lsp"
-brew "bash-language-server"
+brew "typescript-language-server"
 
 # Networking
 brew "curl"
-brew "wget"
 brew "nmap"
-
-# Utilities
-brew "stow"
-brew "jq"
-brew "coreutils"
-brew "diffutils"
-brew "topgrade"
-brew "cloc"
-brew "mas"
-brew "pngquant"
-brew "hugo"
-brew "gnupg"
+brew "telnet"
+brew "wget"
 
 # Docker & Virtualization
 brew "colima"
@@ -99,58 +89,74 @@ brew "docker-buildx"
 brew "docker-compose"
 brew "docker-credential-helper"
 
-# Development
-cask "icon-composer"
-cask "iterm2"
-cask "visual-studio-code"
-cask "copilot-cli"
+# AI & LLM
 brew "anomalyco/tap/opencode"
+cask "copilot-cli"
+cask "lm-studio"
+
+# Development Tools
+brew "hugo"
+brew "sqlite"
 cask "dbeaver-community"
 cask "devcleaner"
-cask "lm-studio"
+cask "icon-composer"
 cask "sf-symbols"
+cask "visual-studio-code"
 
-# Productivity & Utilities
-cask "fenio/tap/anylinuxfs-gui"
-cask "tailscale-app"
-cask "meetingbar"
-cask "linearmouse"
-cask "mountain-duck"
-cask "nickustinov/tap/itsypad"
-cask "onyx"
-cask "thaw"
+# Utilities
+brew "cloc"
+brew "coreutils"
+brew "diffutils"
+brew "gnupg"
+brew "jq"
+brew "mas"
+brew "stow"
+brew "topgrade"
+
+# System & Maintenance
 cask "betterdisplay"
+cask "linearmouse"
+cask "onyx"
 cask "pearcleaner"
 cask "stats"
+cask "thaw"
+
+# Productivity
+cask "fenio/tap/anylinuxfs-gui"
+cask "nickustinov/tap/itsypad"
+cask "meetingbar"
+cask "mountain-duck"
+cask "tailscale-app"
 
 # Media & Communication
-cask "iina"
-cask "transmission"
-cask "pinta"
-cask "whatsapp"
+brew "pngquant"
 cask "discord"
+cask "iina"
+cask "pinta"
 cask "steam"
+cask "transmission"
+cask "whatsapp"
 
 # Browsers
 cask "firefox"
+cask "microsoft-edge"
 
 # Fonts
 cask "font-fira-code-nerd-font"
 
-# Microsoft Office
+# Office
+cask "intune-company-portal"
 cask "libreoffice"
 cask "microsoft-auto-update"
-cask "microsoft-edge"
-cask "microsoft-word"
 cask "microsoft-excel"
-cask "microsoft-powerpoint"
 cask "microsoft-outlook"
+cask "microsoft-powerpoint"
 cask "microsoft-teams"
-cask "intune-company-portal"
+cask "microsoft-word"
 
 # Mac App Store
-mas "Xcode", id: 497799835
+mas "Bitwarden", id: 1352778147
 mas "TestFlight", id: 899247664
 mas "uBlock Origin Lite", id: 6745342698
 mas "Userscripts", id: 1463298887
-mas "Bitwarden", id: 1352778147
+mas "Xcode", id: 497799835
