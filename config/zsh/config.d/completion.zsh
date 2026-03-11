@@ -1,6 +1,6 @@
 # Completion Configuration
 
-# Homebrew completions (docker, docker-compose, docker-buildx, etc.)
+# Homebrew completions (podman, etc.)
 if (( $+commands[brew] )); then
   local brew_prefix="${HOMEBREW_PREFIX:-/opt/homebrew}"
   fpath=("$brew_prefix/share/zsh/site-functions" $fpath)

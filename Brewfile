@@ -82,12 +82,9 @@ brew "nmap"
 brew "telnet"
 brew "wget"
 
-# Docker & Virtualization
-brew "colima"
-brew "docker"
-brew "docker-buildx"
-brew "docker-compose"
-brew "docker-credential-helper"
+# Containers & Virtualization
+brew "podman"
+brew "podman-compose"
 
 # AI & LLM
 brew "anomalyco/tap/opencode"

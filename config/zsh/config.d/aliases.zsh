@@ -82,10 +82,10 @@ alias gb='git branch'
 alias gp='git push'
 alias gpl='git pull'
 
-# Docker
-if have docker; then
-  alias dcu='docker compose up'
-  alias dcd='docker compose down'
+# Podman
+if have podman; then
+  alias pcu='podman compose up'
+  alias pcd='podman compose down'
 fi
 
 # Claude Code
@@ -94,13 +94,3 @@ have claude && alias cc='claude'
 # OpenCode
 have opencode && alias oc='opencode'
 
-# Caffeinate
-if [[ "$OS_TYPE" == "macos" ]]; then
-  nosleep() {
-    if [[ -n "$1" ]]; then
-      caffeinate -u -t "$1"
-    else
-      caffeinate -u -s
-    fi
-  }
-fi

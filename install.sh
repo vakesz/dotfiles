@@ -251,41 +251,33 @@ install_rosetta() {
     success "Rosetta installed"
 }
 
-# Set up Docker (Colima runtime + compose/buildx CLI plugins)
-# Requires Homebrew (macOS only)
-setup_docker() {
-    if ! command -v brew >/dev/null 2>&1; then
-        warn "Homebrew not found; skipping Docker setup"
+# Set up Podman container runtime
+setup_podman() {
+    if ! command -v podman >/dev/null 2>&1; then
+        warn "podman not found; skipping Podman setup"
         return 0
     fi
 
-    local docker_config="$HOME/.docker"
-
-    # Start Colima runtime
-    if command -v colima >/dev/null 2>&1; then
-        if ! colima status &>/dev/null; then
-            info "Starting Colima..."
-            brew services start colima
-            success "Colima started"
-        else
-            info "Colima already running"
-        fi
+    # Initialize podman machine if not already created
+    if ! podman machine inspect &>/dev/null; then
+        info "Initializing Podman machine..."
+        podman machine init \
+            --cpus 6 \
+            --memory 8192 \
+            --disk-size 60 \
+            --rootful
+        success "Podman machine initialized"
+    else
+        info "Podman machine already exists"
     fi
 
-    # Register docker-compose as CLI plugin
-    if command -v docker-compose >/dev/null 2>&1; then
-        info "Setting up docker-compose CLI plugin..."
-        mkdir -p "$docker_config/cli-plugins"
-        ln -sfn "$(brew --prefix docker-compose)/bin/docker-compose" "$docker_config/cli-plugins/docker-compose"
-        success "docker-compose CLI plugin linked"
-    fi
-
-    # Register docker-buildx as CLI plugin
-    if command -v docker-buildx >/dev/null 2>&1; then
-        info "Setting up docker-buildx CLI plugin..."
-        mkdir -p "$docker_config/cli-plugins"
-        ln -sfn "$(brew --prefix docker-buildx)/bin/docker-buildx" "$docker_config/cli-plugins/docker-buildx"
-        success "docker-buildx CLI plugin linked"
+    # Start podman machine if not running
+    if ! podman machine inspect --format '{{.State}}' 2>/dev/null | grep -q "running"; then
+        info "Starting Podman machine..."
+        podman machine start
+        success "Podman machine started"
+    else
+        info "Podman machine already running"
     fi
 }
 
@@ -347,7 +339,7 @@ main() {
             ask "Install Rosetta for amd64 emulation?" && install_rosetta
         fi
 
-        ask "Set up Docker (Colima + compose/buildx plugins)?" && setup_docker
+        ask "Set up Podman container runtime?" && setup_podman
     else
         info "Non-interactive shell; skipping optional steps"
     fi
