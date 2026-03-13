@@ -6,6 +6,7 @@ tap "anomalyco/tap"
 tap "fenio/tap"
 tap "nickustinov/tap"
 tap "oven-sh/bun"
+tap "nohajc/anylinuxfs"
 
 # Shell & Terminal
 brew "neovim"
@@ -40,7 +41,6 @@ brew "ruby"
 brew "uv"
 
 # Apple/iOS Development
-brew "swiftgen"
 brew "swiftlint"
 brew "xcbeautify"
 brew "xcode-build-server"
@@ -51,9 +51,7 @@ brew "xcinfo"
 cask "android-platform-tools"
 
 # C/C++ Toolchain
-brew "arm-linux-gnueabihf-binutils"
 brew "cmake"
-brew "dtc"
 brew "gcc"
 brew "make"
 
@@ -116,9 +114,11 @@ cask "linearmouse"
 cask "onyx"
 cask "pearcleaner"
 cask "stats"
-cask "thaw"
+cask "hiddenbar"
+cask "alt-tab"
 
 # Productivity
+brew "nohajc/anylinuxfs/anylinuxfs"
 cask "fenio/tap/anylinuxfs-gui"
 cask "nickustinov/tap/itsypad"
 cask "meetingbar"
