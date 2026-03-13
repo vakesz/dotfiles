@@ -115,7 +115,6 @@ cask "onyx"
 cask "pearcleaner"
 cask "stats"
 cask "hiddenbar"
-cask "alt-tab"
 
 # Productivity
 brew "nohajc/anylinuxfs/anylinuxfs"
