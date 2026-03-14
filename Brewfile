@@ -83,6 +83,7 @@ brew "wget"
 # Containers & Virtualization
 brew "podman"
 brew "podman-compose"
+cask "podman-desktop"
 
 # AI & LLM
 brew "anomalyco/tap/opencode"
