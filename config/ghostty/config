@@ -1,0 +1,34 @@
+# Theme: auto-switch with macOS appearance
+theme = Xcode Dark hc
+
+# Font
+font-family = FiraCode Nerd Font Mono
+font-size = 16
+font-style = Reg
+font-style-bold = Bold
+font-style-italic = Reg
+font-style-bold-italic = Bold
+font-feature = calt
+font-feature = liga
+
+# Cursor
+cursor-style-blink = false
+
+# Shell integration
+shell-integration = zsh
+
+# Window
+window-padding-x = 8
+window-padding-y = 8
+mouse-hide-while-typing = true
+confirm-close-surface = true
+macos-icon = blueprint
+
+# Tmux compatibility: unbind keys that conflict with tmux Ctrl-h/j/k/l pane nav
+# and Alt-Left/Right window cycling
+keybind = ctrl+h=unbind
+keybind = ctrl+j=unbind
+keybind = ctrl+k=unbind
+keybind = ctrl+l=unbind
+keybind = alt+left=unbind
+keybind = alt+right=unbind

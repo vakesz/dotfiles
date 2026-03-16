@@ -66,6 +66,7 @@ See [KEYMAPS.md](KEYMAPS.md) for keybindings.
 - **fd** fast find alternative config
 - **ripgrep** fast grep alternative config
 - **tealdeer** tldr client config
+- **Ghostty** terminal emulator config
 - **topgrade** update tool config
 
 ## Structure
@@ -76,6 +77,7 @@ dotfiles/
 │   └── .zshenv           # Sets ZDOTDIR
 ├── config/               # stow -t ~/.config
 │   ├── fd/               # fd (find alternative) config
+│   ├── ghostty/           # Ghostty terminal config
 │   ├── git/
 │   │   ├── config        # Git settings
 │   │   └── ignore        # Global gitignore
@@ -86,7 +88,7 @@ dotfiles/
 │   ├── tmux/             # tmux config
 │   ├── topgrade.toml     # Update tool
 │   └── zsh/              # Zsh config
-├── apps/                 # Not stowed (iTerm themes, etc.)
+├── apps/                 # Not stowed (keyboard layouts, etc.)
 ├── Brewfile              # Homebrew packages
 └── install.sh            # Installer (uses GNU Stow)
 ```

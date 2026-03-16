@@ -14,7 +14,7 @@ brew "oh-my-posh"
 brew "tmux"
 brew "tree-sitter"
 brew "zsh"
-cask "iterm2"
+cask "ghostty"
 
 # File Navigation & Search
 brew "fd"
