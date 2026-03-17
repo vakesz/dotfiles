@@ -1,4 +1,4 @@
-# Theme: auto-switch with macOS appearance
+# Theme
 theme = Xcode Dark hc
 
 # Font
@@ -10,21 +10,28 @@ font-style-italic = Reg
 font-style-bold-italic = Bold
 font-feature = calt
 font-feature = liga
+font-thicken = true
 
 # Cursor
 cursor-style-blink = false
 
-# Shell integration
-shell-integration = zsh
-
 # Window
 window-padding-x = 8
 window-padding-y = 8
-mouse-hide-while-typing = true
-confirm-close-surface = true
+confirm-close-surface = false
+window-inherit-working-directory = true
+
+# macOS
+macos-titlebar-style = tabs
+macos-titlebar-proxy-icon = visible
 macos-icon = blueprint
 
-# Tmux compatibility: unbind keys that conflict with tmux Ctrl-h/j/k/l pane nav
+# Input
+mouse-hide-while-typing = true
+copy-on-select = true
+clipboard-paste-protection = true
+
+# Tmux compatibility: unbind keys that conflict with Ctrl-h/j/k/l pane nav
 # and Alt-Left/Right window cycling
 keybind = ctrl+h=unbind
 keybind = ctrl+j=unbind
