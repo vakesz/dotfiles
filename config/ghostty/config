@@ -13,23 +13,28 @@ font-feature = liga
 font-thicken = true
 
 # Cursor
+cursor-style = block
 cursor-style-blink = false
 
 # Window
 window-padding-x = 8
 window-padding-y = 8
 confirm-close-surface = false
-window-inherit-working-directory = true
+window-inherit-working-directory = false
 
 # macOS
 macos-titlebar-style = tabs
 macos-titlebar-proxy-icon = visible
-macos-icon = blueprint
+macos-icon = custom
+macos-custom-icon = ~/.config/ghostty/catppuccin-mocha.icns
 
 # Input
 mouse-hide-while-typing = true
 copy-on-select = true
 clipboard-paste-protection = true
+
+# scrollback-limit in bytes, roughly 125,000 lines
+scrollback-limit = 100000000
 
 # Tmux compatibility: unbind keys that conflict with Ctrl-h/j/k/l pane nav
 # and Alt-Left/Right window cycling
