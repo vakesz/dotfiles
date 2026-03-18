@@ -8,8 +8,8 @@ font-style = Reg
 font-style-bold = Bold
 font-style-italic = Reg
 font-style-bold-italic = Bold
-font-feature = calt
-font-feature = liga
+font-feature = -calt
+font-feature = -liga
 font-thicken = true
 
 # Cursor

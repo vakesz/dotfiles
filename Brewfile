@@ -3,16 +3,13 @@
 
 # Taps
 tap "anomalyco/tap"
-tap "fenio/tap"
 tap "nickustinov/tap"
 tap "oven-sh/bun"
-tap "nohajc/anylinuxfs"
 
 # Shell & Terminal
 brew "neovim"
 brew "oh-my-posh"
 brew "tmux"
-brew "tree-sitter"
 brew "zsh"
 cask "ghostty"
 
@@ -87,6 +84,7 @@ cask "podman-desktop"
 
 # AI & LLM
 brew "anomalyco/tap/opencode"
+cask "codex"
 cask "copilot-cli"
 cask "lm-studio"
 
@@ -118,8 +116,6 @@ cask "stats"
 cask "hiddenbar"
 
 # Productivity
-brew "nohajc/anylinuxfs/anylinuxfs"
-cask "fenio/tap/anylinuxfs-gui"
 cask "nickustinov/tap/itsypad"
 cask "meetingbar"
 cask "mountain-duck"
