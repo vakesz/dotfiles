@@ -1,116 +1,151 @@
 # Dotfiles
 
-Cross-platform dotfiles for macOS, Linux, and WSL.
+Cross-platform dotfiles for macOS, Linux, and WSL, organized around the XDG Base Directory specification.
 
 ## Installation
 
+### Prerequisites
+
+- GNU Stow
+- Git
+
+### Default install
+
+`./install.sh` now does two things:
+
+1. Installs the dotfiles with GNU Stow
+2. Runs the matching platform setup script for macOS or Linux / WSL
+
+The platform setup step runs after Stow succeeds. It is still interactive and asks before each optional machine change.
+
 ```bash
-# Install packages (macOS)
+# macOS package install (optional)
 brew bundle install
 
-# Create symlinks (uses GNU Stow)
+# Platform-aware install
 ./install.sh
 ```
 
-### OS Tweaks (Optional)
+### Migrating existing files
 
-The installer prompts to apply platform-specific settings:
+If your machine already has dotfiles in place and you want to import them into this repo, use the explicit adopt flow:
 
-- Confirm OS tweaks
-- Confirm `stow --adopt` before creating symlinks
+```bash
+./install.sh --adopt
+```
 
-**macOS:**
+`--adopt` is interactive only. It uses `stow --adopt`, which can overwrite repo files with existing local files. Review the result with `git diff`.
 
-- Finder: show extensions, path bar, list view, folders first
-- Keyboard: fast key repeat, disable auto-correct/substitution
-- Dock: smaller tiles, no effect
-- Trackpad: tap to click
-- Screenshots: save to Desktop as PNG
+### Re-stowing after adding files
+
+Existing tracked files are live immediately because Stow symlinks them into place. When you add a new file to the repo, re-run:
+
+```bash
+stow -t ~/.config config
+stow -t ~ home
+```
+
+## Platform Setup Scripts
+
+### macOS
+
+`./install.sh` starts [scripts/setup-macos.sh](/Users/vakesz/.dotfiles/scripts/setup-macos.sh) automatically on macOS. You can also run it directly if you want to reapply only the macOS setup steps.
+
+- Apply Finder defaults: show extensions, path bar, icon view, folders first
+- Tune keyboard, trackpad, Dock, Mission Control, screenshots
+- Enable Safari developer extras
 - Disable Tips notifications
+- Install Xcode Command Line Tools if missing
+- Install the Hungarian keyboard layout from `apps/`
+- Install Rosetta on Apple Silicon
+- Initialize and start Podman
 
-**Linux/WSL:**
+### Linux / WSL
 
-- Configure en_US.UTF-8 locale (Debian/Ubuntu, Fedora/RHEL, Arch)
-- Set zsh as default shell
+`./install.sh` starts [scripts/setup-linux.sh](/Users/vakesz/.dotfiles/scripts/setup-linux.sh) automatically on Linux / WSL. You can also run it directly if you want to reapply only the Linux setup steps.
+
+- Configure `en_US.UTF-8`
+- Persist locale settings for supported distros
+- Set `zsh` as the default shell
 
 ## What's Included
 
 ### Shell
 
-- **Zsh** with XDG-compliant setup
-- **Oh My Posh** prompt
-- **Zinit** plugin manager
-- **zoxide** smart cd
-- **fzf** fuzzy finder
+- Zsh with XDG-compliant setup
+- Oh My Posh prompt
+- Zinit plugin manager
+- zoxide smart `cd`
+- fzf fuzzy finder
 
 ### Neovim
 
-- **lazy.nvim** package manager
-- **LSP servers** installed via Homebrew (see Brewfile)
-- **Telescope** fuzzy finder
-- **Treesitter** syntax highlighting
-- **nvim-cmp** completion with Copilot
-- **conform.nvim** formatting
-- **mini.nvim** statusline, indentscope, surround, bufremove
-- **Trouble** diagnostics list
-- **which-key** keybinding discovery
-- **fugitive + gitsigns** Git integration
-- **undotree** undo history
+- lazy.nvim package manager
+- LSP servers installed system-wide
+- Telescope fuzzy finder
+- Treesitter syntax highlighting
+- nvim-cmp completion with Copilot
+- conform.nvim formatting
+- mini.nvim modules for statusline, surround, indentscope, and buffer removal
+- Trouble diagnostics list
+- which-key keybinding discovery
+- fugitive and gitsigns Git integration
+- Undotree undo history
 
-See [KEYMAPS.md](KEYMAPS.md) for keybindings.
+See [KEYMAPS.md](KEYMAPS.md) for the current keybinding reference.
 
 ### Other
 
-- **tmux** configuration
-- **Git** config and global ignore
-- **fd** fast find alternative config
-- **ripgrep** fast grep alternative config
-- **tealdeer** tldr client config
-- **Ghostty** terminal emulator config
-- **topgrade** update tool config
+- tmux configuration
+- Git config and global ignore
+- fd config
+- ripgrep config
+- tealdeer config
+- Ghostty config
+- topgrade config
 
 ## Structure
 
-```tree
+```text
 dotfiles/
-├── home/                 # stow -t ~ (root dotfiles)
-│   └── .zshenv           # Sets ZDOTDIR
-├── config/               # stow -t ~/.config
-│   ├── fd/               # fd (find alternative) config
-│   ├── ghostty/           # Ghostty terminal config
+├── home/                  # stow -t ~
+│   └── .zshenv            # Sets XDG dirs and ZDOTDIR
+├── config/                # stow -t ~/.config
 │   ├── git/
-│   │   ├── config        # Git settings
-│   │   └── ignore        # Global gitignore
-│   ├── nvim/             # Neovim config
-│   ├── oh-my-posh/       # Prompt theme
-│   ├── ripgrep/          # ripgrep config
-│   ├── tealdeer/         # tldr client config
-│   ├── tmux/             # tmux config
-│   ├── topgrade.toml     # Update tool
-│   └── zsh/              # Zsh config
-├── apps/                 # Not stowed (keyboard layouts, etc.)
-├── Brewfile              # Homebrew packages
-└── install.sh            # Installer (uses GNU Stow)
+│   ├── nvim/
+│   ├── oh-my-posh/
+│   ├── ripgrep/
+│   ├── tealdeer/
+│   ├── tmux/
+│   ├── topgrade.toml
+│   └── zsh/
+├── scripts/
+│   ├── setup-linux.sh     # Optional Linux / WSL machine setup
+│   └── setup-macos.sh     # Optional macOS machine setup
+├── apps/                  # Non-stowed assets
+├── Brewfile               # Homebrew packages
+└── install.sh             # Platform setup + Stow bootstrap
 ```
 
 ## XDG Compliance
 
-Configs use XDG Base Directory spec to keep `$HOME` clean:
+Configs are kept out of `$HOME` where possible:
 
-- `~/.config` - configs
-- `~/.local/share` - data
-- `~/.local/state` - history
+- `~/.config` for config
+- `~/.local/share` for data
+- `~/.local/state` for state
+- `~/.cache` for cache
 
 ## Update Strategy
 
-All updates run through `topgrade`. Apps have auto-update disabled; topgrade handles them via `brew upgrade --greedy-auto-updates`.
+System and tool updates run through `topgrade`. Homebrew app auto-updates are disabled in favor of `brew upgrade --greedy-auto-updates` via topgrade.
 
 ## Resources
 
-- [GNU Stow](https://www.gnu.org/software/stow/) - Symlink farm manager
-- [XDG Base Directory](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html) - Directory spec for clean `$HOME`
-- [Oh My Posh](https://ohmyposh.dev/) - Cross-shell prompt theme engine
-- [Zinit](https://github.com/zdharma-continuum/zinit) - Zsh plugin manager
-- [zoxide](https://github.com/ajeetdsouza/zoxide) - Smarter cd command
-- [fzf](https://github.com/junegunn/fzf) - General-purpose fuzzy finder
-- [topgrade](https://github.com/topgrade-rs/topgrade) - System-wide updater
+- [GNU Stow](https://www.gnu.org/software/stow/)
+- [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html)
+- [Oh My Posh](https://ohmyposh.dev/)
+- [Zinit](https://github.com/zdharma-continuum/zinit)
+- [zoxide](https://github.com/ajeetdsouza/zoxide)
+- [fzf](https://github.com/junegunn/fzf)
+- [topgrade](https://github.com/topgrade-rs/topgrade)
