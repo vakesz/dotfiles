@@ -45,9 +45,14 @@ apply_macos_tweaks() {
     defaults write NSGlobalDomain KeyRepeat -int 2
     defaults write NSGlobalDomain InitialKeyRepeat -int 15
     defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
+    defaults write NSGlobalDomain NSAutomaticCapitalizationEnabled -bool false
     defaults write NSGlobalDomain NSAutomaticPeriodSubstitutionEnabled -bool false
     defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
     defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
+
+    # Panels
+    defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
+    defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
 
     # Trackpad
     defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
@@ -67,6 +72,7 @@ apply_macos_tweaks() {
     defaults write com.apple.dock mru-spaces -bool false
     defaults write com.apple.dock expose-group-apps -bool true
     defaults write NSGlobalDomain AppleSpacesSwitchOnActivate -bool true
+    defaults write com.apple.spaces spans-displays -bool false
 
     # Hot corners: all disabled (0 = no action)
     defaults write com.apple.dock wvous-tl-corner -int 0
@@ -93,6 +99,9 @@ apply_macos_tweaks() {
     defaults write com.apple.tips CloudKitSyncingEnabled -bool false
     defaults write com.apple.tips NotificationsEnabled -bool false
 
+    # Time Machine
+    defaults write com.apple.TimeMachine DoNotOfferNewDisksForBackup -bool true
+
     killall Finder 2>/dev/null || true
     killall Dock 2>/dev/null || true
 
@@ -102,6 +111,18 @@ apply_macos_tweaks() {
         info "Installing Xcode Command Line Tools..."
         xcode-select --install
     fi
+}
+
+configure_power_management() {
+    info "Configuring power management..."
+
+    # Battery: allow normal sleep and turn the display off after 15 minutes.
+    sudo pmset -b sleep 10 displaysleep 15
+
+    # AC power: keep the Mac awake for clamshell use and turn the display off after 30 minutes.
+    sudo pmset -c sleep 0 displaysleep 30
+
+    success "Power management configured"
 }
 
 install_keyboard_layout() {
@@ -160,6 +181,7 @@ main() {
     info "Optional macOS setup"
 
     ask "Apply macOS defaults?" && apply_macos_tweaks
+    ask "Configure power management?" && configure_power_management
     ask "Install Hungarian keyboard layout?" && install_keyboard_layout
     ask "Install Rosetta for amd64 emulation?" && install_rosetta
     ask "Set up Podman container runtime?" && setup_podman

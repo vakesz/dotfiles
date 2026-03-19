@@ -23,7 +23,7 @@ confirm-close-surface = false
 window-inherit-working-directory = false
 
 # macOS
-macos-titlebar-style = tabs
+macos-titlebar-style = native
 macos-titlebar-proxy-icon = visible
 macos-icon = custom
 macos-custom-icon = ~/.config/ghostty/catppuccin-mocha.icns

@@ -91,6 +91,7 @@ cask "lm-studio"
 # Development Tools
 brew "hugo"
 brew "sqlite"
+cask "balenaetcher"
 cask "dbeaver-community"
 cask "devcleaner"
 cask "icon-composer"
