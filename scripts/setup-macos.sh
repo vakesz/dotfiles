@@ -116,8 +116,8 @@ apply_macos_tweaks() {
 configure_power_management() {
     info "Configuring power management..."
 
-    # Battery: allow normal sleep and turn the display off after 15 minutes.
-    sudo pmset -b sleep 10 displaysleep 15
+    # Battery: display off after 15min, system sleep after 1h idle.
+    sudo pmset -b sleep 60 displaysleep 15
 
     # AC power: keep the Mac awake for clamshell use and turn the display off after 30 minutes.
     sudo pmset -c sleep 0 displaysleep 30

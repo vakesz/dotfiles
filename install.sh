@@ -81,22 +81,6 @@ cleanup_stow_sources() {
     find "$DOTFILES_DIR/home" "$DOTFILES_DIR/config" -type f -name '.DS_Store' -delete 2>/dev/null || true
 }
 
-precreate_target_dirs() {
-    local xdg_config="${XDG_CONFIG_HOME:-$HOME/.config}"
-
-    mkdir -p "$xdg_config"
-
-    while IFS= read -r -d '' dir; do
-        [[ "$dir" == "." ]] && continue
-        mkdir -p "$HOME/${dir#./}"
-    done < <(cd "$DOTFILES_DIR/home" && find . -type d -print0)
-
-    while IFS= read -r -d '' dir; do
-        [[ "$dir" == "." ]] && continue
-        mkdir -p "$xdg_config/${dir#./}"
-    done < <(cd "$DOTFILES_DIR/config" && find . -type d -print0)
-}
-
 confirm_adopt() {
     if (( ADOPT == 0 )); then
         return 0
@@ -150,7 +134,6 @@ apply_symlinks() {
 
     info "Creating symlinks with stow..."
     cleanup_stow_sources
-    precreate_target_dirs
 
     cd "$DOTFILES_DIR"
 

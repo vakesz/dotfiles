@@ -1,9 +1,60 @@
-# Environment Variables
+# Environment, PATH, and Shell Settings
 
+# XDG Base Directories
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+
+# Ensure PATH entries are unique
+typeset -U path
+
+# Platform Detection
+case "$OSTYPE" in
+  darwin*)
+    export OS_TYPE="macos"
+    ;;
+  linux*)
+    if grep -qi microsoft /proc/version 2>/dev/null; then
+      export OS_TYPE="wsl"
+    else
+      export OS_TYPE="linux"
+    fi
+    ;;
+  *)
+    export OS_TYPE="unknown"
+    ;;
+esac
+
+# Helper Functions
+have() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+_cache_init() {
+  local bin_path cache_file cmd config_file
+  bin_path=$(command -v "$1") || return 1
+  cache_file="$2"
+  cmd="$3"
+  config_file="${4:-}"
+  if [[ ! -f "$cache_file" || "$bin_path" -nt "$cache_file" || ( -n "$config_file" && "$config_file" -nt "$cache_file" ) ]]; then
+    mkdir -p "${cache_file:h}"
+    eval "$cmd" > "$cache_file" 2>/dev/null
+  fi
+  source "$cache_file"
+}
+
+_lazy_init() {
+  local tool="$1" cmd="$2" config_file="${3:-}"
+  have "$tool" || return 0
+  _cache_init "$tool" "$XDG_CACHE_HOME/zsh/${tool}-init.zsh" "$cmd" "$config_file"
+}
+
+# Locale
 export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
 export COLORTERM="truecolor"
 
+# Editor
 if have nvim; then
   export EDITOR="nvim"
   export VISUAL="nvim"
@@ -35,49 +86,107 @@ export GNUPGHOME="${XDG_DATA_HOME}/gnupg"
 export GCM_CREDENTIAL_CACHE_DIR="${XDG_CACHE_HOME}/git-credential-manager"
 export TEALDEER_CONFIG_DIR="${XDG_CONFIG_HOME}/tealdeer"
 
-export XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
+export XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin"
 export PATH="$XDG_BIN_HOME:$PATH"
 
+# FZF
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
-export FZF_DEFAULT_OPTS='
-  --height 40%
-  --layout=reverse
-  --border
-  --info=inline
-  --color=fg:#737aa2,bg:-1,hl:#7dcfff
-  --color=fg+:#c0caf5,bg+:#292e42,hl+:#7dcfff
-  --color=info:#e0af68,prompt:#f7768e,pointer:#bb9af7
-  --color=marker:#7dcfff,spinner:#bb9af7,header:#565f89
-'
+export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border --info=inline'
 
-# Shell options
-unsetopt FLOW_CONTROL         # Disable flow control (Ctrl-S/Ctrl-Q)
-setopt AUTO_CD                # Type directory name to cd into it
-setopt AUTO_PUSHD             # Push old directory onto stack
-setopt PUSHD_IGNORE_DUPS      # Don't push duplicates
-setopt PUSHD_SILENT           # Don't print stack after pushd/popd
-setopt EXTENDED_GLOB          # Extended glob patterns (#, ~, ^)
-setopt GLOB_DOTS              # Include dotfiles in globs
-setopt INTERACTIVE_COMMENTS   # Allow comments in interactive shell
+# PATH Configuration
+
+add_keg_only() {
+  local pkg="$1" bin="${2:-bin}"
+  [[ -d "$HOMEBREW_PREFIX/opt/$pkg/$bin" ]] && export PATH="$HOMEBREW_PREFIX/opt/$pkg/$bin:$PATH"
+}
+
+if [[ "$OS_TYPE" == "macos" ]]; then
+  local brew_path=""
+  if [[ -f "/opt/homebrew/bin/brew" ]]; then
+    brew_path="/opt/homebrew/bin/brew"
+  elif [[ -f "/usr/local/bin/brew" ]]; then
+    brew_path="/usr/local/bin/brew"
+  fi
+
+  if [[ -n "$brew_path" ]]; then
+    local brew_cache="$XDG_CACHE_HOME/zsh/brew_shellenv.zsh"
+    if [[ ! -f "$brew_cache" || "$brew_path" -nt "$brew_cache" ]]; then
+      mkdir -p "${brew_cache:h}"
+      "$brew_path" shellenv > "$brew_cache" 2>/dev/null
+    fi
+    source "$brew_cache"
+  fi
+
+  add_keg_only "curl"
+  add_keg_only "ruby"
+  add_keg_only "make" "libexec/gnubin"
+  unfunction add_keg_only
+
+elif [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
+  if [[ -d "/snap/bin" ]]; then
+    export PATH="/snap/bin:$PATH"
+  fi
+
+  export NVM_DIR="${XDG_DATA_HOME}/nvm"
+  if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+    _nvm_load() {
+      unfunction nvm node npm npx _nvm_load 2>/dev/null
+      source "$NVM_DIR/nvm.sh"
+      [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
+    }
+    nvm() { _nvm_load && nvm "$@"; }
+    node() { _nvm_load && node "$@"; }
+    npm() { _nvm_load && npm "$@"; }npx() { _nvm_load && npx "$@"; }
+  fi
+fi
+
+# Development tools (XDG paths)
+export GOPATH="${XDG_DATA_HOME}/go"
+export GOMODCACHE="${XDG_CACHE_HOME}/go/mod"
+[[ -d "$GOPATH/bin" ]] && export PATH="$GOPATH/bin:$PATH"
+
+export RUSTUP_HOME="${XDG_DATA_HOME}/rustup"
+export CARGO_HOME="${XDG_DATA_HOME}/cargo"
+[[ -d "$CARGO_HOME/bin" ]] && export PATH="$CARGO_HOME/bin:$PATH"
+
+export UV_CACHE_DIR="${XDG_CACHE_HOME}/uv"
+export UV_TOOL_DIR="${XDG_DATA_HOME}/uv/tools"
+export UV_TOOL_BIN_DIR="${XDG_DATA_HOME}/uv/bin"
+export UV_PYTHON_INSTALL_DIR="${XDG_DATA_HOME}/uv/python"
+[[ -d "$UV_TOOL_BIN_DIR" ]] && export PATH="${UV_TOOL_BIN_DIR}:$PATH"
+
+export BUN_INSTALL="${XDG_DATA_HOME}/bun"
+[[ -d "$BUN_INSTALL/bin" ]] && export PATH="$BUN_INSTALL/bin:$PATH"
+
+# Shell Options
+unsetopt FLOW_CONTROL
+setopt AUTO_CD
+setopt AUTO_PUSHD
+setopt PUSHD_IGNORE_DUPS
+setopt PUSHD_SILENT
+setopt EXTENDED_GLOB
+setopt GLOB_DOTS
+setopt INTERACTIVE_COMMENTS
 
 # History
 export HISTSIZE=100000
 export SAVEHIST=$HISTSIZE
 export HISTFILE="${XDG_STATE_HOME}/zsh/history"
-setopt HIST_IGNORE_ALL_DUPS   # Remove older duplicate entries from history
-setopt HIST_REDUCE_BLANKS     # Remove superfluous blanks from history items
-setopt HIST_IGNORE_SPACE      # Don't record commands starting with space
-setopt SHARE_HISTORY          # Share history between all sessions (implies INC_APPEND_HISTORY)
-setopt HIST_FIND_NO_DUPS      # Don't show duplicates when searching history
-setopt HIST_VERIFY            # Show expanded history command before executing
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_REDUCE_BLANKS
+setopt HIST_IGNORE_SPACE
+setopt SHARE_HISTORY
+setopt HIST_FIND_NO_DUPS
+setopt HIST_VERIFY
 
 # History search with arrow keys
 autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
 zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
-bindkey '^[[A' up-line-or-beginning-search    # Up arrow
-bindkey '^[[B' down-line-or-beginning-search  # Down arrow
+bindkey '^[[A' up-line-or-beginning-search
+bindkey '^[[B' down-line-or-beginning-search
 
+# Platform-specific
 if [[ "$OS_TYPE" == "macos" ]]; then
   export ARCHFLAGS="-arch $CPUTYPE"
 fi

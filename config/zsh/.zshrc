@@ -1,7 +1,3 @@
-# .zshrc - Modular config loaded from config.d/
-
-source "$ZDOTDIR/config.d/platform.zsh"
-source "$ZDOTDIR/config.d/path.zsh"
 source "$ZDOTDIR/config.d/env.zsh"
 source "$ZDOTDIR/config.d/plugins.zsh"
 source "$ZDOTDIR/config.d/completion.zsh"
