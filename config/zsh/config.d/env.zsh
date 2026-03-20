@@ -86,7 +86,7 @@ export GNUPGHOME="${XDG_DATA_HOME}/gnupg"
 export GCM_CREDENTIAL_CACHE_DIR="${XDG_CACHE_HOME}/git-credential-manager"
 export TEALDEER_CONFIG_DIR="${XDG_CONFIG_HOME}/tealdeer"
 
-export XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin"
+export XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
 export PATH="$XDG_BIN_HOME:$PATH"
 
 # FZF
@@ -136,7 +136,8 @@ elif [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
     }
     nvm() { _nvm_load && nvm "$@"; }
     node() { _nvm_load && node "$@"; }
-    npm() { _nvm_load && npm "$@"; }npx() { _nvm_load && npx "$@"; }
+    npm() { _nvm_load && npm "$@"; }
+    npx() { _nvm_load && npx "$@"; }
   fi
 fi
 
