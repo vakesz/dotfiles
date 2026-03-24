@@ -110,10 +110,24 @@ if [[ "$OS_TYPE" == "macos" ]]; then
 
   if [[ -n "$brew_path" ]]; then
     local brew_cache="$XDG_CACHE_HOME/zsh/brew_shellenv.zsh"
-    if [[ ! -f "$brew_cache" || "$brew_path" -nt "$brew_cache" ]]; then
+    local brew_hash_cache="$XDG_CACHE_HOME/zsh/brew_shellenv.hash"
+    
+    # Get current shellenv output and calculate its hash
+    local current_shellenv
+    current_shellenv=$("$brew_path" shellenv 2>/dev/null)
+    local current_hash
+    current_hash=$(echo "$current_shellenv" | md5)
+    
+    # Check if we need to update the cache
+    local cached_hash=""
+    [[ -f "$brew_hash_cache" ]] && cached_hash=$(<"$brew_hash_cache")
+    
+    if [[ "$current_hash" != "$cached_hash" || ! -f "$brew_cache" ]]; then
       mkdir -p "${brew_cache:h}"
-      "$brew_path" shellenv > "$brew_cache" 2>/dev/null
+      echo "$current_shellenv" > "$brew_cache"
+      echo "$current_hash" > "$brew_hash_cache"
     fi
+    
     source "$brew_cache"
   fi
 

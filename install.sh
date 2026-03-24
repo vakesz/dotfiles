@@ -121,7 +121,7 @@ run_platform_setup() {
 
 check_plain_stow() {
     local xdg_config="${XDG_CONFIG_HOME:-$HOME/.config}"
-
+    
     if ! stow -n -t "$HOME" home >/dev/null 2>&1 || ! stow -n -t "$xdg_config" config >/dev/null 2>&1; then
         error "stow found existing files or directories that would conflict with safe linking"
         info "Remove the conflicting files manually, or rerun interactively with: ./$SCRIPT_NAME --adopt"
