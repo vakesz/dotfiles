@@ -7,10 +7,7 @@ cleanup = true
 skip_notify = true
 
 [commands]
-"zinit" = "zsh -ic 'zinit self-update && zinit update --all'"
-"Neovim plugins" = "nvim --headless '+Lazy! sync' +qa"
-"UV tools" = "uv tool upgrade --all"
-"gh extensions" = "gh extension upgrade --all"
+"zinit" = "zsh -c 'source \"${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git/zinit.zsh\" && zinit self-update && zinit update --all'"
 
 [brew]
 greedy_cask = true

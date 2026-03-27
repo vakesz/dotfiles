@@ -27,4 +27,7 @@ zinit wait'0a' lucid for \
     zsh-users/zsh-syntax-highlighting
 
 _lazy_init zoxide "zoxide init --cmd cd zsh"
-_lazy_init fzf "fzf --zsh"
+
+if [[ -t 0 && -t 1 ]]; then
+  _lazy_init fzf "fzf --zsh"
+fi

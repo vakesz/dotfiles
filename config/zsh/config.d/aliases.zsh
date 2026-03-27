@@ -88,9 +88,6 @@ if have podman; then
   alias pcd='podman compose down'
 fi
 
-# Claude Code
-have claude && alias cc='claude'
-
 # OpenCode
 have opencode && alias oc='opencode'
 
