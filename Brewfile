@@ -3,7 +3,6 @@
 
 # Taps
 tap "anomalyco/tap"
-tap "nickustinov/tap"
 tap "oven-sh/bun"
 
 # Shell & Terminal
@@ -85,6 +84,7 @@ cask "podman-desktop"
 
 # AI & LLM
 brew "anomalyco/tap/opencode"
+cask "codex"
 cask "copilot-cli"
 cask "lm-studio"
 
@@ -100,6 +100,7 @@ cask "visual-studio-code"
 
 # Utilities
 brew "cloc"
+brew "mole"
 brew "coreutils"
 brew "diffutils"
 brew "gnupg"
@@ -115,9 +116,10 @@ cask "onyx"
 cask "pearcleaner"
 cask "stats"
 cask "thaw"
+cask "contexts"
 
 # Productivity
-cask "nickustinov/tap/itsypad"
+cask "coteditor"
 cask "meetingbar"
 cask "mountain-duck"
 cask "tailscale-app"
@@ -130,6 +132,7 @@ cask "pinta"
 cask "steam"
 cask "transmission"
 cask "whatsapp"
+cask "textual"
 
 # Browsers
 cask "firefox"
