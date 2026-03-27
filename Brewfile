@@ -114,7 +114,7 @@ cask "linearmouse"
 cask "onyx"
 cask "pearcleaner"
 cask "stats"
-cask "hiddenbar"
+cask "thaw"
 
 # Productivity
 cask "nickustinov/tap/itsypad"
