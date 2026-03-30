@@ -91,3 +91,6 @@ fi
 # OpenCode
 have opencode && alias oc='opencode'
 
+# Claude Code
+have claude && alias cc='claude'
+

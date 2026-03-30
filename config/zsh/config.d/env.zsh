@@ -65,7 +65,7 @@ else
 fi
 
 if [[ -t 0 ]]; then
-  export GPG_TTY=$TTY
+  export GPG_TTY="$TTY"
 fi
 
 # XDG paths for tools
@@ -95,12 +95,11 @@ export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border --info=inline'
 
 # PATH Configuration
 
-add_keg_only() {
-  local pkg="$1" bin="${2:-bin}"
-  [[ -d "$HOMEBREW_PREFIX/opt/$pkg/$bin" ]] && export PATH="$HOMEBREW_PREFIX/opt/$pkg/$bin:$PATH"
-}
-
 if [[ "$OS_TYPE" == "macos" ]]; then
+  add_keg_only() {
+    local pkg="$1" bin="${2:-bin}"
+    [[ -d "$HOMEBREW_PREFIX/opt/$pkg/$bin" ]] && export PATH="$HOMEBREW_PREFIX/opt/$pkg/$bin:$PATH"
+  }
   local brew_path=""
   if [[ -f "/opt/homebrew/bin/brew" ]]; then
     brew_path="/opt/homebrew/bin/brew"
@@ -109,32 +108,12 @@ if [[ "$OS_TYPE" == "macos" ]]; then
   fi
 
   if [[ -n "$brew_path" ]]; then
-    local brew_cache="$XDG_CACHE_HOME/zsh/brew_shellenv.zsh"
-    local brew_hash_cache="$XDG_CACHE_HOME/zsh/brew_shellenv.hash"
-    
-    # Get current shellenv output and calculate its hash
-    local current_shellenv
-    current_shellenv=$("$brew_path" shellenv 2>/dev/null)
-    local current_hash
-    current_hash=$(echo "$current_shellenv" | md5)
-    
-    # Check if we need to update the cache
-    local cached_hash=""
-    [[ -f "$brew_hash_cache" ]] && cached_hash=$(<"$brew_hash_cache")
-    
-    if [[ "$current_hash" != "$cached_hash" || ! -f "$brew_cache" ]]; then
-      mkdir -p "${brew_cache:h}"
-      echo "$current_shellenv" > "$brew_cache"
-      echo "$current_hash" > "$brew_hash_cache"
-    fi
-    
-    source "$brew_cache"
+    _cache_init "brew" "$XDG_CACHE_HOME/zsh/brew_shellenv.zsh" "$brew_path shellenv"
   fi
 
   add_keg_only "curl"
   add_keg_only "ruby"
   add_keg_only "make" "libexec/gnubin"
-  unfunction add_keg_only
 
 elif [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
   if [[ -d "/snap/bin" ]]; then

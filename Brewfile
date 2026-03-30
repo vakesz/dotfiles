@@ -84,6 +84,7 @@ cask "podman-desktop"
 
 # AI & LLM
 brew "anomalyco/tap/opencode"
+cask "claude-code"
 cask "codex"
 cask "copilot-cli"
 cask "lm-studio"
