@@ -1,31 +1,10 @@
 -- Language Server Protocol configuration
--- Docs: https://github.com/neovim/nvim-lspconfig
+-- Uses native vim.lsp.completion (nvim 0.12+) and vim.snippet
 
 return {
     "neovim/nvim-lspconfig",
     event = { "BufReadPre", "BufNewFile" },
-    dependencies = {
-        "hrsh7th/cmp-nvim-lsp",
-        "hrsh7th/cmp-buffer",
-        "hrsh7th/cmp-path",
-        "hrsh7th/nvim-cmp",
-        "L3MON4D3/LuaSnip",
-        "j-hui/fidget.nvim",
-    },
     config = function()
-        local cmp = require('cmp')
-        local cmp_lsp = require("cmp_nvim_lsp")
-
-        -- Set default capabilities for ALL LSP servers
-        vim.lsp.config('*', {
-            capabilities = vim.tbl_deep_extend(
-                "force",
-                {},
-                vim.lsp.protocol.make_client_capabilities(),
-                cmp_lsp.default_capabilities()
-            ),
-        })
-
         -- Configure individual servers
         vim.lsp.config('lua_ls', {
             settings = {
@@ -53,30 +32,6 @@ return {
         -- sourcekit-lsp (Xcode) uses xcode-build-server via buildServer.json
         vim.lsp.enable({ 'lua_ls', 'pyright', 'clangd', 'ts_ls', 'gopls', 'ruby_lsp', 'bashls', 'sourcekit' })
 
-        require("fidget").setup({})
-
-        -- nvim-cmp setup
-        local cmp_select = { behavior = cmp.SelectBehavior.Select }
-        cmp.setup({
-            snippet = {
-                expand = function(args)
-                    require('luasnip').lsp_expand(args.body)
-                end,
-            },
-            mapping = cmp.mapping.preset.insert({
-                ['<C-p>'] = cmp.mapping.select_prev_item(cmp_select),
-                ['<C-n>'] = cmp.mapping.select_next_item(cmp_select),
-                ['<C-y>'] = cmp.mapping.confirm({ select = true }),
-                ["<C-Space>"] = cmp.mapping.complete(),
-            }),
-            sources = cmp.config.sources({
-                { name = "nvim_lsp" },
-                { name = "path" },
-            }, {
-                { name = "buffer" },
-            }),
-        })
-
         vim.diagnostic.config({
             float = {
                 focusable = false,
@@ -88,12 +43,30 @@ return {
             },
         })
 
-        -- LSP keybindings (on attach)
+        -- LSP keybindings and native completion (on attach)
         vim.api.nvim_create_autocmd('LspAttach', {
             callback = function(e)
+                local client = vim.lsp.get_client_by_id(e.data.client_id)
+                if not client then return end
+
+                -- Enable native LSP completion with autotrigger
+                vim.lsp.completion.enable(true, client.id, e.buf, { autotrigger = true })
+
                 local function map(mode, lhs, rhs, desc)
                     vim.keymap.set(mode, lhs, rhs, { buffer = e.buf, desc = desc })
                 end
+
+                -- Snippet navigation
+                map({ "i", "s" }, "<C-l>", function()
+                    if vim.snippet.active({ direction = 1 }) then vim.snippet.jump(1) end
+                end, "Next snippet stop")
+                map({ "i", "s" }, "<C-h>", function()
+                    if vim.snippet.active({ direction = -1 }) then vim.snippet.jump(-1) end
+                end, "Prev snippet stop")
+
+                -- Trigger completion manually
+                map("i", "<C-Space>", function() vim.lsp.completion.trigger() end, "Trigger completion")
+
                 map("n", "<leader>vws", vim.lsp.buf.workspace_symbol, "Workspace symbol search")
                 map("n", "<leader>vd", vim.diagnostic.open_float, "Show line diagnostics")
                 map("n", "<leader>vca", vim.lsp.buf.code_action, "Code actions")

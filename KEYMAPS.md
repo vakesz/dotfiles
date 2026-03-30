@@ -41,14 +41,19 @@ These mappings are defined by the repo and become active when an LSP attaches to
 | `<leader>vrn` | n | Rename symbol |
 | `<C-h>` | i | Signature help |
 
-### Completion (nvim-cmp)
+### Completion (native vim.lsp.completion)
+
+Autotrigger is enabled — completions appear as you type when an LSP is attached.
 
 | Keys | Mode | Action |
 | --- | --- | --- |
-| `<C-p>` | i | Previous completion item |
 | `<C-n>` | i | Next completion item |
+| `<C-p>` | i | Previous completion item |
 | `<C-y>` | i | Confirm selection |
-| `<C-Space>` | i | Trigger completion |
+| `<C-Space>` | i | Trigger completion manually |
+| `<C-x><C-f>` | i | Path completion (built-in) |
+| `<C-l>` | i,s | Next snippet tabstop |
+| `<C-h>` | i,s | Previous snippet tabstop |
 
 ### Copilot
 
@@ -107,7 +112,7 @@ Examples:
 - `sd(` deletes surrounding parentheses
 - `sr"'` replaces double quotes with single quotes
 
-### Undo History
+### Undo History (built-in :Undotree)
 
 | Keys | Action |
 | --- | --- |
@@ -249,6 +254,15 @@ Usage example: `"+y` yanks into the system clipboard.
 | `` `. `` | Jump to last change |
 | `` `^ `` | Jump to last insert |
 
+### Treesitter Selection (built-in, nvim 0.12+)
+
+| Keys | Mode | Action |
+| --- | --- | --- |
+| `an` | v | Select around node |
+| `in` | v | Select inside node |
+| `]n` | v | Next node |
+| `[n` | v | Previous node |
+
 ### Neovim LSP Defaults
 
 These are built-in Neovim LSP / diagnostic mappings available when an LSP is attached. They are not explicitly defined in this repo.
@@ -256,6 +270,8 @@ These are built-in Neovim LSP / diagnostic mappings available when an LSP is att
 | Keys | Mode | Action |
 | --- | --- | --- |
 | `gd` | n | Go to definition |
+| `grt` | n | Go to type definition |
+| `grx` | n | Run code lens |
 | `K` | n | Hover documentation |
 | `[d` / `]d` | n | Previous / next diagnostic |
 
@@ -288,7 +304,7 @@ These are built-in Neovim LSP / diagnostic mappings available when an LSP is att
 | vim-fugitive | `:Git` |
 | conform.nvim | `:ConformInfo` |
 | copilot.lua | `:Copilot` |
-| undotree | `:UndotreeToggle` |
+| undotree (built-in) | `:Undotree` |
 
 ## LSP Servers (installed via Homebrew)
 

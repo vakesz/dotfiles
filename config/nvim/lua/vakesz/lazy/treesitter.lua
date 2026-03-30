@@ -9,13 +9,6 @@ return {
         config = function()
             require("nvim-treesitter").setup({})
 
-            -- Add bundled queries to runtimepath so vim.treesitter.start() finds highlights.scm
-            local plugin_dir = vim.fn.fnamemodify(debug.getinfo(require("nvim-treesitter").setup, "S").source:sub(2), ":p:h:h:h")
-            local runtime_dir = vim.fs.joinpath(plugin_dir, "runtime")
-            if not vim.list_contains(vim.opt.rtp:get(), runtime_dir) then
-                vim.opt.rtp:prepend(runtime_dir)
-            end
-
             -- Enable treesitter highlighting and indentation for all filetypes
             vim.api.nvim_create_autocmd("FileType", {
                 callback = function(args)
