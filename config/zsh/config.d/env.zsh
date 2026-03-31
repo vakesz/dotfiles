@@ -96,10 +96,6 @@ export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border --info=inline'
 # PATH Configuration
 
 if [[ "$OS_TYPE" == "macos" ]]; then
-  add_keg_only() {
-    local pkg="$1" bin="${2:-bin}"
-    [[ -d "$HOMEBREW_PREFIX/opt/$pkg/$bin" ]] && export PATH="$HOMEBREW_PREFIX/opt/$pkg/$bin:$PATH"
-  }
   local brew_path=""
   if [[ -f "/opt/homebrew/bin/brew" ]]; then
     brew_path="/opt/homebrew/bin/brew"
@@ -111,9 +107,9 @@ if [[ "$OS_TYPE" == "macos" ]]; then
     _cache_init "brew" "$XDG_CACHE_HOME/zsh/brew_shellenv.zsh" "$brew_path shellenv"
   fi
 
-  add_keg_only "curl"
-  add_keg_only "ruby"
-  add_keg_only "make" "libexec/gnubin"
+  for pkg_bin in "$HOMEBREW_PREFIX/opt/curl/bin" "$HOMEBREW_PREFIX/opt/ruby/bin" "$HOMEBREW_PREFIX/opt/make/libexec/gnubin"; do
+    [[ -d "$pkg_bin" ]] && export PATH="$pkg_bin:$PATH"
+  done
 
 elif [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
   if [[ -d "/snap/bin" ]]; then

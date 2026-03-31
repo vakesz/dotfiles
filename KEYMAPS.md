@@ -39,7 +39,7 @@ These mappings are defined by the repo and become active when an LSP attaches to
 | `<leader>vca` | n | Code actions |
 | `<leader>vrr` | n | Show references |
 | `<leader>vrn` | n | Rename symbol |
-| `<C-h>` | i | Signature help |
+| `<C-h>` | i,s | Previous snippet tabstop / Signature help |
 
 ### Completion (native vim.lsp.completion)
 
@@ -53,7 +53,6 @@ Autotrigger is enabled — completions appear as you type when an LSP is attache
 | `<C-Space>` | i | Trigger completion manually |
 | `<C-x><C-f>` | i | Path completion (built-in) |
 | `<C-l>` | i,s | Next snippet tabstop |
-| `<C-h>` | i,s | Previous snippet tabstop |
 
 ### Copilot
 

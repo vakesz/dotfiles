@@ -84,12 +84,13 @@ cask "podman-desktop"
 
 # AI & LLM
 brew "anomalyco/tap/opencode"
-cask "claude-code"
+cask "claude-code@latest"
 cask "codex"
 cask "copilot-cli"
 cask "lm-studio"
 
 # Development Tools
+brew "azure-cli"
 brew "hugo"
 brew "sqlite"
 cask "balenaetcher"

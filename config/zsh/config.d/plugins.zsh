@@ -26,6 +26,7 @@ zinit light-mode lucid for \
 zinit wait'0a' lucid for \
     zsh-users/zsh-syntax-highlighting
 
+_lazy_init oh-my-posh "oh-my-posh init zsh --config '$XDG_CONFIG_HOME/oh-my-posh/zen.toml'" "$XDG_CONFIG_HOME/oh-my-posh/zen.toml"
 _lazy_init zoxide "zoxide init --cmd cd zsh"
 
 if [[ -t 0 && -t 1 ]]; then

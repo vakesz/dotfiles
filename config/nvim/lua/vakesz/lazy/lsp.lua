@@ -61,8 +61,12 @@ return {
                     if vim.snippet.active({ direction = 1 }) then vim.snippet.jump(1) end
                 end, "Next snippet stop")
                 map({ "i", "s" }, "<C-h>", function()
-                    if vim.snippet.active({ direction = -1 }) then vim.snippet.jump(-1) end
-                end, "Prev snippet stop")
+                    if vim.snippet.active({ direction = -1 }) then
+                        vim.snippet.jump(-1)
+                    else
+                        vim.lsp.buf.signature_help()
+                    end
+                end, "Prev snippet / Signature help")
 
                 -- Trigger completion manually
                 map("i", "<C-Space>", function() vim.lsp.completion.trigger() end, "Trigger completion")
@@ -72,7 +76,6 @@ return {
                 map("n", "<leader>vca", vim.lsp.buf.code_action, "Code actions")
                 map("n", "<leader>vrr", vim.lsp.buf.references, "Show references")
                 map("n", "<leader>vrn", vim.lsp.buf.rename, "Rename symbol")
-                map("i", "<C-h>", vim.lsp.buf.signature_help, "Signature help")
                 map("n", "<leader>zig", "<cmd>LspRestart<cr>", "Restart LSP")
             end
         })

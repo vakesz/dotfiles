@@ -21,12 +21,7 @@
 
 [alias]
 	# Sync current branch from upstream to your fork (origin)
-	sync-fork = "!sh -c '\
-		branch=$(git symbolic-ref --short HEAD) && \
-		git fetch upstream && \
-		git merge --ff-only upstream/$branch && \
-		git push origin $branch \
-		'"
+	sync-fork = !branch=$(git symbolic-ref --short HEAD) && git fetch upstream && git merge --ff-only upstream/$branch && git push origin $branch
 	sf = sync-fork
 	lol = log --graph --oneline --decorate --all
 
