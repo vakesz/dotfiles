@@ -26,6 +26,7 @@ vim.keymap.set("n", "<leader>j", "<cmd>lprev<CR>zz", { desc = "Prev loclist item
 vim.keymap.set("n", "<leader>s", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = "Search/replace word under cursor" })
 vim.keymap.set("n", "<leader>cx", "<cmd>!chmod +x %<CR>", { silent = true, desc = "Make file executable" })
 
+vim.keymap.set("n", "<leader>pv", vim.cmd.Ex, { desc = "Open netrw" })
 vim.keymap.set("n", "<leader>u", "<cmd>Undotree<cr>", { desc = "Toggle undotree" })
 
 vim.keymap.set("n", "<leader><leader>", function()

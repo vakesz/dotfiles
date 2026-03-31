@@ -26,6 +26,7 @@ Quick reference for repo-defined mappings first, followed by built-in and plugin
 | `<leader>k` / `<leader>j` | n | Next / previous location list item |
 | `<leader>s` | n | Substitute word under cursor across the current file |
 | `<leader>cx` | n | Make current file executable |
+| `<leader>pv` | n | Open netrw file explorer |
 | `<leader><leader>` | n | Source current file |
 
 ### LSP (Language Server Protocol)
@@ -71,7 +72,6 @@ Autotrigger is enabled — completions appear as you type when an LSP is attache
 | `<C-p>` | Git tracked files |
 | `<leader>ps` | Live grep |
 | `<leader>pb` | Browse open buffers |
-| `<leader>pv` | Open netrw |
 | `<leader>pe` | File browser in the current file's directory |
 | `<leader>pws` | Grep word under cursor |
 | `<leader>pWs` | Grep WORD under cursor |

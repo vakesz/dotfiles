@@ -56,6 +56,7 @@ stow -t ~ home
 - Enable Safari developer extras
 - Disable Tips notifications
 - Install Xcode Command Line Tools if missing
+- Configure power management (battery sleep, display sleep)
 - Install the Hungarian keyboard layout from `apps/`
 - Install Rosetta on Apple Silicon
 - Initialize and start Podman
@@ -84,7 +85,7 @@ stow -t ~ home
 - LSP servers installed system-wide
 - Telescope fuzzy finder
 - Treesitter syntax highlighting
-- nvim-cmp completion with Copilot
+- Native LSP completion (nvim 0.12+) with Copilot
 - conform.nvim formatting
 - mini.nvim modules for statusline, surround, indentscope, and buffer removal
 - Trouble diagnostics list
@@ -111,6 +112,8 @@ dotfiles/
 ├── home/                  # stow -t ~
 │   └── .zshenv            # Sets XDG dirs and ZDOTDIR
 ├── config/                # stow -t ~/.config
+│   ├── fd/
+│   ├── ghostty/
 │   ├── git/
 │   ├── nvim/
 │   ├── oh-my-posh/

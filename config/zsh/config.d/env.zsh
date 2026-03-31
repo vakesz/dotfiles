@@ -73,7 +73,6 @@ export LESS='-R -i -M -W -x4 -F'
 export LESSHISTFILE="${XDG_STATE_HOME}/less/history"
 export RIPGREP_CONFIG_PATH="${XDG_CONFIG_HOME}/ripgrep/config"
 export PYTHONPYCACHEPREFIX="${XDG_CACHE_HOME}/python"
-export MIX_XDG=1
 export GEM_HOME="${XDG_DATA_HOME}/gem"
 export GEM_SPEC_CACHE="${XDG_CACHE_HOME}/gem"
 export NODE_REPL_HISTORY="${XDG_STATE_HOME}/node_repl_history"
