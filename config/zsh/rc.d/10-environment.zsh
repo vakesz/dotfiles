@@ -26,11 +26,11 @@ case "$OSTYPE" in
 esac
 
 # Helper Functions
-have() {
+has_command() {
   command -v "$1" >/dev/null 2>&1
 }
 
-_cache_init() {
+cache_shell_init() {
   local bin_path cache_file cmd config_file
   bin_path=$(command -v "$1") || return 1
   cache_file="$2"
@@ -43,10 +43,10 @@ _cache_init() {
   source "$cache_file"
 }
 
-_lazy_init() {
+load_cached_init() {
   local tool="$1" cmd="$2" config_file="${3:-}"
-  have "$tool" || return 0
-  _cache_init "$tool" "$XDG_CACHE_HOME/zsh/${tool}-init.zsh" "$cmd" "$config_file"
+  has_command "$tool" || return 0
+  cache_shell_init "$tool" "$XDG_CACHE_HOME/zsh/${tool}-init.zsh" "$cmd" "$config_file"
 }
 
 # Locale
@@ -55,7 +55,7 @@ export LC_ALL="en_US.UTF-8"
 export COLORTERM="truecolor"
 
 # Editor
-if have nvim; then
+if has_command nvim; then
   export EDITOR="nvim"
   export VISUAL="nvim"
   export MANPAGER='nvim +Man!'
@@ -95,7 +95,7 @@ export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border --info=inline'
 # PATH Configuration
 
 if [[ "$OS_TYPE" == "macos" ]]; then
-  local brew_path=""
+  brew_path=""
   if [[ -f "/opt/homebrew/bin/brew" ]]; then
     brew_path="/opt/homebrew/bin/brew"
   elif [[ -f "/usr/local/bin/brew" ]]; then
@@ -103,7 +103,7 @@ if [[ "$OS_TYPE" == "macos" ]]; then
   fi
 
   if [[ -n "$brew_path" ]]; then
-    _cache_init "brew" "$XDG_CACHE_HOME/zsh/brew_shellenv.zsh" "$brew_path shellenv"
+    cache_shell_init "brew" "$XDG_CACHE_HOME/zsh/brew_shellenv.zsh" "$brew_path shellenv"
   fi
 
   for pkg_bin in "$HOMEBREW_PREFIX/opt/curl/bin" "$HOMEBREW_PREFIX/opt/ruby/bin" "$HOMEBREW_PREFIX/opt/make/libexec/gnubin"; do
@@ -117,15 +117,15 @@ elif [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
 
   export NVM_DIR="${XDG_DATA_HOME}/nvm"
   if [[ -s "$NVM_DIR/nvm.sh" ]]; then
-    _nvm_load() {
-      unfunction nvm node npm npx _nvm_load 2>/dev/null
+    load_nvm() {
+      unfunction nvm node npm npx load_nvm 2>/dev/null
       source "$NVM_DIR/nvm.sh"
       [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
     }
-    nvm() { _nvm_load && nvm "$@"; }
-    node() { _nvm_load && node "$@"; }
-    npm() { _nvm_load && npm "$@"; }
-    npx() { _nvm_load && npx "$@"; }
+    nvm() { load_nvm && nvm "$@"; }
+    node() { load_nvm && node "$@"; }
+    npm() { load_nvm && npm "$@"; }
+    npx() { load_nvm && npx "$@"; }
   fi
 fi
 

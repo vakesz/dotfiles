@@ -24,7 +24,7 @@ config/nvim/.netrwhist
 
 # Local overrides (not tracked in git)
 config/zsh/.zshrc.local
-config/zsh/config.d/*.local.zsh
+config/zsh/rc.d/*.local.zsh
 *.local
 
 # Backup files

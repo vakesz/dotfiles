@@ -5,19 +5,8 @@
 
 set -euo pipefail
 
-# Logging
-info()    { printf '\033[34m[INFO]\033[0m %s\n' "$1"; }
-success() { printf '\033[32m[OK]\033[0m %s\n' "$1"; }
-warn()    { printf '\033[33m[WARN]\033[0m %s\n' "$1"; }
-error()   { printf '\033[31m[ERROR]\033[0m %s\n' "$1"; }
-
-# Interactive prompt helper
-ask() {
-    local answer="n"
-    read -r -n 1 -p $'\n'"$1"$' (y/N) ' answer || true
-    echo ""
-    [[ "$answer" =~ ^[Yy]$ ]]
-}
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+source "$DOTFILES_DIR/scripts/lib/common.sh"
 
 require_linux() {
     [[ "$OSTYPE" == linux* ]] || { error "This script is for Linux or WSL only"; exit 1; }
@@ -129,8 +118,8 @@ main() {
 
     info "Optional Linux / WSL setup"
 
-    ask "Configure en_US.UTF-8 locale?" && setup_locale
-    ask "Set zsh as default shell?" && setup_default_shell
+    confirm "Configure en_US.UTF-8 locale?" && setup_locale
+    confirm "Set zsh as default shell?" && setup_default_shell
 
     success "Done!"
 }

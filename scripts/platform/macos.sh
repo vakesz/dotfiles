@@ -5,21 +5,8 @@
 
 set -euo pipefail
 
-DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-
-# Logging
-info()    { printf '\033[34m[INFO]\033[0m %s\n' "$1"; }
-success() { printf '\033[32m[OK]\033[0m %s\n' "$1"; }
-warn()    { printf '\033[33m[WARN]\033[0m %s\n' "$1"; }
-error()   { printf '\033[31m[ERROR]\033[0m %s\n' "$1"; }
-
-# Interactive prompt helper
-ask() {
-    local answer="n"
-    read -r -n 1 -p $'\n'"$1"$' (y/N) ' answer || true
-    echo ""
-    [[ "$answer" =~ ^[Yy]$ ]]
-}
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+source "$DOTFILES_DIR/scripts/lib/common.sh"
 
 require_macos() {
     [[ "$OSTYPE" == darwin* ]] || { error "This script is for macOS only"; exit 1; }
@@ -180,11 +167,11 @@ main() {
 
     info "Optional macOS setup"
 
-    ask "Apply macOS defaults?" && apply_macos_tweaks
-    ask "Configure power management?" && configure_power_management
-    ask "Install Hungarian keyboard layout?" && install_keyboard_layout
-    ask "Install Rosetta for amd64 emulation?" && install_rosetta
-    ask "Set up Podman container runtime?" && setup_podman
+    confirm "Apply macOS defaults?" && apply_macos_tweaks
+    confirm "Configure power management?" && configure_power_management
+    confirm "Install Hungarian keyboard layout?" && install_keyboard_layout
+    confirm "Install Rosetta for amd64 emulation?" && install_rosetta
+    confirm "Set up Podman container runtime?" && setup_podman
 
     success "Done!"
 }

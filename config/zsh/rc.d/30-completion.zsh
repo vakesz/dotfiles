@@ -2,7 +2,7 @@
 
 # Homebrew completions (podman, etc.)
 if (( $+commands[brew] )); then
-  local brew_prefix="${HOMEBREW_PREFIX:-/opt/homebrew}"
+  brew_prefix="${HOMEBREW_PREFIX:-/opt/homebrew}"
   fpath=("$brew_prefix/share/zsh/site-functions" $fpath)
 fi
 
@@ -42,4 +42,3 @@ zstyle ':completion:*:descriptions' format '[%d]'
 zstyle ':completion:*:corrections' format '%F{green}-- %d (errors: %e) --%f'
 zstyle ':completion:*:messages' format '%F{purple}-- %d --%f'
 zstyle ':completion:*:warnings' format '%F{red}-- no matches found --%f'
-

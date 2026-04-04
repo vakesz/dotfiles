@@ -1,4 +1,4 @@
-# Cache auto-invalidates when this file changes (via _lazy_init in .zshrc)
+# Cache auto-invalidates when this file changes (via load_cached_init in Zsh)
 console_title_template = '{{ .Shell }} in {{ .Folder }}'
 version = 3
 final_space = true

@@ -1,3 +1,3 @@
-require("vakesz.remap")
-require("vakesz.set")
-require("vakesz.lazy_init")
+require("vakesz.keymaps")
+require("vakesz.options")
+require("vakesz.plugin_loader")

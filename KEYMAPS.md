@@ -316,11 +316,11 @@ These are built-in Neovim LSP / diagnostic mappings available when an LSP is att
 - Bash: `bashls`
 - Swift: `sourcekit`
 
-Add more via Homebrew and `vim.lsp.enable()` in `lua/vakesz/lazy/lsp.lua`.
+Add more via Homebrew and `vim.lsp.enable()` in `lua/vakesz/plugins/lsp.lua`.
 
 ## Maintenance Notes
 
-- Core keymaps live in `lua/vakesz/remap.lua`.
-- Plugin keymaps live in `lua/vakesz/lazy/*.lua`.
-- LSP mappings live in `lua/vakesz/lazy/lsp.lua`.
+- Core keymaps live in `lua/vakesz/keymaps.lua`.
+- Plugin keymaps live in `lua/vakesz/plugins/*.lua`.
+- LSP mappings live in `lua/vakesz/plugins/lsp.lua`.
 - Update this file when you change mappings.

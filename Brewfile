@@ -91,12 +91,9 @@ cask "copilot-cli"
 cask "lm-studio"
 
 # Development Tools
-brew "azure-cli"
 brew "hugo"
 brew "sqlite"
-cask "balenaetcher"
 cask "dbeaver-community"
-cask "devcleaner"
 cask "icon-composer"
 cask "sf-symbols"
 cask "visual-studio-code"
@@ -113,9 +110,7 @@ brew "stow"
 brew "topgrade"
 
 # System & Maintenance
-cask "betterdisplay"
 cask "linearmouse"
-cask "onyx"
 cask "pearcleaner"
 cask "stats"
 cask "thaw"

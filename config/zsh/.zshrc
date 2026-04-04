@@ -1,7 +1,6 @@
-source "$ZDOTDIR/config.d/env.zsh"
-source "$ZDOTDIR/config.d/plugins.zsh"
-source "$ZDOTDIR/config.d/completion.zsh"
-source "$ZDOTDIR/config.d/aliases.zsh"
+for zsh_config in "$ZDOTDIR"/rc.d/*.zsh(N); do
+  [[ -r "$zsh_config" ]] && source "$zsh_config"
+done
 
 # Local overrides (not tracked in git)
 [[ -f "$ZDOTDIR/.zshrc.local" ]] && source "$ZDOTDIR/.zshrc.local"

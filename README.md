@@ -49,7 +49,7 @@ stow -t ~ home
 
 ### macOS
 
-`./install.sh` starts [scripts/setup-macos.sh](/Users/vakesz/.dotfiles/scripts/setup-macos.sh) automatically on macOS. You can also run it directly if you want to reapply only the macOS setup steps.
+`./install.sh` starts [`scripts/platform/macos.sh`](scripts/platform/macos.sh) automatically on macOS. You can also run it directly if you want to reapply only the macOS setup steps.
 
 - Apply Finder defaults: show extensions, path bar, icon view, folders first
 - Tune keyboard, trackpad, Dock, Mission Control, screenshots
@@ -63,7 +63,7 @@ stow -t ~ home
 
 ### Linux / WSL
 
-`./install.sh` starts [scripts/setup-linux.sh](/Users/vakesz/.dotfiles/scripts/setup-linux.sh) automatically on Linux / WSL. You can also run it directly if you want to reapply only the Linux setup steps.
+`./install.sh` starts [`scripts/platform/linux.sh`](scripts/platform/linux.sh) automatically on Linux / WSL. You can also run it directly if you want to reapply only the Linux setup steps.
 
 - Configure `en_US.UTF-8`
 - Persist locale settings for supported distros
@@ -122,9 +122,15 @@ dotfiles/
 │   ├── tmux/
 │   ├── topgrade.toml
 │   └── zsh/
+│       ├── .zprofile
+│       ├── .zshrc
+│       └── rc.d/          # Ordered shell config fragments
 ├── scripts/
-│   ├── setup-linux.sh     # Optional Linux / WSL machine setup
-│   └── setup-macos.sh     # Optional macOS machine setup
+│   ├── lib/
+│   │   └── common.sh      # Shared shell helpers
+│   └── platform/
+│       ├── linux.sh       # Optional Linux / WSL machine setup
+│       └── macos.sh       # Optional macOS machine setup
 ├── apps/                  # Non-stowed assets
 ├── Brewfile               # Homebrew packages
 └── install.sh             # Platform setup + Stow bootstrap

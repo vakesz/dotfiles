@@ -9,19 +9,7 @@ DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_NAME="$(basename "$0")"
 ADOPT=0
 
-# Logging
-info()    { printf '\033[34m[INFO]\033[0m %s\n' "$1"; }
-success() { printf '\033[32m[OK]\033[0m %s\n' "$1"; }
-warn()    { printf '\033[33m[WARN]\033[0m %s\n' "$1"; }
-error()   { printf '\033[31m[ERROR]\033[0m %s\n' "$1"; }
-
-# Interactive prompt helper
-ask() {
-    local answer="n"
-    read -r -n 1 -p $'\n'"$1"$' (y/N) ' answer || true
-    echo ""
-    [[ "$answer" =~ ^[Yy]$ ]]
-}
+source "$DOTFILES_DIR/scripts/lib/common.sh"
 
 usage() {
     cat <<EOF
@@ -59,25 +47,18 @@ parse_args() {
     done
 }
 
-ensure_prereqs() {
+require_stow() {
     command -v stow >/dev/null 2>&1 || { error "stow is required"; exit 1; }
 }
 
 platform_setup_script() {
-    case "$OSTYPE" in
-        darwin*)
-            printf '%s\n' "$DOTFILES_DIR/scripts/setup-macos.sh"
-            ;;
-        linux*)
-            printf '%s\n' "$DOTFILES_DIR/scripts/setup-linux.sh"
-            ;;
-        *)
-            return 1
-            ;;
-    esac
+    local platform=""
+
+    platform="$(current_platform)" || return 1
+    printf '%s\n' "$DOTFILES_DIR/scripts/platform/${platform}.sh"
 }
 
-cleanup_stow_sources() {
+remove_stow_junk() {
     find "$DOTFILES_DIR/home" "$DOTFILES_DIR/config" -type f -name '.DS_Store' -delete 2>/dev/null || true
 }
 
@@ -94,10 +75,10 @@ confirm_adopt() {
 
     warn "stow --adopt will overwrite repo files with any existing system files."
     warn "Review changes afterward with: git diff"
-    ask "Continue with stow --adopt?" || { info "Aborted"; exit 0; }
+    confirm "Continue with stow --adopt?" || { info "Aborted"; exit 0; }
 }
 
-run_platform_setup() {
+run_optional_platform_setup() {
     local setup_script=""
 
     if ! setup_script="$(platform_setup_script)"; then
@@ -119,21 +100,19 @@ run_platform_setup() {
     "$setup_script"
 }
 
-check_plain_stow() {
-    local xdg_config="${XDG_CONFIG_HOME:-$HOME/.config}"
-    
-    if ! stow -n -t "$HOME" home >/dev/null 2>&1 || ! stow -n -t "$xdg_config" config >/dev/null 2>&1; then
+verify_stow_targets_are_clean() {
+    if ! stow -n -t "$HOME" home >/dev/null 2>&1 || ! stow -n -t "${XDG_CONFIG_HOME:-$HOME/.config}" config >/dev/null 2>&1; then
         error "stow found existing files or directories that would conflict with safe linking"
         info "Remove the conflicting files manually, or rerun interactively with: ./$SCRIPT_NAME --adopt"
         exit 1
     fi
 }
 
-apply_symlinks() {
+stow_packages() {
     local xdg_config="${XDG_CONFIG_HOME:-$HOME/.config}"
 
     info "Creating symlinks with stow..."
-    cleanup_stow_sources
+    remove_stow_junk
 
     cd "$DOTFILES_DIR"
 
@@ -141,7 +120,7 @@ apply_symlinks() {
         stow --adopt -t "$HOME" home
         stow --adopt -t "$xdg_config" config
     else
-        check_plain_stow
+        verify_stow_targets_are_clean
         stow -t "$HOME" home
         stow -t "$xdg_config" config
     fi
@@ -160,10 +139,10 @@ main() {
 
     info "Dotfiles installer"
 
-    ensure_prereqs
+    require_stow
     confirm_adopt
-    apply_symlinks
-    run_platform_setup
+    stow_packages
+    run_optional_platform_setup
 
     success "Done!"
 }

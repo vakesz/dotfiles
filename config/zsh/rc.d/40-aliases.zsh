@@ -1,18 +1,18 @@
 # Aliases and Functions
 
 if [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
-  have fdfind && alias fd=fdfind
+  has_command fdfind && alias fd=fdfind
 fi
 
 # Neovim aliases
-if have nvim; then
+if has_command nvim; then
   alias vi='nvim'
   alias vim='nvim'
   alias v='nvim'
 fi
 
 # Python (UV)
-if have uv; then
+if has_command uv; then
   alias uv-tools='uv tool list'
   alias uv-python='uv python list'
 fi
@@ -31,7 +31,7 @@ venv() {
     return 1
   fi
 
-  have uv || { echo "Error: uv not found" >&2; return 1; }
+  has_command uv || { echo "Error: uv not found" >&2; return 1; }
   echo "Creating virtualenv with uv in $venv_dir..."
   uv venv "$venv_dir" && source "$venv_dir/bin/activate"
 }
@@ -39,7 +39,7 @@ venv() {
 alias venv-off='deactivate'
 
 # Auto-activate/deactivate .venv on directory change
-__auto_venv() {
+sync_auto_venv() {
   if [[ -n "$VIRTUAL_ENV" ]]; then
     local venv_parent="${VIRTUAL_ENV:h}"
     if [[ "$PWD" != "${venv_parent}/"* && "$PWD" != "$venv_parent" ]]; then
@@ -53,8 +53,8 @@ __auto_venv() {
 }
 
 autoload -Uz add-zsh-hook
-add-zsh-hook chpwd __auto_venv
-__auto_venv
+add-zsh-hook chpwd sync_auto_venv
+sync_auto_venv
 
 # Navigation
 if [[ "$OS_TYPE" == "macos" ]]; then
@@ -83,14 +83,13 @@ alias gp='git push'
 alias gpl='git pull'
 
 # Podman
-if have podman; then
+if has_command podman; then
   alias pcu='podman compose up'
   alias pcd='podman compose down'
 fi
 
 # OpenCode
-have opencode && alias oc='opencode'
+has_command opencode && alias oc='opencode'
 
 # Claude Code
-have claude && alias cc='claude'
-
+has_command claude && alias cc='claude'
