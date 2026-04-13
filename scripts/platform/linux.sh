@@ -1,18 +1,25 @@
 #!/usr/bin/env bash
 #
-# Optional Linux / WSL machine setup for this dotfiles repo.
+# Optional Linux / WSL setup for this dotfiles repo.
 #
 
 set -euo pipefail
 
-DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-source "$DOTFILES_DIR/scripts/lib/common.sh"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+DISTRO_ID=""
+DISTRO_LIKE=""
+LINUX_VARIANT="linux"
+
+source "$REPO_ROOT/scripts/lib/common.sh"
 
 require_linux() {
-    [[ "$OSTYPE" == linux* ]] || { error "This script is for Linux or WSL only"; exit 1; }
+    [[ "$OSTYPE" == linux* ]] || {
+        error "This script is for Linux or WSL only"
+        exit 1
+    }
 }
 
-set_locale_systemd() {
+persist_locale_with_systemd() {
     if command -v localectl >/dev/null 2>&1; then
         sudo localectl set-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
     else
@@ -24,13 +31,13 @@ set_locale_systemd() {
     fi
 }
 
-load_distro_info() {
+load_linux_release_info() {
     DISTRO_ID=""
     DISTRO_LIKE=""
-    PLATFORM_NAME="linux"
+    LINUX_VARIANT="linux"
 
     if grep -qi microsoft /proc/version 2>/dev/null; then
-        PLATFORM_NAME="wsl"
+        LINUX_VARIANT="wsl"
     fi
 
     if [[ -r /etc/os-release ]]; then
@@ -41,15 +48,16 @@ load_distro_info() {
     fi
 }
 
-setup_locale() {
-    load_distro_info
+ensure_locale() {
+    load_linux_release_info
 
-    info "Detected platform: $PLATFORM_NAME"
+    info "Detected platform: $LINUX_VARIANT"
 
     if locale -a 2>/dev/null | grep -qiE '^en_US\.utf-?8$'; then
         info "Locale en_US.UTF-8 already available"
     else
         info "Installing en_US.UTF-8 locale..."
+
         if [[ "$DISTRO_ID" == "debian" || "$DISTRO_ID" == "ubuntu" || "$DISTRO_LIKE" == *"debian"* ]]; then
             if command -v apt-get >/dev/null 2>&1; then
                 sudo apt-get update -qq
@@ -87,15 +95,18 @@ setup_locale() {
         if command -v update-locale >/dev/null 2>&1; then
             sudo update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
         else
-            set_locale_systemd
+            persist_locale_with_systemd
         fi
     elif [[ "$DISTRO_ID" == "fedora" || "$DISTRO_LIKE" == *"rhel"* || "$DISTRO_LIKE" == *"fedora"* || "$DISTRO_ID" == "arch" || "$DISTRO_LIKE" == *"arch"* ]]; then
-        set_locale_systemd
+        persist_locale_with_systemd
     fi
 }
 
-setup_default_shell() {
-    command -v zsh >/dev/null 2>&1 || { warn "zsh not installed"; return 0; }
+ensure_zsh_shell() {
+    command -v zsh >/dev/null 2>&1 || {
+        warn "zsh not installed"
+        return 0
+    }
 
     if [[ "$(basename "$SHELL")" == "zsh" ]]; then
         info "Shell is already zsh"
@@ -116,10 +127,10 @@ setup_default_shell() {
 main() {
     require_linux
 
-    info "Optional Linux / WSL setup"
+    info "Linux / WSL setup"
 
-    confirm "Configure en_US.UTF-8 locale?" && setup_locale
-    confirm "Set zsh as default shell?" && setup_default_shell
+    confirm "Configure en_US.UTF-8 locale?" && ensure_locale
+    confirm "Set zsh as the default shell?" && ensure_zsh_shell
 
     success "Done!"
 }

@@ -1,21 +1,15 @@
 # Completion Configuration
 
 # Homebrew completions (podman, etc.)
-if (( $+commands[brew] )); then
-  brew_prefix="${HOMEBREW_PREFIX:-/opt/homebrew}"
-  fpath=("$brew_prefix/share/zsh/site-functions" $fpath)
+if (( $+commands[brew] )) && [[ -n "${HOMEBREW_PREFIX:-}" ]]; then
+  fpath=("$HOMEBREW_PREFIX/share/zsh/site-functions" $fpath)
 fi
 
 if ! (( ${+_comps} )); then
   autoload -Uz compinit
   ZSH_COMPDUMP="${XDG_CACHE_HOME}/zsh/.zcompdump"
-
-  # Only regenerate compdump once a day
-  if [[ -n ${ZSH_COMPDUMP}(#qN.mh+24) ]]; then
-    compinit -d "$ZSH_COMPDUMP"
-  else
-    compinit -C -d "$ZSH_COMPDUMP"
-  fi
+  mkdir -p "${ZSH_COMPDUMP:h}"
+  compinit -d "$ZSH_COMPDUMP"
 fi
 
 # Completion options

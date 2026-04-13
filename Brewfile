@@ -1,5 +1,5 @@
 # Brewfile
-# Install: brew bundle install
+# Install with: brew bundle install
 
 # Taps
 tap "anomalyco/tap"
@@ -9,15 +9,16 @@ tap "oven-sh/bun"
 brew "oh-my-posh"
 brew "zsh"
 cask "ghostty"
+cask "font-fira-code-nerd-font"
 
 # File Navigation & Search
 brew "fd"
 brew "fzf"
-brew "midnight-commander"
 brew "ripgrep"
 brew "tealdeer"
-brew "tree"
 brew "zoxide"
+brew "midnight-commander"
+brew "tree"
 
 # Git
 brew "gh"
@@ -25,12 +26,27 @@ brew "git"
 brew "pre-commit"
 cask "git-credential-manager"
 
+# Utilities
+brew "cloc"
+brew "mole"
+brew "coreutils"
+brew "diffutils"
+brew "gnupg"
+brew "jq"
+brew "mas"
+brew "curl"
+brew "nmap"
+brew "telnet"
+brew "wget"
+brew "stow"
+brew "topgrade"
+brew "uv"
+
 # Languages & Runtimes
 brew "go"
 brew "node"
 brew "oven-sh/bun/bun"
 brew "ruby"
-brew "uv"
 
 # Apple/iOS Development
 brew "swiftlint"
@@ -66,12 +82,6 @@ brew "pyright"
 brew "ruby-lsp"
 brew "typescript-language-server"
 
-# Networking
-brew "curl"
-brew "nmap"
-brew "telnet"
-brew "wget"
-
 # Containers & Virtualization
 brew "podman"
 brew "podman-compose"
@@ -91,17 +101,6 @@ cask "dbeaver-community"
 cask "icon-composer"
 cask "sf-symbols"
 cask "visual-studio-code"
-
-# Utilities
-brew "cloc"
-brew "mole"
-brew "coreutils"
-brew "diffutils"
-brew "gnupg"
-brew "jq"
-brew "mas"
-brew "stow"
-brew "topgrade"
 
 # System & Maintenance
 cask "linearmouse"
@@ -129,9 +128,6 @@ cask "whatsapp"
 # Browsers
 cask "firefox"
 cask "microsoft-edge"
-
-# Fonts
-cask "font-fira-code-nerd-font"
 
 # Office
 cask "intune-company-portal"

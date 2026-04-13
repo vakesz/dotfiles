@@ -23,7 +23,7 @@ confirm() {
     [[ "$answer" =~ ^[Yy]$ ]]
 }
 
-current_platform() {
+detect_platform() {
     case "$OSTYPE" in
         darwin*)
             printf '%s\n' "macos"

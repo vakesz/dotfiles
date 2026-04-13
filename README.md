@@ -1,100 +1,57 @@
 # Dotfiles
 
-Cross-platform dotfiles for macOS, Linux, and WSL, organized around the XDG Base Directory specification.
+Cross-platform dotfiles for macOS, Linux, and WSL, organized around `home/` for home-level files and `config/` for XDG-managed config.
 
-## Installation
+## Quick Start
 
 ### Prerequisites
 
 - GNU Stow
 - Git
 
-### Default install
+### Packages
 
-`./install.sh` now does two things:
-
-1. Installs the dotfiles with GNU Stow
-2. Runs the matching platform setup script for macOS or Linux / WSL
-
-The platform setup step runs after Stow succeeds. It is still interactive and asks before each optional machine change.
+From the repo root:
 
 ```bash
-# macOS package install (optional)
 brew bundle install
-
-# Platform-aware install
-./install.sh
 ```
 
-### Migrating existing files
-
-If your machine already has dotfiles in place and you want to import them into this repo, use the explicit adopt flow:
+### Bootstrap the core packages
 
 ```bash
-./install.sh --adopt
+./bootstrap.sh
+```
+
+This stows `home/` into `$HOME` and `config/` into `$XDG_CONFIG_HOME`, then asks whether to run the matching platform setup script.
+
+### Optional machine setup
+
+You can still run the platform setup scripts directly later:
+
+```bash
+./scripts/platform/macos.sh
+./scripts/platform/linux.sh
+```
+
+### Adopt an existing setup
+
+If your machine already has dotfiles in place and you want to import them into this repo:
+
+```bash
+./bootstrap.sh --adopt
 ```
 
 `--adopt` is interactive only. It uses `stow --adopt`, which can overwrite repo files with existing local files. Review the result with `git diff`.
 
-### Re-stowing after adding files
-
-Existing tracked files are live immediately because Stow symlinks them into place. When you add a new file to the repo, re-run:
-
-```bash
-stow -t ~/.config config
-stow -t ~ home
-```
-
-## Platform Setup Scripts
-
-### macOS
-
-`./install.sh` starts [`scripts/platform/macos.sh`](scripts/platform/macos.sh) automatically on macOS. You can also run it directly if you want to reapply only the macOS setup steps.
-
-- Apply Finder defaults: show extensions, path bar, icon view, folders first
-- Tune keyboard, trackpad, Dock, Mission Control, screenshots
-- Enable Safari developer extras
-- Disable Tips notifications
-- Install Xcode Command Line Tools if missing
-- Configure power management (battery sleep, display sleep)
-- Install the Hungarian keyboard layout from `apps/`
-- Install Rosetta on Apple Silicon
-- Initialize and start Podman
-
-### Linux / WSL
-
-`./install.sh` starts [`scripts/platform/linux.sh`](scripts/platform/linux.sh) automatically on Linux / WSL. You can also run it directly if you want to reapply only the Linux setup steps.
-
-- Configure `en_US.UTF-8`
-- Persist locale settings for supported distros
-- Set `zsh` as the default shell
-
-## What's Included
-
-### Shell
-
-- Zsh with XDG-compliant setup
-- Oh My Posh prompt
-- Zinit plugin manager
-- zoxide smart `cd`
-- fzf fuzzy finder
-
-### Other
-
-- Git config and global ignore
-- fd config
-- ripgrep config
-- tealdeer config
-- Ghostty config
-- topgrade config
-
-## Structure
+## Layout
 
 ```text
 dotfiles/
-├── home/                  # stow -t ~
-│   └── .zshenv            # Sets XDG dirs and ZDOTDIR
-├── config/                # stow -t ~/.config
+├── assets/
+│   └── macos/            # Non-stowed assets used by platform setup
+├── Brewfile
+├── config/               # Stowed into ~/.config
 │   ├── fd/
 │   ├── ghostty/
 │   ├── git/
@@ -103,18 +60,46 @@ dotfiles/
 │   ├── tealdeer/
 │   ├── topgrade.toml
 │   └── zsh/
-│       ├── .zprofile
-│       ├── .zshrc
-│       └── rc.d/          # Ordered shell config fragments
+├── home/                 # Stowed into ~
+│   └── .zshenv
 ├── scripts/
-│   ├── lib/
-│   │   └── common.sh      # Shared shell helpers
-│   └── platform/
-│       ├── linux.sh       # Optional Linux / WSL machine setup
-│       └── macos.sh       # Optional macOS machine setup
-├── apps/                  # Non-stowed assets
-├── Brewfile               # Homebrew packages
-└── install.sh             # Platform setup + Stow bootstrap
+│   ├── lib/common.sh
+│   └── platform/         # Optional platform setup scripts
+└── bootstrap.sh
+```
+
+## Repo Model
+
+- `./bootstrap.sh` stows `home/` into `$HOME` and `config/` into `$XDG_CONFIG_HOME`.
+- Re-run `./bootstrap.sh` after adding or moving files inside `home/` or `config/`.
+- Keep XDG-managed config under `config/`; keep only true home-level files in `home/`.
+
+### Core config
+
+- `home/.zshenv`: early shell environment such as XDG dirs and `ZDOTDIR`
+- `config/zsh`: Zsh config fragments and the Oh My Posh prompt
+- `config/git`: Git config and global ignore rules
+- `config/ghostty`: Ghostty config
+- `config/fd`, `config/ripgrep`, `config/tealdeer`, and `config/topgrade.toml`: CLI tool config
+
+### Optional layers
+
+- `Brewfile`: workstation and development packages for the primary macOS setup
+- `scripts/platform/linux.sh`: locale and default shell setup for Linux / WSL
+- `scripts/platform/macos.sh`: macOS defaults, Xcode CLT, Rosetta, custom keyboard layout, power settings, and Podman setup
+
+## Migration Note
+
+- `bootstrap.sh` is now the only install entrypoint
+- the repo still uses `home/` plus `config/`, but the contents and naming were simplified
+- the Ghostty custom icon now lives in `config/ghostty/` next to the config that references it
+
+## Re-Stowing
+
+Tracked files are live immediately because Stow symlinks them into place. After adding new files, re-run:
+
+```bash
+./bootstrap.sh
 ```
 
 ## XDG Compliance

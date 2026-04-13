@@ -26,7 +26,8 @@ _darcs
 .+~
 \#.*\#
 
-# Generated artifacts
+# Generated and local-only config
 ^/zsh/\.zsh_history$
 ^/zsh/\.zcompdump.*
+^/zsh/rc\.d/.*\.local\.zsh$
 ^/tealdeer/tldr-pages(/|$)

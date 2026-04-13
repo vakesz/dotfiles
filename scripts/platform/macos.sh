@@ -1,18 +1,50 @@
 #!/usr/bin/env bash
 #
-# Optional macOS machine setup for this dotfiles repo.
+# Optional macOS setup for this dotfiles repo.
 #
 
 set -euo pipefail
 
-DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-source "$DOTFILES_DIR/scripts/lib/common.sh"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+ASSETS_DIR="$REPO_ROOT/assets/macos"
+
+source "$REPO_ROOT/scripts/lib/common.sh"
 
 require_macos() {
-    [[ "$OSTYPE" == darwin* ]] || { error "This script is for macOS only"; exit 1; }
+    [[ "$OSTYPE" == darwin* ]] || {
+        error "This script is for macOS only"
+        exit 1
+    }
 }
 
-apply_macos_tweaks() {
+ensure_xcode_cli_tools() {
+    if xcode-select -p >/dev/null 2>&1; then
+        info "Xcode Command Line Tools already installed"
+        return 0
+    fi
+
+    info "Installing Xcode Command Line Tools..."
+    xcode-select --install
+    success "Installation requested"
+}
+
+ensure_rosetta() {
+    if [[ "$(uname -m)" != "arm64" ]]; then
+        info "Not Apple Silicon; skipping Rosetta"
+        return 0
+    fi
+
+    if /usr/bin/pgrep -q oahd; then
+        info "Rosetta already installed"
+        return 0
+    fi
+
+    info "Installing Rosetta..."
+    softwareupdate --install-rosetta --agree-to-license
+    success "Rosetta installed"
+}
+
+apply_macos_defaults() {
     info "Applying macOS defaults..."
 
     # Finder
@@ -93,20 +125,12 @@ apply_macos_tweaks() {
     killall Dock 2>/dev/null || true
 
     success "macOS defaults applied"
-
-    if ! xcode-select -p >/dev/null 2>&1; then
-        info "Installing Xcode Command Line Tools..."
-        xcode-select --install
-    fi
 }
 
 configure_power_management() {
     info "Configuring power management..."
 
-    # Battery: display off after 15min, system sleep after 1h idle.
     sudo pmset -b sleep 60 displaysleep 15
-
-    # AC power: keep the Mac awake for clamshell use and turn the display off after 30 minutes.
     sudo pmset -c sleep 0 displaysleep 30
 
     success "Power management configured"
@@ -115,27 +139,11 @@ configure_power_management() {
 install_keyboard_layout() {
     info "Installing Hungarian keyboard layout..."
     mkdir -p "$HOME/Library/Keyboard Layouts"
-    cp "$DOTFILES_DIR/apps/Hungarian_Win.keylayout" "$HOME/Library/Keyboard Layouts/"
+    cp "$ASSETS_DIR/hungarian-win.keylayout" "$HOME/Library/Keyboard Layouts/Hungarian_Win.keylayout"
     success "Keyboard layout installed"
 }
 
-install_rosetta() {
-    if [[ "$(uname -m)" != "arm64" ]]; then
-        info "Not Apple Silicon; skipping Rosetta"
-        return 0
-    fi
-
-    if /usr/bin/pgrep -q oahd; then
-        info "Rosetta already installed"
-        return 0
-    fi
-
-    info "Installing Rosetta..."
-    softwareupdate --install-rosetta --agree-to-license
-    success "Rosetta installed"
-}
-
-setup_podman() {
+ensure_podman_machine() {
     if ! command -v podman >/dev/null 2>&1; then
         warn "podman not found; skipping Podman setup"
         return 0
@@ -165,13 +173,14 @@ setup_podman() {
 main() {
     require_macos
 
-    info "Optional macOS setup"
+    info "macOS setup"
 
-    confirm "Apply macOS defaults?" && apply_macos_tweaks
+    confirm "Install Xcode Command Line Tools if needed?" && ensure_xcode_cli_tools
+    confirm "Install Rosetta on Apple Silicon if needed?" && ensure_rosetta
+    confirm "Apply macOS defaults?" && apply_macos_defaults
     confirm "Configure power management?" && configure_power_management
-    confirm "Install Hungarian keyboard layout?" && install_keyboard_layout
-    confirm "Install Rosetta for amd64 emulation?" && install_rosetta
-    confirm "Set up Podman container runtime?" && setup_podman
+    confirm "Install the custom Hungarian keyboard layout?" && install_keyboard_layout
+    confirm "Set up the Podman machine?" && ensure_podman_machine
 
     success "Done!"
 }

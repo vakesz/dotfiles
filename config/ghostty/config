@@ -34,6 +34,7 @@ notify-on-command-finish-after = 10s
 macos-titlebar-style = native
 macos-titlebar-proxy-icon = visible
 macos-icon = custom
+# Keep the custom icon next to the Ghostty config so the path stays obvious.
 macos-custom-icon = ~/.config/ghostty/catppuccin-mocha.icns
 
 # Input
