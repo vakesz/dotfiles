@@ -18,10 +18,6 @@ config/tealdeer/tldr-pages/
 *.zwc
 *.zwc.old
 
-# Neovim
-config/nvim/lazy-lock.json
-config/nvim/.netrwhist
-
 # Local overrides (not tracked in git)
 config/zsh/.zshrc.local
 config/zsh/rc.d/*.local.zsh

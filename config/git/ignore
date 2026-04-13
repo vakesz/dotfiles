@@ -13,9 +13,6 @@
 *~
 .vim/
 
-# Neovim
-.nvim/
-
 # IDEs
 .idea/
 .vscode/

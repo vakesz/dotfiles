@@ -6,9 +6,7 @@ tap "anomalyco/tap"
 tap "oven-sh/bun"
 
 # Shell & Terminal
-brew "neovim"
 brew "oh-my-posh"
-brew "tmux"
 brew "zsh"
 cask "ghostty"
 
@@ -28,9 +26,7 @@ brew "pre-commit"
 cask "git-credential-manager"
 
 # Languages & Runtimes
-brew "deno"
 brew "go"
-brew "lua"
 brew "node"
 brew "oven-sh/bun/bun"
 brew "ruby"
@@ -60,13 +56,11 @@ brew "goimports"
 brew "prettier"
 brew "ruff"
 brew "shellcheck"
-brew "stylua"
 brew "swift-format"
 
 # LSP Servers
 brew "bash-language-server"
 brew "gopls"
-brew "lua-language-server"
 brew "llvm"
 brew "pyright"
 brew "ruby-lsp"
@@ -87,8 +81,8 @@ cask "podman-desktop"
 brew "anomalyco/tap/opencode"
 cask "claude-code@latest"
 cask "codex"
+cask "codex-app"
 cask "copilot-cli"
-cask "lm-studio"
 
 # Development Tools
 brew "hugo"
@@ -114,7 +108,7 @@ cask "linearmouse"
 cask "pearcleaner"
 cask "stats"
 cask "thaw"
-cask "contexts"
+#? cask "contexts"
 
 # Productivity
 cask "coteditor"
@@ -130,7 +124,7 @@ cask "pinta"
 cask "steam"
 cask "transmission"
 cask "whatsapp"
-cask "textual"
+#? cask "textual"
 
 # Browsers
 cask "firefox"

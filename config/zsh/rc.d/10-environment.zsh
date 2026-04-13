@@ -55,14 +55,8 @@ export LC_ALL="en_US.UTF-8"
 export COLORTERM="truecolor"
 
 # Editor
-if has_command nvim; then
-  export EDITOR="nvim"
-  export VISUAL="nvim"
-  export MANPAGER='nvim +Man!'
-else
-  export EDITOR="vim"
-  export VISUAL="vim"
-fi
+export EDITOR="vi"
+export VISUAL="vi"
 
 if [[ -t 0 ]]; then
   export GPG_TTY="$TTY"

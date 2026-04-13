@@ -4,13 +4,6 @@ if [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
   has_command fdfind && alias fd=fdfind
 fi
 
-# Neovim aliases
-if has_command nvim; then
-  alias vi='nvim'
-  alias vim='nvim'
-  alias v='nvim'
-fi
-
 # Python (UV)
 if has_command uv; then
   alias uv-tools='uv tool list'

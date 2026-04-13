@@ -79,25 +79,8 @@ stow -t ~ home
 - zoxide smart `cd`
 - fzf fuzzy finder
 
-### Neovim
-
-- lazy.nvim package manager
-- LSP servers installed system-wide
-- Telescope fuzzy finder
-- Treesitter syntax highlighting
-- Native LSP completion (nvim 0.12+) with Copilot
-- conform.nvim formatting
-- mini.nvim modules for statusline, surround, indentscope, and buffer removal
-- Trouble diagnostics list
-- which-key keybinding discovery
-- fugitive and gitsigns Git integration
-- Undotree undo history
-
-See [KEYMAPS.md](KEYMAPS.md) for the current keybinding reference.
-
 ### Other
 
-- tmux configuration
 - Git config and global ignore
 - fd config
 - ripgrep config
@@ -115,11 +98,9 @@ dotfiles/
 │   ├── fd/
 │   ├── ghostty/
 │   ├── git/
-│   ├── nvim/
 │   ├── oh-my-posh/
 │   ├── ripgrep/
 │   ├── tealdeer/
-│   ├── tmux/
 │   ├── topgrade.toml
 │   └── zsh/
 │       ├── .zprofile

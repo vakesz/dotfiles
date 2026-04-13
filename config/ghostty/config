@@ -43,12 +43,3 @@ clipboard-paste-protection = true
 
 # scrollback-limit in bytes, roughly 125,000 lines
 scrollback-limit = 100000000
-
-# Tmux compatibility: unbind keys that conflict with Ctrl-h/j/k/l pane nav
-# and Alt-Left/Right window cycling
-keybind = ctrl+h=unbind
-keybind = ctrl+j=unbind
-keybind = ctrl+k=unbind
-keybind = ctrl+l=unbind
-keybind = alt+left=unbind
-keybind = alt+right=unbind
