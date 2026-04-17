@@ -9,7 +9,7 @@ tap "oven-sh/bun"
 brew "oh-my-posh"
 brew "zsh"
 cask "ghostty"
-cask "font-fira-code-nerd-font"
+cask "font-jetbrains-mono-nerd-font"
 
 # Core Search & Navigation
 brew "fd"
