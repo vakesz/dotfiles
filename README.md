@@ -1,15 +1,18 @@
 # Dotfiles
 
-Cross-platform dotfiles for macOS, Linux, and WSL, organized around `home/` for home-level files and `config/` for XDG-managed config.
+macOS-primary dotfiles with Linux and WSL support, organized around `home/` for home-level files and `config/` for XDG-managed config.
 
 ## Quick Start
 
-### Prerequisites
+### 1. Core bootstrap requirements
 
-- GNU Stow
 - Git
+- GNU Stow
+- Zsh
 
-### Packages
+### 2. macOS packages
+
+`Brewfile` is the workstation package manifest for the primary macOS machine. It is not intended to be a cross-platform dependency source.
 
 From the repo root:
 
@@ -17,7 +20,7 @@ From the repo root:
 brew bundle install
 ```
 
-### Bootstrap the core packages
+### 3. Bootstrap the dotfiles
 
 ```bash
 ./bootstrap.sh
@@ -25,7 +28,15 @@ brew bundle install
 
 This stows `home/` into `$HOME` and `config/` into `$XDG_CONFIG_HOME`, then asks whether to run the matching platform setup script.
 
-### Optional machine setup
+### 4. Install Zinit for shell plugins
+
+The shell config expects `zinit` to exist at `${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git`. If it is missing, shell startup warns and skips only the `zinit`-managed plugins.
+
+```bash
+git clone --depth=1 https://github.com/zdharma-continuum/zinit.git "${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git"
+```
+
+### 5. Optional machine setup
 
 You can still run the platform setup scripts directly later:
 
@@ -84,15 +95,26 @@ dotfiles/
 
 ### Optional layers
 
-- `Brewfile`: workstation and development packages for the primary macOS setup
+- `Brewfile`: workstation package manifest for the primary macOS setup
 - `scripts/platform/linux.sh`: locale and default shell setup for Linux / WSL
 - `scripts/platform/macos.sh`: macOS defaults, Xcode CLT, Rosetta, custom keyboard layout, power settings, and Podman setup
 
-## Migration Note
+## Machine-Local Customizations
 
-- `bootstrap.sh` is now the only install entrypoint
-- the repo still uses `home/` plus `config/`, but the contents and naming were simplified
-- the Ghostty custom icon now lives in `config/ghostty/` next to the config that references it
+Keep machine-specific overrides untracked in the paths already ignored by git:
+
+- `config/zsh/.zshrc.local`
+- `config/zsh/rc.d/*.local.zsh`
+- `config/git/gitconfig.local`
+
+These files are for local aliases, secrets, machine-specific paths, or other overrides that should not be shared.
+
+## Install Notes
+
+- `bootstrap.sh` is the only stow entrypoint
+- re-run `./bootstrap.sh` after adding or moving tracked files inside `home/` or `config/`
+- the Ghostty custom icon lives in `config/ghostty/` next to the config that references it
+- `zinit` is installed separately so shell startup does not perform implicit network installs
 
 ## Re-Stowing
 

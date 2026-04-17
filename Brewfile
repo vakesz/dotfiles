@@ -5,13 +5,13 @@
 tap "anomalyco/tap"
 tap "oven-sh/bun"
 
-# Shell & Terminal
+# Core Shell & CLI
 brew "oh-my-posh"
 brew "zsh"
 cask "ghostty"
 cask "font-fira-code-nerd-font"
 
-# File Navigation & Search
+# Core Search & Navigation
 brew "fd"
 brew "fzf"
 brew "ripgrep"
@@ -20,13 +20,13 @@ brew "zoxide"
 brew "midnight-commander"
 brew "tree"
 
-# Git
+# Core Git
 brew "gh"
 brew "git"
 brew "pre-commit"
 cask "git-credential-manager"
 
-# Utilities
+# Core Utilities
 brew "cloc"
 brew "mole"
 brew "coreutils"
@@ -42,28 +42,28 @@ brew "stow"
 brew "topgrade"
 brew "uv"
 
-# Languages & Runtimes
+# Development Toolchains: Languages & Runtimes
 brew "go"
 brew "node"
 brew "oven-sh/bun/bun"
 brew "ruby"
 
-# Apple/iOS Development
+# Development Toolchains: Apple
 brew "swiftlint"
 brew "xcbeautify"
 brew "xcode-build-server"
 brew "xcodegen"
 brew "xcinfo"
 
-# Android
+# Development Toolchains: Android
 cask "android-platform-tools"
 
-# C/C++ Toolchain
+# Development Toolchains: C/C++
 brew "cmake"
 brew "gcc"
 brew "make"
 
-# Linters & Formatters
+# Development Toolchains: Linters & Formatters
 brew "clang-format"
 brew "cppcheck"
 brew "eslint"
@@ -74,7 +74,7 @@ brew "ruff"
 brew "shellcheck"
 brew "swift-format"
 
-# LSP Servers
+# Development Toolchains: LSP Servers
 brew "bash-language-server"
 brew "gopls"
 brew "llvm"
@@ -82,19 +82,19 @@ brew "pyright"
 brew "ruby-lsp"
 brew "typescript-language-server"
 
-# Containers & Virtualization
+# Development Toolchains: Containers & Virtualization
 brew "podman"
 brew "podman-compose"
 cask "podman-desktop"
 
-# AI & LLM
+# Development Toolchains: AI & LLM
 brew "anomalyco/tap/opencode"
 cask "claude-code@latest"
 cask "codex"
 cask "codex-app"
 cask "copilot-cli"
 
-# Development Tools
+# Development Toolchains: General
 brew "hugo"
 brew "sqlite"
 cask "dbeaver-community"
@@ -102,20 +102,20 @@ cask "icon-composer"
 cask "sf-symbols"
 cask "visual-studio-code"
 
-# System & Maintenance
+# Desktop Apps: System & Maintenance
 cask "linearmouse"
 cask "pearcleaner"
 cask "stats"
 cask "thaw"
-#? cask "contexts"
+cask "contexts"
 
-# Productivity
+# Desktop Apps: Productivity
 cask "coteditor"
 cask "meetingbar"
 cask "mountain-duck"
 cask "tailscale-app"
 
-# Media & Communication
+# Optional Workstation Apps: Media & Communication
 brew "pngquant"
 cask "discord"
 cask "iina"
@@ -125,11 +125,11 @@ cask "transmission"
 cask "whatsapp"
 #? cask "textual"
 
-# Browsers
+# Optional Workstation Apps: Browsers
 cask "firefox"
 cask "microsoft-edge"
 
-# Office
+# Optional Workstation Apps: Office
 cask "intune-company-portal"
 cask "libreoffice"
 cask "microsoft-auto-update"
@@ -139,7 +139,7 @@ cask "microsoft-powerpoint"
 cask "microsoft-teams"
 cask "microsoft-word"
 
-# Mac App Store
+# Optional Workstation Apps: Mac App Store
 mas "Bitwarden", id: 1352778147
 mas "TestFlight", id: 899247664
 mas "uBlock Origin Lite", id: 6745342698

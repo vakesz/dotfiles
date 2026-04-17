@@ -50,7 +50,6 @@ load_tool_init() {
 }
 
 export LANG="en_US.UTF-8"
-export LC_ALL="en_US.UTF-8"
 export COLORTERM="truecolor"
 
 export EDITOR="vi"
@@ -67,9 +66,7 @@ export PYTHONPYCACHEPREFIX="${XDG_CACHE_HOME}/python"
 export GEM_HOME="${XDG_DATA_HOME}/gem"
 export GEM_SPEC_CACHE="${XDG_CACHE_HOME}/gem"
 export NODE_REPL_HISTORY="${XDG_STATE_HOME}/node_repl_history"
-export NPM_CONFIG_USERCONFIG="${XDG_CONFIG_HOME}/npm/npmrc"
 export NPM_CONFIG_CACHE="${XDG_CACHE_HOME}/npm"
-export BUNDLE_USER_CONFIG="${XDG_CONFIG_HOME}/bundle"
 export BUNDLE_USER_CACHE="${XDG_CACHE_HOME}/bundle"
 export BUNDLE_USER_PLUGIN="${XDG_DATA_HOME}/bundle"
 export GNUPGHOME="${XDG_DATA_HOME}/gnupg"
