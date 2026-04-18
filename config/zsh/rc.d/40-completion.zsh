@@ -1,6 +1,6 @@
 # Completion Configuration
 
-# Homebrew completions (podman, etc.)
+# Homebrew completions
 if (( $+commands[brew] )) && [[ -n "${HOMEBREW_PREFIX:-}" ]]; then
   fpath=("$HOMEBREW_PREFIX/share/zsh/site-functions" $fpath)
 fi

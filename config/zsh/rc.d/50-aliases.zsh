@@ -35,6 +35,10 @@ alias gb='git branch'
 alias gp='git push'
 alias gpl='git pull'
 
+if command_exists docker; then
+  alias dcu='docker compose up'
+  alias dcd='docker compose down'
+fi
 if command_exists podman; then
   alias pcu='podman compose up'
   alias pcd='podman compose down'

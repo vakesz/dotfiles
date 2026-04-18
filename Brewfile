@@ -83,9 +83,7 @@ brew "ruby-lsp"
 brew "typescript-language-server"
 
 # Development Toolchains: Containers & Virtualization
-brew "podman"
-brew "podman-compose"
-cask "podman-desktop"
+cask "orbstack"
 
 # Development Toolchains: AI & LLM
 brew "anomalyco/tap/opencode"

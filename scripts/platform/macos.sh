@@ -143,32 +143,6 @@ install_keyboard_layout() {
     success "Keyboard layout installed"
 }
 
-ensure_podman_machine() {
-    if ! command -v podman >/dev/null 2>&1; then
-        warn "podman not found; skipping Podman setup"
-        return 0
-    fi
-
-    if ! podman machine inspect >/dev/null 2>&1; then
-        info "Initializing Podman machine..."
-        podman machine init \
-            --cpus 6 \
-            --memory 8192 \
-            --disk-size 60 \
-            --rootful
-        success "Podman machine initialized"
-    else
-        info "Podman machine already exists"
-    fi
-
-    if ! podman machine inspect --format '{{.State}}' 2>/dev/null | grep -q "running"; then
-        info "Starting Podman machine..."
-        podman machine start
-        success "Podman machine started"
-    else
-        info "Podman machine already running"
-    fi
-}
 
 main() {
     require_macos
@@ -180,7 +154,6 @@ main() {
     confirm "Apply macOS defaults?" && apply_macos_defaults
     confirm "Configure power management?" && configure_power_management
     confirm "Install the custom Hungarian keyboard layout?" && install_keyboard_layout
-    confirm "Set up the Podman machine?" && ensure_podman_machine
 
     success "Done!"
 }
