@@ -88,7 +88,7 @@ cask "orbstack"
 
 # Development Toolchains: AI & LLM
 brew "anomalyco/tap/opencode"
-brew "t3-code"
+cask "t3-code"
 cask "claude-code@latest"
 cask "codex"
 cask "codex-app"
