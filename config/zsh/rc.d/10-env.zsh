@@ -1,10 +1,5 @@
 # Environment, helpers, and shell behavior
 
-export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
-export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
-export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
-export XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
-
 typeset -U path
 
 case "$OSTYPE" in
@@ -55,23 +50,7 @@ export COLORTERM="truecolor"
 export EDITOR="vi"
 export VISUAL="vi"
 
-if [[ -t 0 ]]; then
-  export GPG_TTY="$TTY"
-fi
-
-export LESS='-R -i -M -W -x4 -F'
-export LESSHISTFILE="${XDG_STATE_HOME}/less/history"
-export RIPGREP_CONFIG_PATH="${XDG_CONFIG_HOME}/ripgrep/config"
-export PYTHONPYCACHEPREFIX="${XDG_CACHE_HOME}/python"
-export GEM_HOME="${XDG_DATA_HOME}/gem"
-export GEM_SPEC_CACHE="${XDG_CACHE_HOME}/gem"
-export NODE_REPL_HISTORY="${XDG_STATE_HOME}/node_repl_history"
-export NPM_CONFIG_CACHE="${XDG_CACHE_HOME}/npm"
-export BUNDLE_USER_CACHE="${XDG_CACHE_HOME}/bundle"
-export BUNDLE_USER_PLUGIN="${XDG_DATA_HOME}/bundle"
-export GNUPGHOME="${XDG_DATA_HOME}/gnupg"
-export GCM_CREDENTIAL_CACHE_DIR="${XDG_CACHE_HOME}/git-credential-manager"
-export TEALDEER_CONFIG_DIR="${XDG_CONFIG_HOME}/tealdeer"
+[[ -t 0 ]] && export GPG_TTY="$TTY"
 
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
 export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border --info=inline'
@@ -87,7 +66,7 @@ setopt INTERACTIVE_COMMENTS
 
 export HISTSIZE=100000
 export SAVEHIST=$HISTSIZE
-export HISTFILE="${XDG_STATE_HOME}/zsh/history"
+export HISTFILE="$XDG_STATE_HOME/zsh/history"
 setopt HIST_IGNORE_ALL_DUPS
 setopt HIST_REDUCE_BLANKS
 setopt HIST_IGNORE_SPACE
@@ -101,6 +80,4 @@ zle -N down-line-or-beginning-search
 bindkey '^[[A' up-line-or-beginning-search
 bindkey '^[[B' down-line-or-beginning-search
 
-if [[ "$OS_TYPE" == "macos" ]]; then
-  export ARCHFLAGS="-arch $CPUTYPE"
-fi
+[[ "$OS_TYPE" == "macos" ]] && export ARCHFLAGS="-arch $CPUTYPE"

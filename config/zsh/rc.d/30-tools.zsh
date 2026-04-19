@@ -1,25 +1,15 @@
-# Zinit Plugin Manager
+# Shell plugins and tool integrations
 
-ZINIT_HOME="${XDG_DATA_HOME}/zinit/zinit.git"
-
-if [[ -f "${ZINIT_HOME}/zinit.zsh" ]]; then
-  source "${ZINIT_HOME}/zinit.zsh"
-
-  zinit light-mode lucid for \
-      zsh-users/zsh-autosuggestions
-
-  zinit wait'0a' lucid for \
-      zsh-users/zsh-syntax-highlighting
-else
-  if [[ -z "${DOTFILES_ZINIT_WARNING_SHOWN:-}" ]]; then
-    export DOTFILES_ZINIT_WARNING_SHOWN=1
-    print -P "%F{33}Zinit is not installed; skipping zinit-managed plugins.%f" >&2
-    print -P "%F{33}Install it with: git clone --depth=1 https://github.com/zdharma-continuum/zinit.git ${ZINIT_HOME}%f" >&2
-  fi
+# Autosuggestions (syntax highlighting is sourced last in 40-completion.zsh
+# because it must run after compinit and after autosuggestions).
+if [[ -n "${HOMEBREW_PREFIX:-}" \
+   && -r "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
+  source "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
 fi
 
+# Lazy-load NVM on Linux/WSL (macOS uses the Homebrew Node).
 if [[ "$OS_TYPE" == "linux" || "$OS_TYPE" == "wsl" ]]; then
-  export NVM_DIR="${XDG_DATA_HOME}/nvm"
+  export NVM_DIR="$XDG_DATA_HOME/nvm"
 
   if [[ -s "$NVM_DIR/nvm.sh" ]]; then
     load_nvm() {

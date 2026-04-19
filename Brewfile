@@ -8,6 +8,8 @@ tap "oven-sh/bun"
 # Core Shell & CLI
 brew "oh-my-posh"
 brew "zsh"
+brew "zsh-autosuggestions"
+brew "zsh-syntax-highlighting"
 cask "ghostty"
 cask "font-jetbrains-mono-nerd-font"
 

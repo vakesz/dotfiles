@@ -1,4 +1,4 @@
-# Completion Configuration
+# Completion configuration
 
 # Homebrew completions
 if (( $+commands[brew] )) && [[ -n "${HOMEBREW_PREFIX:-}" ]]; then
@@ -7,9 +7,14 @@ fi
 
 if ! (( ${+_comps} )); then
   autoload -Uz compinit
-  ZSH_COMPDUMP="${XDG_CACHE_HOME}/zsh/.zcompdump"
+  : "${ZSH_COMPDUMP:=$XDG_CACHE_HOME/zsh/.zcompdump}"
   mkdir -p "${ZSH_COMPDUMP:h}"
-  compinit -d "$ZSH_COMPDUMP"
+  # Skip the slow security audit if the dump is fresh (<24h).
+  if [[ -f "$ZSH_COMPDUMP" ]] && [[ -z "$(find "$ZSH_COMPDUMP" -mmin +1440 -print 2>/dev/null)" ]]; then
+    compinit -C -d "$ZSH_COMPDUMP"
+  else
+    compinit -d "$ZSH_COMPDUMP"
+  fi
 fi
 
 # Completion options
@@ -19,7 +24,7 @@ setopt COMPLETE_IN_WORD       # Complete from both ends of a word
 setopt LIST_PACKED            # Make completion list smaller
 setopt MENU_COMPLETE          # Auto-select first completion entry
 
-# Completion Styling
+# Completion styling
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':completion:*:*:*:*:*' menu select
@@ -30,9 +35,15 @@ zstyle ':completion:*:cd:*' tag-order local-directories directory-stack path-dir
 zstyle ':completion:*:*:cd:*' ignore-parents parent pwd
 zstyle ':completion:*' squeeze-slashes true
 zstyle ':completion:*' use-cache on
-zstyle ':completion:*' cache-path "${XDG_CACHE_HOME}/zsh/completion-cache"
+zstyle ':completion:*' cache-path "$XDG_CACHE_HOME/zsh/completion-cache"
 zstyle ':completion:*' group-name ''
 zstyle ':completion:*:descriptions' format '[%d]'
 zstyle ':completion:*:corrections' format '%F{green}-- %d (errors: %e) --%f'
 zstyle ':completion:*:messages' format '%F{purple}-- %d --%f'
 zstyle ':completion:*:warnings' format '%F{red}-- no matches found --%f'
+
+# Syntax highlighting MUST be sourced last (after compinit and after autosuggestions).
+if [[ -n "${HOMEBREW_PREFIX:-}" \
+   && -r "$HOMEBREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
+  source "$HOMEBREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+fi

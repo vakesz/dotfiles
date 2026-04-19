@@ -28,15 +28,7 @@ brew bundle install
 
 This stows `home/` into `$HOME` and `config/` into `$XDG_CONFIG_HOME`, then asks whether to run the matching platform setup script.
 
-### 4. Install Zinit for shell plugins
-
-The shell config expects `zinit` to exist at `${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git`. If it is missing, shell startup warns and skips only the `zinit`-managed plugins.
-
-```bash
-git clone --depth=1 https://github.com/zdharma-continuum/zinit.git "${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git"
-```
-
-### 5. Optional machine setup
+### 4. Optional machine setup
 
 You can still run the platform setup scripts directly later:
 
@@ -114,7 +106,7 @@ These files are for local aliases, secrets, machine-specific paths, or other ove
 - `bootstrap.sh` is the only stow entrypoint
 - re-run `./bootstrap.sh` after adding or moving tracked files inside `home/` or `config/`
 - the Ghostty custom icon lives in `config/ghostty/` next to the config that references it
-- `zinit` is installed separately so shell startup does not perform implicit network installs
+- shell plugins (`zsh-autosuggestions`, `zsh-syntax-highlighting`) install via `Brewfile`; no separate plugin manager bootstrap is required
 
 ## Re-Stowing
 
@@ -142,7 +134,6 @@ System and tool updates run through `topgrade`. Homebrew app auto-updates are di
 - [GNU Stow](https://www.gnu.org/software/stow/)
 - [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html)
 - [Oh My Posh](https://ohmyposh.dev/)
-- [Zinit](https://github.com/zdharma-continuum/zinit)
 - [zoxide](https://github.com/ajeetdsouza/zoxide)
 - [fzf](https://github.com/junegunn/fzf)
 - [topgrade](https://github.com/topgrade-rs/topgrade)

@@ -27,21 +27,8 @@ elif [[ "$OS_TYPE" == "linux" || "$OS_TYPE" == "wsl" ]]; then
   [[ -d "/snap/bin" ]] && path=("/snap/bin" $path)
 fi
 
-export GOPATH="${XDG_DATA_HOME}/go"
-export GOMODCACHE="${XDG_CACHE_HOME}/go/mod"
 [[ -d "$GOPATH/bin" ]] && path=("$GOPATH/bin" $path)
-
-export RUSTUP_HOME="${XDG_DATA_HOME}/rustup"
-export CARGO_HOME="${XDG_DATA_HOME}/cargo"
-[[ -d "$CARGO_HOME/bin" ]] && path=("$CARGO_HOME/bin" $path)
-
-export UV_CACHE_DIR="${XDG_CACHE_HOME}/uv"
-export UV_TOOL_DIR="${XDG_DATA_HOME}/uv/tools"
-export UV_TOOL_BIN_DIR="${XDG_DATA_HOME}/uv/bin"
-export UV_PYTHON_INSTALL_DIR="${XDG_DATA_HOME}/uv/python"
 [[ -d "$UV_TOOL_BIN_DIR" ]] && path=("$UV_TOOL_BIN_DIR" $path)
-
-export BUN_INSTALL="${XDG_DATA_HOME}/bun"
 [[ -d "$BUN_INSTALL/bin" ]] && path=("$BUN_INSTALL/bin" $path)
 
 export PATH

@@ -1,13 +1,8 @@
 [misc]
-# Disable built-in shell step (uses custom zinit command instead)
-# Disable containers, yarn, deno steps
 disable = ["shell", "containers", "yarn", "deno"]
 display_time = true
 cleanup = true
 skip_notify = true
-
-[commands]
-"zinit" = "zsh -c 'source \"${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git/zinit.zsh\" && zinit self-update && zinit update --all'"
 
 [brew]
 greedy_cask = true
