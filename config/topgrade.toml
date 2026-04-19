@@ -1,5 +1,5 @@
 [misc]
-disable = ["shell", "containers", "yarn", "deno"]
+disable = ["shell", "containers", "yarn", "deno", "microsoft_office"]
 display_time = true
 cleanup = true
 skip_notify = true

@@ -55,6 +55,10 @@ export VISUAL="vi"
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
 export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border --info=inline'
 
+export HOMEBREW_NO_ANALYTICS=1
+export HOMEBREW_NO_AUTO_UPDATE=1
+export HOMEBREW_NO_ENV_HINTS=1
+
 unsetopt FLOW_CONTROL
 setopt AUTO_CD
 setopt AUTO_PUSHD

@@ -118,6 +118,11 @@ apply_macos_defaults() {
     defaults write com.apple.tips CloudKitSyncingEnabled -bool false
     defaults write com.apple.tips NotificationsEnabled -bool false
 
+    # Siri (Apple Intelligence features in Xcode remain available)
+    defaults write com.apple.assistant.support "Assistant Enabled" -bool false
+    defaults write com.apple.Siri StatusMenuVisible -bool false
+    defaults write com.apple.Siri VoiceTriggerUserEnabled -bool false
+
     # Time Machine
     defaults write com.apple.TimeMachine DoNotOfferNewDisksForBackup -bool true
 
@@ -132,6 +137,7 @@ configure_power_management() {
 
     sudo pmset -b sleep 60 displaysleep 15
     sudo pmset -c sleep 0 displaysleep 30
+    sudo pmset -a powernap 0
 
     success "Power management configured"
 }
@@ -141,6 +147,22 @@ install_keyboard_layout() {
     mkdir -p "$HOME/Library/Keyboard Layouts"
     cp "$ASSETS_DIR/hungarian-win.keylayout" "$HOME/Library/Keyboard Layouts/Hungarian_Win.keylayout"
     success "Keyboard layout installed"
+}
+
+configure_spotlight_exclusions() {
+    info "Excluding high-churn dev paths from Spotlight..."
+
+    local exclusion_paths=(
+        "$HOME/Library/Developer/Xcode/DerivedData"
+        "$HOME/.cache"
+    )
+
+    for path in "${exclusion_paths[@]}"; do
+        [[ -d "$path" ]] || continue
+        touch "$path/.metadata_never_index"
+    done
+
+    success "Spotlight exclusions applied"
 }
 
 
@@ -153,6 +175,7 @@ main() {
     confirm "Install Rosetta on Apple Silicon if needed?" && ensure_rosetta
     confirm "Apply macOS defaults?" && apply_macos_defaults
     confirm "Configure power management?" && configure_power_management
+    confirm "Exclude high-churn dev paths from Spotlight?" && configure_spotlight_exclusions
     confirm "Install the custom Hungarian keyboard layout?" && install_keyboard_layout
 
     success "Done!"
