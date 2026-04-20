@@ -1,10 +1,6 @@
 # Brewfile
 # Install with: brew bundle install
 
-# Taps
-tap "anomalyco/tap"
-tap "oven-sh/bun"
-
 # Core Shell & CLI
 brew "oh-my-posh"
 brew "zsh"
@@ -39,7 +35,6 @@ brew "mas"
 brew "curl"
 brew "nmap"
 brew "telnet"
-brew "wget"
 brew "stow"
 brew "topgrade"
 brew "uv"
@@ -68,7 +63,6 @@ brew "make"
 
 # Development Toolchains: Linters & Formatters
 brew "clang-format"
-brew "cppcheck"
 brew "eslint"
 brew "markdownlint-cli"
 brew "goimports"
@@ -77,36 +71,23 @@ brew "ruff"
 brew "shellcheck"
 brew "swift-format"
 
-# Development Toolchains: LSP Servers
-brew "bash-language-server"
-brew "gopls"
-brew "llvm"
-brew "pyright"
-brew "ruby-lsp"
-brew "typescript-language-server"
-
 # Development Toolchains: Containers & Virtualization
 cask "orbstack"
 
 # Development Toolchains: AI & LLM
-brew "anomalyco/tap/opencode"
 cask "t3-code"
 cask "claude-code@latest"
 cask "codex"
 cask "codex-app"
-cask "copilot-cli"
 
 # Development Toolchains: General
-brew "hugo"
 brew "sqlite"
 cask "dbeaver-community"
-cask "icon-composer"
 cask "sf-symbols"
 cask "visual-studio-code"
 
 # Desktop Apps: System & Maintenance
 cask "linearmouse"
-cask "pearcleaner"
 cask "stats"
 cask "thaw"
 cask "contexts"
@@ -115,9 +96,8 @@ cask "contexts"
 cask "coteditor"
 cask "meetingbar"
 cask "mountain-duck"
-cask "tailscale-app"
 
-# Optional Workstation Apps: Media & Communication
+# Optional Apps: Media & Communication
 brew "pngquant"
 cask "discord"
 cask "iina"
