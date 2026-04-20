@@ -88,6 +88,7 @@ cask "visual-studio-code"
 
 # Desktop Apps: System & Maintenance
 cask "linearmouse"
+cask "middleclick"
 cask "stats"
 cask "thaw"
 cask "contexts"
