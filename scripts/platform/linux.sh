@@ -121,7 +121,9 @@ ensure_locale() {
 }
 
 ensure_zsh_shell() {
-    command -v zsh >/dev/null 2>&1 || {
+    local zsh_path=""
+
+    zsh_path="$(command -v zsh)" || {
         warn "zsh not installed"
         return 0
     }
@@ -132,9 +134,9 @@ ensure_zsh_shell() {
     fi
 
     info "Changing default shell to zsh..."
-    grep -Fxq "$(command -v zsh)" /etc/shells 2>/dev/null || command -v zsh | sudo tee -a /etc/shells >/dev/null
+    grep -Fxq "$zsh_path" /etc/shells 2>/dev/null || echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
 
-    if chsh -s "$(command -v zsh)"; then
+    if chsh -s "$zsh_path"; then
         success "Default shell changed to zsh (log out and back in to apply)"
     else
         error "Failed to change shell"
