@@ -3,17 +3,11 @@
 path=("$XDG_BIN_HOME" $path)
 
 if [[ "$OS_TYPE" == "macos" ]]; then
-  brew_path=""
-
-  if [[ -x "/opt/homebrew/bin/brew" ]]; then
-    brew_path="/opt/homebrew/bin/brew"
-  elif [[ -x "/usr/local/bin/brew" ]]; then
-    brew_path="/usr/local/bin/brew"
-  fi
-
-  if [[ -n "$brew_path" ]]; then
+  for brew_path in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+    [[ -x "$brew_path" ]] || continue
     cache_tool_init "$brew_path" "$XDG_CACHE_HOME/zsh/brew-shellenv.zsh" "$brew_path shellenv"
-  fi
+    break
+  done
 
   if [[ -n "${HOMEBREW_PREFIX:-}" ]]; then
     for package_bin in \

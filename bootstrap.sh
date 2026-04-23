@@ -7,6 +7,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_NAME="$(basename "$0")"
+CONFIG_TARGET="${XDG_CONFIG_HOME:-$HOME/.config}"
 ADOPT=0
 
 source "$REPO_ROOT/scripts/lib/common.sh"
@@ -55,17 +56,6 @@ require_stow() {
     }
 }
 
-xdg_config_target() {
-    printf '%s\n' "${XDG_CONFIG_HOME:-$HOME/.config}"
-}
-
-platform_setup_path() {
-    local platform=""
-
-    platform="$(detect_platform)" || return 1
-    printf '%s\n' "$REPO_ROOT/scripts/platform/${platform}.sh"
-}
-
 confirm_adopt() {
     if (( ADOPT == 0 )); then
         return 0
@@ -85,19 +75,8 @@ confirm_adopt() {
     }
 }
 
-ensure_stow_targets_exist() {
-    local config_target=""
-
-    config_target="$(xdg_config_target)"
-    mkdir -p "$HOME" "$config_target"
-}
-
 assert_stow_targets_clean() {
-    local config_target=""
-
-    config_target="$(xdg_config_target)"
-
-    if ! stow -n -d "$REPO_ROOT" -t "$HOME" home >/dev/null 2>&1 || ! stow -n -d "$REPO_ROOT" -t "$config_target" config >/dev/null 2>&1; then
+    if ! stow -n -d "$REPO_ROOT" -t "$HOME" home >/dev/null 2>&1 || ! stow -n -d "$REPO_ROOT" -t "$CONFIG_TARGET" config >/dev/null 2>&1; then
         error "stow found existing files or directories that would conflict with linking"
         info "Remove the conflicting files manually, or rerun interactively with: ./$SCRIPT_NAME --adopt"
         exit 1
@@ -105,21 +84,19 @@ assert_stow_targets_clean() {
 }
 
 stow_selected_packages() {
-    local config_target=""
+    local stow_args=(-d "$REPO_ROOT")
 
-    config_target="$(xdg_config_target)"
-
-    ensure_stow_targets_exist
-    info "Stowing home/ into $HOME and config/ into $config_target"
+    mkdir -p "$CONFIG_TARGET"
+    info "Stowing home/ into $HOME and config/ into $CONFIG_TARGET"
 
     if (( ADOPT )); then
-        stow --adopt -d "$REPO_ROOT" -t "$HOME" home
-        stow --adopt -d "$REPO_ROOT" -t "$config_target" config
+        stow_args+=(--adopt)
     else
         assert_stow_targets_clean
-        stow -d "$REPO_ROOT" -t "$HOME" home
-        stow -d "$REPO_ROOT" -t "$config_target" config
     fi
+
+    stow "${stow_args[@]}" -t "$HOME" home
+    stow "${stow_args[@]}" -t "$CONFIG_TARGET" config
 
     success "Dotfiles linked"
 
@@ -131,11 +108,11 @@ stow_selected_packages() {
 }
 
 maybe_run_platform_setup() {
+    local platform=""
     local setup_path=""
 
-    if ! setup_path="$(platform_setup_path 2>/dev/null)"; then
-        return 0
-    fi
+    platform="$(detect_platform 2>/dev/null)" || return 0
+    setup_path="$REPO_ROOT/scripts/platform/${platform}.sh"
 
     if [[ ! -x "$setup_path" ]]; then
         warn "Platform setup script is missing or not executable: $setup_path"

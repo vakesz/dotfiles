@@ -7,10 +7,9 @@ fi
 
 if ! (( ${+_comps} )); then
   autoload -Uz compinit
-  : "${ZSH_COMPDUMP:=$XDG_CACHE_HOME/zsh/.zcompdump}"
   mkdir -p "${ZSH_COMPDUMP:h}"
   # Skip the slow security audit if the dump is fresh (<24h).
-  if [[ -f "$ZSH_COMPDUMP" ]] && [[ -z "$(find "$ZSH_COMPDUMP" -mmin +1440 -print 2>/dev/null)" ]]; then
+  if [[ -n ${ZSH_COMPDUMP}(#qN.mh-24) ]]; then
     compinit -C -d "$ZSH_COMPDUMP"
   else
     compinit -d "$ZSH_COMPDUMP"

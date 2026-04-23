@@ -48,58 +48,76 @@ load_linux_release_info() {
     fi
 }
 
+distro_family() {
+    case "$DISTRO_ID" in
+        debian|ubuntu) printf 'debian\n'; return 0 ;;
+        fedora) printf 'redhat\n'; return 0 ;;
+        arch) printf 'arch\n'; return 0 ;;
+    esac
+    case "$DISTRO_LIKE" in
+        *debian*) printf 'debian\n' ;;
+        *rhel*|*fedora*) printf 'redhat\n' ;;
+        *arch*) printf 'arch\n' ;;
+        *) return 1 ;;
+    esac
+}
+
+install_locale_for_family() {
+    case "$1" in
+        debian)
+            command -v apt-get >/dev/null 2>&1 || { warn "apt-get not found; skipping locale install"; return 0; }
+            sudo apt-get update -qq
+            sudo apt-get install -y locales
+            sudo locale-gen en_US.UTF-8
+            success "Locale en_US.UTF-8 generated"
+            ;;
+        redhat)
+            if command -v dnf >/dev/null 2>&1; then
+                sudo dnf install -y glibc-langpack-en
+            elif command -v yum >/dev/null 2>&1; then
+                sudo yum install -y glibc-langpack-en
+            else
+                warn "dnf/yum not found; skipping locale install"
+                return 0
+            fi
+            success "Locale en_US.UTF-8 installed"
+            ;;
+        arch)
+            [[ -f /etc/locale.gen ]] || { warn "/etc/locale.gen not found; skipping locale generation"; return 0; }
+            sudo sed -i 's/^# *\(en_US.UTF-8 UTF-8\)/\1/' /etc/locale.gen
+            sudo locale-gen
+            success "Locale en_US.UTF-8 generated"
+            ;;
+    esac
+}
+
+persist_locale_for_family() {
+    if [[ "$1" == "debian" ]] && command -v update-locale >/dev/null 2>&1; then
+        sudo update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+    else
+        persist_locale_with_systemd
+    fi
+}
+
 ensure_locale() {
     load_linux_release_info
 
     info "Detected platform: $LINUX_VARIANT"
 
+    local family=""
+    family="$(distro_family)" || {
+        warn "Unsupported Linux distro for locale setup; skipping"
+        return 0
+    }
+
     if locale -a 2>/dev/null | grep -qiE '^en_US\.utf-?8$'; then
         info "Locale en_US.UTF-8 already available"
     else
         info "Installing en_US.UTF-8 locale..."
-
-        if [[ "$DISTRO_ID" == "debian" || "$DISTRO_ID" == "ubuntu" || "$DISTRO_LIKE" == *"debian"* ]]; then
-            if command -v apt-get >/dev/null 2>&1; then
-                sudo apt-get update -qq
-                sudo apt-get install -y locales
-                sudo locale-gen en_US.UTF-8
-                success "Locale en_US.UTF-8 generated"
-            else
-                warn "apt-get not found; skipping locale install"
-            fi
-        elif [[ "$DISTRO_ID" == "fedora" || "$DISTRO_LIKE" == *"rhel"* || "$DISTRO_LIKE" == *"fedora"* ]]; then
-            if command -v dnf >/dev/null 2>&1; then
-                sudo dnf install -y glibc-langpack-en
-                success "Locale en_US.UTF-8 installed"
-            elif command -v yum >/dev/null 2>&1; then
-                sudo yum install -y glibc-langpack-en
-                success "Locale en_US.UTF-8 installed"
-            else
-                warn "dnf/yum not found; skipping locale install"
-            fi
-        elif [[ "$DISTRO_ID" == "arch" || "$DISTRO_LIKE" == *"arch"* ]]; then
-            if [[ -f /etc/locale.gen ]]; then
-                sudo sed -i 's/^# *\(en_US.UTF-8 UTF-8\)/\1/' /etc/locale.gen
-                sudo locale-gen
-                success "Locale en_US.UTF-8 generated"
-            else
-                warn "/etc/locale.gen not found; skipping locale generation"
-            fi
-        else
-            warn "Unsupported Linux distro for locale setup; skipping"
-            return 0
-        fi
+        install_locale_for_family "$family"
     fi
 
-    if [[ "$DISTRO_ID" == "debian" || "$DISTRO_ID" == "ubuntu" || "$DISTRO_LIKE" == *"debian"* ]]; then
-        if command -v update-locale >/dev/null 2>&1; then
-            sudo update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
-        else
-            persist_locale_with_systemd
-        fi
-    elif [[ "$DISTRO_ID" == "fedora" || "$DISTRO_LIKE" == *"rhel"* || "$DISTRO_LIKE" == *"fedora"* || "$DISTRO_ID" == "arch" || "$DISTRO_LIKE" == *"arch"* ]]; then
-        persist_locale_with_systemd
-    fi
+    persist_locale_for_family "$family"
 }
 
 ensure_zsh_shell() {
