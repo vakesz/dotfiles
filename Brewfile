@@ -81,6 +81,7 @@ cask "codex"
 cask "codex-app"
 
 # Development Toolchains: General
+brew "azure-cli"
 brew "sqlite"
 cask "dbeaver-community"
 cask "sf-symbols"
