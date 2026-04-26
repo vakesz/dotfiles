@@ -21,7 +21,6 @@ brew "tree"
 # Core Git
 brew "gh"
 brew "git"
-brew "pre-commit"
 cask "git-credential-manager"
 
 # Core Utilities
@@ -78,7 +77,6 @@ cask "orbstack"
 cask "t3-code"
 cask "claude-code@latest"
 cask "codex"
-cask "codex-app"
 
 # Development Toolchains: General
 brew "azure-cli"
@@ -86,13 +84,13 @@ brew "sqlite"
 cask "dbeaver-community"
 cask "sf-symbols"
 cask "visual-studio-code"
+cask "zed"
 
 # Desktop Apps: System & Maintenance
 cask "linearmouse"
 cask "middleclick"
 cask "stats"
 cask "thaw"
-cask "contexts"
 
 # Desktop Apps: Productivity
 cask "coteditor"

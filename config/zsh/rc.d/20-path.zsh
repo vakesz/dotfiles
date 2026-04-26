@@ -1,28 +1,31 @@
 # PATH and runtime directories
 
-path=("$XDG_BIN_HOME" $path)
+prepend_path() {
+  local dir
+  for dir in "$@"; do
+    [[ -d "$dir" ]] && path=("$dir" $path)
+  done
+}
+
+prepend_path "$XDG_BIN_HOME"
 
 if [[ "$OS_TYPE" == "macos" ]]; then
   for brew_path in /opt/homebrew/bin/brew /usr/local/bin/brew; do
     [[ -x "$brew_path" ]] || continue
-    cache_tool_init "$brew_path" "$XDG_CACHE_HOME/zsh/brew-shellenv.zsh" "$brew_path shellenv"
+    cached_eval "$XDG_CACHE_HOME/zsh/brew-shellenv.zsh" "$brew_path shellenv" "$brew_path"
     break
   done
 
   if [[ -n "${HOMEBREW_PREFIX:-}" ]]; then
-    for package_bin in \
+    prepend_path \
       "$HOMEBREW_PREFIX/opt/curl/bin" \
       "$HOMEBREW_PREFIX/opt/ruby/bin" \
-      "$HOMEBREW_PREFIX/opt/make/libexec/gnubin"; do
-      [[ -d "$package_bin" ]] && path=("$package_bin" $path)
-    done
+      "$HOMEBREW_PREFIX/opt/make/libexec/gnubin"
   fi
 elif [[ "$OS_TYPE" == "linux" || "$OS_TYPE" == "wsl" ]]; then
-  [[ -d "/snap/bin" ]] && path=("/snap/bin" $path)
+  prepend_path /snap/bin
 fi
 
-[[ -d "$GOPATH/bin" ]] && path=("$GOPATH/bin" $path)
-[[ -d "$UV_TOOL_BIN_DIR" ]] && path=("$UV_TOOL_BIN_DIR" $path)
-[[ -d "$BUN_INSTALL/bin" ]] && path=("$BUN_INSTALL/bin" $path)
+prepend_path "$GOPATH/bin" "$UV_TOOL_BIN_DIR" "$BUN_INSTALL/bin"
 
 export PATH

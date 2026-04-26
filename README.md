@@ -4,23 +4,15 @@ macOS-primary dotfiles with Linux and WSL support, organized around `home/` for 
 
 ## Quick Start
 
-### 1. Core bootstrap requirements
+### 1. Install bootstrap prerequisites
 
-- Git
-- GNU Stow
-- Zsh
-
-### 2. macOS packages
-
-`Brewfile` is the workstation package manifest for the primary macOS machine. It is not intended to be a cross-platform dependency source.
-
-From the repo root:
+`bootstrap.sh` only needs `git`, `stow`, and `zsh`. On a fresh macOS machine:
 
 ```bash
-brew bundle install
+brew install git stow zsh
 ```
 
-### 3. Bootstrap the dotfiles
+### 2. Bootstrap the dotfiles
 
 ```bash
 ./bootstrap.sh
@@ -28,9 +20,17 @@ brew bundle install
 
 This stows `home/` into `$HOME` and `config/` into `$XDG_CONFIG_HOME`, then asks whether to run the matching platform setup script.
 
+### 3. Install the rest of the workstation packages (macOS)
+
+`Brewfile` is the workstation package manifest for the primary macOS machine. It is not intended to be a cross-platform dependency source.
+
+```bash
+brew bundle install
+```
+
 ### 4. Optional machine setup
 
-You can still run the platform setup scripts directly later:
+You can run the platform setup scripts directly later:
 
 ```bash
 ./scripts/platform/macos.sh

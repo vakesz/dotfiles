@@ -22,12 +22,17 @@ command_exists() {
   command -v "$1" >/dev/null 2>&1
 }
 
-cache_tool_init() {
-  local executable_path="$1" cache_file="$2" init_command="$3" config_file="${4:-}"
+cached_eval() {
+  # Source `init_command` output via $cache_file; regen if cache is missing or any dep is newer.
+  local cache_file="$1" init_command="$2"; shift 2
+  local dep regen=0
 
-  [[ -x "$executable_path" ]] || return 1
+  [[ -f "$cache_file" ]] || regen=1
+  for dep in "$@"; do
+    [[ "$dep" -nt "$cache_file" ]] && { regen=1; break; }
+  done
 
-  if [[ ! -f "$cache_file" || "$executable_path" -nt "$cache_file" || ( -n "$config_file" && "$config_file" -nt "$cache_file" ) ]]; then
+  if (( regen )); then
     mkdir -p "${cache_file:h}"
     eval "$init_command" > "$cache_file" 2>/dev/null
   fi
@@ -36,12 +41,10 @@ cache_tool_init() {
 }
 
 load_tool_init() {
-  local tool_name="$1" init_command="$2" config_file="${3:-}" executable_path=""
-
-  command_exists "$tool_name" || return 0
-  executable_path="$(command -v "$tool_name")" || return 0
-
-  cache_tool_init "$executable_path" "$XDG_CACHE_HOME/zsh/${tool_name}-init.zsh" "$init_command" "$config_file"
+  local tool="$1" init_command="$2"; shift 2
+  local exe
+  exe="$(command -v "$tool")" || return 0
+  cached_eval "$XDG_CACHE_HOME/zsh/${tool}-init.zsh" "$init_command" "$exe" "$@"
 }
 
 export LANG="en_US.UTF-8"
