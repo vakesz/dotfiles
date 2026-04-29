@@ -13,7 +13,7 @@ if [[ "$OS_TYPE" == "linux" || "$OS_TYPE" == "wsl" ]]; then
 
   if [[ -s "$NVM_DIR/nvm.sh" ]]; then
     load_nvm() {
-      unfunction nvm node npm npx load_nvm 2>/dev/null
+      unfunction nvm node npm npx pnpm corepack load_nvm 2>/dev/null
       source "$NVM_DIR/nvm.sh"
       [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
     }
@@ -22,6 +22,8 @@ if [[ "$OS_TYPE" == "linux" || "$OS_TYPE" == "wsl" ]]; then
     node() { load_nvm && node "$@"; }
     npm() { load_nvm && npm "$@"; }
     npx() { load_nvm && npx "$@"; }
+    pnpm() { load_nvm && pnpm "$@"; }
+    corepack() { load_nvm && corepack "$@"; }
   fi
 fi
 

@@ -41,6 +41,7 @@ brew "uv"
 # Development Toolchains: Languages & Runtimes
 brew "go"
 brew "node"
+brew "pnpm"
 brew "oven-sh/bun/bun"
 brew "ruby"
 brew "zig"

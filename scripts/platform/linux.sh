@@ -120,6 +120,22 @@ ensure_locale() {
     persist_locale_for_family "$family"
 }
 
+ensure_pnpm() {
+    if ! command -v corepack >/dev/null 2>&1; then
+        warn "corepack not found; install Node (e.g. via NVM) first, then re-run"
+        return 0
+    fi
+
+    if command -v pnpm >/dev/null 2>&1; then
+        info "pnpm already available"
+        return 0
+    fi
+
+    info "Enabling pnpm via corepack..."
+    corepack enable pnpm
+    success "pnpm enabled"
+}
+
 ensure_zsh_shell() {
     local zsh_path=""
 
@@ -151,6 +167,7 @@ main() {
 
     confirm "Configure en_US.UTF-8 locale?" && ensure_locale
     confirm "Set zsh as the default shell?" && ensure_zsh_shell
+    confirm "Enable pnpm via corepack?" && ensure_pnpm
 
     success "Done!"
 }

@@ -26,6 +26,6 @@ elif [[ "$OS_TYPE" == "linux" || "$OS_TYPE" == "wsl" ]]; then
   prepend_path /snap/bin
 fi
 
-prepend_path "$GOPATH/bin" "$UV_TOOL_BIN_DIR" "$BUN_INSTALL/bin"
+prepend_path "$GOPATH/bin" "$UV_TOOL_BIN_DIR" "$BUN_INSTALL/bin" "$PNPM_HOME"
 
 export PATH

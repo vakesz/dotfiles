@@ -30,6 +30,7 @@ export UV_TOOL_DIR="$XDG_DATA_HOME/uv/tools"
 export UV_TOOL_BIN_DIR="$XDG_DATA_HOME/uv/bin"
 export UV_PYTHON_INSTALL_DIR="$XDG_DATA_HOME/uv/python"
 export BUN_INSTALL="$XDG_DATA_HOME/bun"
+export PNPM_HOME="$XDG_DATA_HOME/pnpm"
 
 # Prevent .zsh_sessions from cluttering $ZDOTDIR on macOS.
 [[ "$OSTYPE" == darwin* ]] && export SHELL_SESSIONS_DISABLE=1
