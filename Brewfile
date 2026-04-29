@@ -126,5 +126,4 @@ cask "microsoft-word"
 mas "Bitwarden", id: 1352778147
 mas "TestFlight", id: 899247664
 mas "uBlock Origin Lite", id: 6745342698
-mas "Userscripts", id: 1463298887
 mas "Xcode", id: 497799835

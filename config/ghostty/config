@@ -43,4 +43,4 @@ copy-on-select = true
 clipboard-paste-protection = true
 
 # scrollback-limit in bytes, roughly 125,000 lines
-scrollback-limit = 100000000
+scrollback-limit = 10000000
