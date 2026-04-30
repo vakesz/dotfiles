@@ -37,6 +37,7 @@ brew "telnet"
 brew "stow"
 brew "topgrade"
 brew "uv"
+brew "glow"
 
 # Development Toolchains: Languages & Runtimes
 brew "go"
@@ -45,6 +46,7 @@ brew "pnpm"
 brew "oven-sh/bun/bun"
 brew "ruby"
 brew "zig"
+brew "rust"
 
 # Development Toolchains: Apple
 brew "swiftlint"
@@ -78,6 +80,9 @@ cask "orbstack"
 cask "t3-code"
 cask "claude-code@latest"
 cask "codex"
+#cask "steipete/tap/codexbar"
+#cask "openusage"
+cask "lm-studio"
 
 # Development Toolchains: General
 brew "azure-cli"
