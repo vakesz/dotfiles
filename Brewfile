@@ -80,7 +80,7 @@ cask "orbstack"
 cask "t3-code"
 cask "claude-code@latest"
 cask "codex"
-#cask "steipete/tap/codexbar"
+cask "steipete/tap/codexbar"
 #cask "openusage"
 cask "lm-studio"
 

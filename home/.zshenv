@@ -32,5 +32,13 @@ export UV_PYTHON_INSTALL_DIR="$XDG_DATA_HOME/uv/python"
 export BUN_INSTALL="$XDG_DATA_HOME/bun"
 export PNPM_HOME="$XDG_DATA_HOME/pnpm"
 
+# Ensure PNPM_HOME/bin is on PATH for non-interactive subshells too (topgrade,
+# Make rules, scripts) — pnpm 11 uses $PNPM_HOME/bin as the global bin dir and
+# refuses to run if it's not in PATH.
+case ":$PATH:" in
+  *":$PNPM_HOME/bin:"*) ;;
+  *) export PATH="$PNPM_HOME/bin:$PATH" ;;
+esac
+
 # Prevent .zsh_sessions from cluttering $ZDOTDIR on macOS.
 [[ "$OSTYPE" == darwin* ]] && export SHELL_SESSIONS_DISABLE=1
