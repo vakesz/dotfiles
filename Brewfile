@@ -95,6 +95,7 @@ cask "zed"
 # Desktop Apps: System & Maintenance
 cask "linearmouse"
 cask "middleclick"
+cask "notunes"
 cask "stats"
 cask "thaw"
 
