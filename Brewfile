@@ -77,11 +77,10 @@ brew "swift-format"
 cask "orbstack"
 
 # Development Toolchains: AI & LLM
-cask "t3-code"
+cask "t3-code@nightly"
 cask "claude-code@latest"
 cask "codex"
 cask "steipete/tap/codexbar"
-#cask "openusage"
 cask "lm-studio"
 
 # Development Toolchains: General
@@ -90,7 +89,6 @@ brew "sqlite"
 cask "dbeaver-community"
 cask "sf-symbols"
 cask "visual-studio-code"
-cask "zed"
 
 # Desktop Apps: System & Maintenance
 cask "linearmouse"
