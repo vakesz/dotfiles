@@ -124,7 +124,7 @@ apply_macos_defaults() {
     defaults write com.apple.Siri VoiceTriggerUserEnabled -bool false
 
     # Animation
-    defaults write com.apple.universalaccess reduceMotion -bool true
+    defaults write com.apple.universalaccess reduceMotion -bool false
     defaults write com.apple.dock launchanim -bool true
     defaults write com.apple.dock expose-animation-duration -float 0.1
     defaults write NSGlobalDomain NSWindowResizeTime -float 0.001
