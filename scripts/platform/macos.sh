@@ -185,6 +185,10 @@ main() {
     confirm "Exclude high-churn dev paths from Spotlight?" && configure_spotlight_exclusions
     confirm "Install the custom Hungarian keyboard layout?" && install_keyboard_layout
 
+    if confirm "Run Microsoft updater tweaks (disable EdgeUpdater / MAU)?"; then
+        "$REPO_ROOT/scripts/platform/macos-office-tweaks.sh"
+    fi
+
     success "Done!"
 }
 

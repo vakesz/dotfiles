@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadIdentifier</key>
+    <string>com.vakesz.dotfiles.disable-microsoft-updates</string>
+    <key>PayloadUUID</key>
+    <string>4C4F9C51-DA95-4FC8-AE0C-5DB8C9D734DF</string>
+    <key>PayloadDisplayName</key>
+    <string>Disable Microsoft Auto-Updates</string>
+    <key>PayloadDescription</key>
+    <string>Pins Microsoft Edge and Microsoft AutoUpdate (MAU) to a no-auto-update policy. Updates flow through topgrade only.</string>
+    <key>PayloadOrganization</key>
+    <string>vakesz dotfiles</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+    <key>PayloadScope</key>
+    <string>System</string>
+    <key>PayloadRemovalDisallowed</key>
+    <false/>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>PayloadType</key>
+            <string>com.microsoft.Edge</string>
+            <key>PayloadIdentifier</key>
+            <string>com.vakesz.dotfiles.disable-microsoft-updates.edge</string>
+            <key>PayloadUUID</key>
+            <string>CFC73826-A36C-4FFB-A83D-FB4CC62EB7B8</string>
+            <key>PayloadDisplayName</key>
+            <string>Microsoft Edge update policy</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>UpdateDefault</key>
+            <integer>0</integer>
+            <key>InstallDefault</key>
+            <integer>0</integer>
+            <key>AutoUpdateCheckPeriodMinutes</key>
+            <integer>0</integer>
+        </dict>
+        <dict>
+            <key>PayloadType</key>
+            <string>com.microsoft.EdgeUpdater</string>
+            <key>PayloadIdentifier</key>
+            <string>com.vakesz.dotfiles.disable-microsoft-updates.edgeupdater</string>
+            <key>PayloadUUID</key>
+            <string>02439129-3468-4858-83ED-D275A9E97262</string>
+            <key>PayloadDisplayName</key>
+            <string>Microsoft EdgeUpdater policy</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>updateDefault</key>
+            <integer>0</integer>
+            <key>installDefault</key>
+            <integer>0</integer>
+            <key>autoUpdateCheckPeriodMinutes</key>
+            <integer>0</integer>
+        </dict>
+        <dict>
+            <key>PayloadType</key>
+            <string>com.microsoft.autoupdate2</string>
+            <key>PayloadIdentifier</key>
+            <string>com.vakesz.dotfiles.disable-microsoft-updates.mau</string>
+            <key>PayloadUUID</key>
+            <string>62C2E7C3-B759-4587-96F8-30774791837B</string>
+            <key>PayloadDisplayName</key>
+            <string>Microsoft AutoUpdate policy</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>HowToCheck</key>
+            <string>Manual</string>
+            <key>StartDaemonOnAppLaunch</key>
+            <false/>
+            <key>DisableInsiderCheckbox</key>
+            <true/>
+            <key>EnableCheckForUpdatesButton</key>
+            <false/>
+            <key>ChannelName</key>
+            <string>Current</string>
+        </dict>
+    </array>
+</dict>
+</plist>

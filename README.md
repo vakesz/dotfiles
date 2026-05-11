@@ -37,6 +37,12 @@ You can run the platform setup scripts directly later:
 ./scripts/platform/linux.sh
 ```
 
+On macOS, an extra opt-in script permanently disables Microsoft auto-updaters (EdgeUpdater + MAU) so updates flow through `topgrade` only:
+
+```bash
+./scripts/platform/macos-office-tweaks.sh
+```
+
 ### Adopt an existing setup
 
 If your machine already has dotfiles in place and you want to import them into this repo:
@@ -68,6 +74,9 @@ dotfiles/
 ├── scripts/
 │   ├── lib/common.sh
 │   └── platform/         # Optional platform setup scripts
+│       ├── linux.sh
+│       ├── macos.sh
+│       └── macos-office-tweaks.sh
 └── bootstrap.sh
 ```
 
@@ -90,6 +99,7 @@ dotfiles/
 - `Brewfile`: workstation package manifest for the primary macOS setup
 - `scripts/platform/linux.sh`: locale and default shell setup for Linux / WSL
 - `scripts/platform/macos.sh`: macOS defaults, Xcode CLT, Rosetta, custom keyboard layout, and power settings
+- `scripts/platform/macos-office-tweaks.sh`: permanently disable Microsoft EdgeUpdater and Microsoft AutoUpdate (MAU); installs the managed profile from `assets/macos/disable-microsoft-updates.mobileconfig`
 
 ## Machine-Local Customizations
 
