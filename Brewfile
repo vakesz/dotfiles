@@ -45,7 +45,6 @@ brew "node"
 brew "pnpm"
 brew "oven-sh/bun/bun"
 brew "ruby"
-brew "zig"
 brew "rust"
 
 # Development Toolchains: Apple
@@ -67,7 +66,6 @@ brew "make"
 brew "clang-format"
 brew "eslint"
 brew "markdownlint-cli"
-brew "goimports"
 brew "prettier"
 brew "ruff"
 brew "shellcheck"
@@ -77,7 +75,6 @@ brew "swift-format"
 cask "orbstack"
 
 # Development Toolchains: AI & LLM
-cask "t3-code@nightly"
 cask "claude-code@latest"
 cask "codex"
 cask "steipete/tap/codexbar"
