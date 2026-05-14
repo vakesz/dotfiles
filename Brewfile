@@ -44,7 +44,6 @@ brew "go"
 brew "node"
 brew "pnpm"
 brew "oven-sh/bun/bun"
-brew "ruby"
 brew "rust"
 
 # Development Toolchains: Apple
@@ -58,13 +57,14 @@ brew "xcinfo"
 cask "android-platform-tools"
 
 # Development Toolchains: C/C++
+brew "cjson"
 brew "cmake"
 brew "gcc"
 brew "make"
+brew "raylib"
 
 # Development Toolchains: Linters & Formatters
 brew "clang-format"
-brew "eslint"
 brew "markdownlint-cli"
 brew "prettier"
 brew "ruff"
@@ -78,7 +78,6 @@ cask "orbstack"
 cask "claude-code@latest"
 cask "codex"
 cask "steipete/tap/codexbar"
-cask "lm-studio"
 
 # Development Toolchains: General
 brew "azure-cli"
@@ -89,9 +88,7 @@ cask "visual-studio-code"
 
 # Desktop Apps: System & Maintenance
 cask "linearmouse"
-cask "middleclick"
 cask "notunes"
-cask "stats"
 cask "thaw"
 
 # Desktop Apps: Productivity
