@@ -76,11 +76,18 @@ confirm_adopt() {
 }
 
 assert_stow_targets_clean() {
-    if ! stow -n -d "$REPO_ROOT" -t "$HOME" home >/dev/null 2>&1 || ! stow -n -d "$REPO_ROOT" -t "$CONFIG_TARGET" config >/dev/null 2>&1; then
-        error "stow found existing files or directories that would conflict with linking"
-        info "Remove the conflicting files manually, or rerun interactively with: ./$SCRIPT_NAME --adopt"
-        exit 1
-    fi
+    local package target
+
+    for package in home config; do
+        target="$HOME"
+        [[ "$package" == "config" ]] && target="$CONFIG_TARGET"
+
+        stow -n -d "$REPO_ROOT" -t "$target" "$package" >/dev/null 2>&1 || {
+            error "stow found existing files or directories that would conflict with linking"
+            info "Remove the conflicting files manually, or rerun interactively with: ./$SCRIPT_NAME --adopt"
+            exit 1
+        }
+    done
 }
 
 stow_selected_packages() {

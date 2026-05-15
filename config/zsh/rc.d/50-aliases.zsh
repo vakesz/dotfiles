@@ -1,19 +1,20 @@
 # Aliases
 
-if [[ "$OS_TYPE" == "linux" ]] || [[ "$OS_TYPE" == "wsl" ]]; then
-  command_exists fdfind && alias fd=fdfind
-fi
+case "$OS_TYPE" in
+  linux|wsl)
+    command_exists fdfind && alias fd=fdfind
+    ;;
+esac
 
 if command_exists uv; then
   alias uv-tools='uv tool list'
   alias uv-python='uv python list'
 fi
 
-if [[ "$OS_TYPE" == "macos" ]]; then
-  alias ls='ls -G'
-else
-  alias ls='ls --color=auto'
-fi
+case "$OS_TYPE" in
+  macos) alias ls='ls -G' ;;
+  *) alias ls='ls --color=auto' ;;
+esac
 alias ll='ls -la'
 alias la='ls -A'
 alias l='ls -CF'

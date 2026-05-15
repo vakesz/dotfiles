@@ -17,6 +17,17 @@ require_macos() {
     }
 }
 
+run_if_needed() {
+    local label="$1" check_fn="$2" action_fn="$3"
+
+    if "$check_fn"; then
+        info "$label already applied"
+        return 0
+    fi
+
+    confirm "$label?" && "$action_fn"
+}
+
 ensure_xcode_cli_tools() {
     if xcode-select -p >/dev/null 2>&1; then
         info "Xcode Command Line Tools already installed"
@@ -42,6 +53,22 @@ ensure_rosetta() {
     info "Installing Rosetta..."
     softwareupdate --install-rosetta --agree-to-license
     success "Rosetta installed"
+}
+
+xcode_cli_tools_already_installed() {
+    xcode-select -p >/dev/null 2>&1
+}
+
+rosetta_already_installed() {
+    [[ "$(uname -m)" != "arm64" ]] || /usr/bin/pgrep -q oahd
+}
+
+macos_defaults_already_applied() {
+    defaults read NSGlobalDomain AppleShowAllExtensions >/dev/null 2>&1 \
+        && defaults read com.apple.dock autohide >/dev/null 2>&1 \
+        && defaults read com.apple.screencapture type >/dev/null 2>&1 \
+        && defaults read com.apple.tips TipsEnabled >/dev/null 2>&1 \
+        && defaults read com.apple.TimeMachine DoNotOfferNewDisksForBackup >/dev/null 2>&1
 }
 
 apply_macos_defaults() {
@@ -139,6 +166,14 @@ apply_macos_defaults() {
     success "macOS defaults applied"
 }
 
+power_management_already_applied() {
+    local pmset_output
+    pmset_output="$(pmset -g custom 2>/dev/null)" || return 1
+    [[ "$pmset_output" == *" sleep 60 displaysleep 15"* ]] \
+        && [[ "$pmset_output" == *" sleep 0 displaysleep 30"* ]] \
+        && [[ "$pmset_output" == *" powernap 0"* ]]
+}
+
 configure_power_management() {
     info "Configuring power management..."
 
@@ -149,11 +184,25 @@ configure_power_management() {
     success "Power management configured"
 }
 
+keyboard_layout_already_installed() {
+    local target="$HOME/Library/Keyboard Layouts/Hungarian_Win.keylayout"
+    [[ -f "$target" ]] && cmp -s "$ASSETS_DIR/hungarian-win.keylayout" "$target"
+}
+
 install_keyboard_layout() {
     info "Installing Hungarian keyboard layout..."
     mkdir -p "$HOME/Library/Keyboard Layouts"
     cp "$ASSETS_DIR/hungarian-win.keylayout" "$HOME/Library/Keyboard Layouts/Hungarian_Win.keylayout"
     success "Keyboard layout installed"
+}
+
+spotlight_exclusions_already_applied() {
+    local path
+    for path in "$HOME/Library/Developer/Xcode/DerivedData" "$HOME/.cache"; do
+        [[ -d "$path" ]] || continue
+        [[ -f "$path/.metadata_never_index" ]] || return 1
+    done
+    return 0
 }
 
 configure_spotlight_exclusions() {
@@ -178,12 +227,12 @@ main() {
 
     info "macOS setup"
 
-    confirm "Install Xcode Command Line Tools if needed?" && ensure_xcode_cli_tools
-    confirm "Install Rosetta on Apple Silicon if needed?" && ensure_rosetta
-    confirm "Apply macOS defaults?" && apply_macos_defaults
-    confirm "Configure power management?" && configure_power_management
-    confirm "Exclude high-churn dev paths from Spotlight?" && configure_spotlight_exclusions
-    confirm "Install the custom Hungarian keyboard layout?" && install_keyboard_layout
+    run_if_needed "Install Xcode Command Line Tools" xcode_cli_tools_already_installed ensure_xcode_cli_tools
+    run_if_needed "Install Rosetta on Apple Silicon" rosetta_already_installed ensure_rosetta
+    run_if_needed "Apply macOS defaults" macos_defaults_already_applied apply_macos_defaults
+    run_if_needed "Configure power management" power_management_already_applied configure_power_management
+    run_if_needed "Exclude high-churn dev paths from Spotlight" spotlight_exclusions_already_applied configure_spotlight_exclusions
+    run_if_needed "Install the custom Hungarian keyboard layout" keyboard_layout_already_installed install_keyboard_layout
 
     if confirm "Run Microsoft updater tweaks (disable EdgeUpdater / MAU)?"; then
         "$REPO_ROOT/scripts/platform/macos-office-tweaks.sh"

@@ -119,12 +119,7 @@ These files are for local aliases, secrets, machine-specific paths, or other ove
 - shell plugins (`zsh-autosuggestions`, `zsh-syntax-highlighting`) install via `Brewfile`; no separate plugin manager bootstrap is required
 
 ## Re-Stowing
-
-Tracked files are live immediately because Stow symlinks them into place. After adding new files, re-run:
-
-```bash
-./bootstrap.sh
-```
+Tracked files are live immediately because Stow symlinks them into place, so adding or moving tracked files under `home/` or `config/` just means re-running `./bootstrap.sh`.
 
 ## XDG Compliance
 
