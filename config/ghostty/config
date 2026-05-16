@@ -13,11 +13,7 @@ font-feature = -liga
 font-thicken = true
 
 # Cursor
-cursor-style = block
 cursor-style-blink = false
-
-# Shell integration
-shell-integration = detect
 
 # Window
 window-padding-x = 4
@@ -32,15 +28,9 @@ notify-on-command-finish-after = 10s
 
 # macOS
 macos-titlebar-style = native
-macos-titlebar-proxy-icon = visible
 macos-icon = custom
 # Keep the custom icon next to the Ghostty config so the path stays obvious.
 macos-custom-icon = ~/.config/ghostty/icon.icns
 
 # Input
 mouse-hide-while-typing = true
-copy-on-select = true
-clipboard-paste-protection = true
-
-# scrollback-limit in bytes, roughly 125,000 lines
-scrollback-limit = 10000000
