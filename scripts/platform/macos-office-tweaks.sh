@@ -13,8 +13,8 @@
 #   3. Replace each LaunchAgent path with a zero-byte sentinel locked with
 #      the user/system immutable flag (uchg/schg) so the updater cannot
 #      recreate the file on next launch.
-#   4. Optionally install a managed configuration profile that pins
-#      UpdateDefault=0 and HowToCheck=Manual at the system level.
+#   4. Leave the managed configuration profile available for manual install
+#      if system-level policy enforcement is needed.
 #
 # Idempotent: safe to re-run after Edge or an Office app reinstalls anything.
 #
@@ -47,17 +47,6 @@ require_macos() {
     }
 }
 
-run_if_needed() {
-    local label="$1" check_fn="$2" action_fn="$3"
-
-    if "$check_fn"; then
-        info "$label already applied"
-        return 0
-    fi
-
-    confirm "$label?" && "$action_fn"
-}
-
 bootout_plist() {
     local domain="$1" plist="$2"
     [[ -e "$plist" ]] || return 0
@@ -87,43 +76,8 @@ seal_system_path() {
     local path="$1"
     sudo mkdir -p "$(dirname "$path")"
     sudo chflags noschg "$path" 2>/dev/null || true
-    sudo sh -c ": > '$path'"
+    sudo install -m 000 /dev/null "$path"
     sudo chflags schg "$path"
-}
-
-is_sealed_path() {
-    local path="$1" flags=""
-
-    [[ -e "$path" ]] || return 1
-
-    flags="$(ls -ldO "$path" 2>/dev/null)" || return 1
-    [[ "$flags" == *"uchg"* || "$flags" == *"schg"* ]]
-}
-
-edge_updater_removed() {
-    is_sealed_path "$HOME/Library/LaunchAgents/com.microsoft.EdgeUpdater.wake.plist" \
-        && is_sealed_path "$HOME/Library/LaunchAgents/com.microsoft.EdgeUpdater.wake-system.plist" \
-        && is_sealed_path "$HOME/Library/LaunchAgents/com.microsoft.EdgeUpdater.update.plist" \
-        && is_sealed_path "$HOME/Library/LaunchAgents/com.microsoft.EdgeUpdater.update-system.plist"
-}
-
-edge_prefs_applied() {
-    defaults read com.microsoft.EdgeUpdater updateDefault >/dev/null 2>&1 \
-        && defaults read com.microsoft.EdgeUpdater installDefault >/dev/null 2>&1 \
-        && defaults read com.microsoft.Edge UpdateDefault >/dev/null 2>&1 \
-        && defaults read com.microsoft.Edge InstallDefault >/dev/null 2>&1
-}
-
-mau_disabled() {
-    defaults read com.microsoft.autoupdate2 HowToCheck >/dev/null 2>&1 \
-        && defaults read com.microsoft.autoupdate2 StartDaemonOnAppLaunch >/dev/null 2>&1 \
-        && defaults read com.microsoft.autoupdate2 EnableCheckForUpdatesButton >/dev/null 2>&1 \
-        && defaults read com.microsoft.autoupdate2 DisableInsiderCheckbox >/dev/null 2>&1 \
-        && defaults read com.microsoft.autoupdate2 ChannelName >/dev/null 2>&1
-}
-
-config_profile_installed() {
-    [[ -f "$PROFILE_PATH" ]]
 }
 
 remove_edge_updater() {
@@ -194,19 +148,6 @@ disable_microsoft_autoupdate() {
     success "MAU disabled and sealed"
 }
 
-install_config_profile() {
-    if [[ ! -f "$PROFILE_PATH" ]]; then
-        warn "Profile not found at $PROFILE_PATH; skipping"
-        return 0
-    fi
-
-    info "Opening managed configuration profile in System Settings..."
-    info "Approve it under: System Settings > Privacy & Security > Profiles"
-    open "$PROFILE_PATH"
-
-    success "Profile handed off to System Settings"
-}
-
 main() {
     require_macos
 
@@ -214,11 +155,15 @@ main() {
     warn "Sealing paths with chflags will block Microsoft auto-updates AND any reinstall attempt for those LaunchAgents."
     warn "To undo later: sudo chflags noschg <path>; chflags nouchg <path>; rm <path>"
 
-    run_if_needed "Remove Microsoft EdgeUpdater" edge_updater_removed remove_edge_updater
-    run_if_needed "Apply Edge user-domain preferences" edge_prefs_applied apply_edge_prefs
-    run_if_needed "Seal EdgeUpdater paths with immutable flag" edge_updater_removed seal_edge_updater
-    run_if_needed "Disable Microsoft AutoUpdate (MAU) and seal its paths" mau_disabled disable_microsoft_autoupdate
-    run_if_needed "Install managed configuration profile (System Settings will open)" config_profile_installed install_config_profile
+    remove_edge_updater
+    apply_edge_prefs
+    seal_edge_updater
+    disable_microsoft_autoupdate
+
+    if [[ -f "$PROFILE_PATH" ]]; then
+        info "Managed profile is available at: $PROFILE_PATH"
+        info "Install it manually only if you need system-level policy enforcement."
+    fi
 
     success "Done!"
 }

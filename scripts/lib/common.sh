@@ -23,6 +23,17 @@ confirm() {
     [[ "$answer" =~ ^[Yy]$ ]]
 }
 
+run_if_needed() {
+    local label="$1" check_fn="$2" action_fn="$3"
+
+    if "$check_fn"; then
+        info "$label already applied"
+        return 0
+    fi
+
+    confirm "$label?" && "$action_fn"
+}
+
 detect_platform() {
     case "$OSTYPE" in
         darwin*)

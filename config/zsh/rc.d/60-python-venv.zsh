@@ -22,7 +22,9 @@ venv() {
   uv venv "$venv_dir" && source "$venv_dir/bin/activate"
 }
 
-alias venv-off='deactivate'
+venv-off() {
+  (( $+functions[deactivate] )) && deactivate
+}
 
 auto_activate_venv() {
   if [[ -n "$VIRTUAL_ENV" ]]; then

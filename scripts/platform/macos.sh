@@ -17,26 +17,10 @@ require_macos() {
     }
 }
 
-run_if_needed() {
-    local label="$1" check_fn="$2" action_fn="$3"
-
-    if "$check_fn"; then
-        info "$label already applied"
-        return 0
-    fi
-
-    confirm "$label?" && "$action_fn"
-}
-
 ensure_xcode_cli_tools() {
-    if xcode-select -p >/dev/null 2>&1; then
-        info "Xcode Command Line Tools already installed"
-        return 0
-    fi
-
     info "Installing Xcode Command Line Tools..."
-    xcode-select --install
-    success "Installation requested"
+    xcode-select --install 2>/dev/null || true
+    success "Xcode Command Line Tools installation requested"
 }
 
 ensure_rosetta() {
@@ -45,30 +29,9 @@ ensure_rosetta() {
         return 0
     fi
 
-    if /usr/bin/pgrep -q oahd; then
-        info "Rosetta already installed"
-        return 0
-    fi
-
     info "Installing Rosetta..."
     softwareupdate --install-rosetta --agree-to-license
-    success "Rosetta installed"
-}
-
-xcode_cli_tools_already_installed() {
-    xcode-select -p >/dev/null 2>&1
-}
-
-rosetta_already_installed() {
-    [[ "$(uname -m)" != "arm64" ]] || /usr/bin/pgrep -q oahd
-}
-
-macos_defaults_already_applied() {
-    defaults read NSGlobalDomain AppleShowAllExtensions >/dev/null 2>&1 \
-        && defaults read com.apple.dock autohide >/dev/null 2>&1 \
-        && defaults read com.apple.screencapture type >/dev/null 2>&1 \
-        && defaults read com.apple.tips TipsEnabled >/dev/null 2>&1 \
-        && defaults read com.apple.TimeMachine DoNotOfferNewDisksForBackup >/dev/null 2>&1
+    success "Rosetta install command completed"
 }
 
 apply_macos_defaults() {
@@ -166,14 +129,6 @@ apply_macos_defaults() {
     success "macOS defaults applied"
 }
 
-power_management_already_applied() {
-    local pmset_output
-    pmset_output="$(pmset -g custom 2>/dev/null)" || return 1
-    [[ "$pmset_output" == *" sleep 60 displaysleep 15"* ]] \
-        && [[ "$pmset_output" == *" sleep 0 displaysleep 30"* ]] \
-        && [[ "$pmset_output" == *" powernap 0"* ]]
-}
-
 configure_power_management() {
     info "Configuring power management..."
 
@@ -227,10 +182,10 @@ main() {
 
     info "macOS setup"
 
-    run_if_needed "Install Xcode Command Line Tools" xcode_cli_tools_already_installed ensure_xcode_cli_tools
-    run_if_needed "Install Rosetta on Apple Silicon" rosetta_already_installed ensure_rosetta
-    run_if_needed "Apply macOS defaults" macos_defaults_already_applied apply_macos_defaults
-    run_if_needed "Configure power management" power_management_already_applied configure_power_management
+    ensure_xcode_cli_tools
+    ensure_rosetta
+    apply_macos_defaults
+    configure_power_management
     run_if_needed "Exclude high-churn dev paths from Spotlight" spotlight_exclusions_already_applied configure_spotlight_exclusions
     run_if_needed "Install the custom Hungarian keyboard layout" keyboard_layout_already_installed install_keyboard_layout
 
