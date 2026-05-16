@@ -37,6 +37,10 @@ cached_eval() {
     eval "$init_command" > "$cache_file" 2>/dev/null
   fi
 
+  if (( $+builtins[zcompile] )) && [[ -f "$cache_file" && "$cache_file" -nt "${cache_file}.zwc" ]]; then
+    zcompile -R "$cache_file" 2>/dev/null || true
+  fi
+
   source "$cache_file"
 }
 

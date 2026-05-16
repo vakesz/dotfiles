@@ -14,6 +14,10 @@ if ! (( ${+_comps} )); then
   else
     compinit -d "$ZSH_COMPDUMP"
   fi
+
+  if (( $+builtins[zcompile] )) && [[ -f "$ZSH_COMPDUMP" && "$ZSH_COMPDUMP" -nt "${ZSH_COMPDUMP}.zwc" ]]; then
+    zcompile -R "$ZSH_COMPDUMP" 2>/dev/null || true
+  fi
 fi
 
 # Completion options
