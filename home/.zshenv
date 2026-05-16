@@ -29,7 +29,6 @@ export UV_CACHE_DIR="$XDG_CACHE_HOME/uv"
 export UV_TOOL_DIR="$XDG_DATA_HOME/uv/tools"
 export UV_TOOL_BIN_DIR="$XDG_DATA_HOME/uv/bin"
 export UV_PYTHON_INSTALL_DIR="$XDG_DATA_HOME/uv/python"
-export BUN_INSTALL="$XDG_DATA_HOME/bun"
 export PNPM_HOME="$XDG_DATA_HOME/pnpm"
 
 # Ensure PNPM_HOME/bin is on PATH for non-interactive subshells too (topgrade,

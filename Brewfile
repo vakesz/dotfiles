@@ -43,7 +43,6 @@ brew "glow"
 brew "go"
 brew "node"
 brew "pnpm"
-brew "oven-sh/bun/bun"
 brew "rust"
 
 # Development Toolchains: Apple
