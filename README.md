@@ -64,8 +64,8 @@ dotfiles/
 │   ├── fd/
 │   ├── ghostty/
 │   ├── git/
-│   ├── oh-my-posh/
 │   ├── ripgrep/
+│   ├── starship.toml
 │   ├── tealdeer/
 │   ├── topgrade.toml
 │   └── zsh/
@@ -89,7 +89,8 @@ dotfiles/
 ### Core config
 
 - `home/.zshenv`: early shell environment such as XDG dirs and `ZDOTDIR`
-- `config/zsh`: Zsh config fragments and the Oh My Posh prompt
+- `config/zsh`: Zsh config fragments and Starship prompt initialization
+- `config/starship.toml`: Starship prompt theme
 - `config/git`: Git config and global ignore rules
 - `config/ghostty`: Ghostty config
 - `config/fd`, `config/ripgrep`, `config/tealdeer`, and `config/topgrade.toml`: CLI tool config
@@ -138,7 +139,7 @@ System and tool updates run through `topgrade`. Homebrew app auto-updates are di
 
 - [GNU Stow](https://www.gnu.org/software/stow/)
 - [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html)
-- [Oh My Posh](https://ohmyposh.dev/)
+- [Starship](https://starship.rs/)
 - [zoxide](https://github.com/ajeetdsouza/zoxide)
 - [fzf](https://github.com/junegunn/fzf)
 - [topgrade](https://github.com/topgrade-rs/topgrade)

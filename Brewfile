@@ -2,7 +2,7 @@
 # Install with: brew bundle install
 
 # Core Shell & CLI
-brew "oh-my-posh"
+brew "starship"
 brew "zsh"
 brew "zsh-autosuggestions"
 brew "zsh-syntax-highlighting"

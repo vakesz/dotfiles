@@ -1,0 +1,60 @@
+# Mirrors the previous Oh My Posh "zen" prompt.
+add_newline = true
+continuation_prompt = "[❯❯ ](subtle)"
+format = "$directory$git_branch$custom$git_status$python $character"
+right_format = "$cmd_duration"
+palette = "tokyo_night"
+
+[palettes.tokyo_night]
+bg = "#1a1b26"
+bg_dark = "#16161e"
+bg_highlight = "#292e42"
+comment = "#565f89"
+subtle = "#737aa2"
+fg = "#c0caf5"
+red = "#f7768e"
+yellow = "#e0af68"
+orange = "#ff9e64"
+teal = "#73daca"
+cyan = "#7dcfff"
+purple = "#bb9af7"
+
+[directory]
+format = "[$path]($style)"
+style = "cyan"
+truncation_length = 0
+truncate_to_repo = false
+
+[git_branch]
+format = " [$branch]($style)"
+style = "fg"
+
+[custom.git_dirty]
+command = "printf '*'"
+format = "[$output]($style)"
+require_repo = true
+style = "fg"
+when = "test -n \"$(git status --porcelain 2>/dev/null)\""
+
+[git_status]
+ahead = "⇡"
+behind = "⇣"
+diverged = "⇣⇡"
+format = "[$ahead_behind]($style)"
+style = "teal"
+
+[python]
+detect_extensions = []
+detect_files = []
+detect_env_vars = ["VIRTUAL_ENV"]
+format = "[ Py]($style)"
+style = "yellow"
+
+[cmd_duration]
+format = "[$duration]($style)"
+min_time = 5000
+style = "yellow"
+
+[character]
+error_symbol = "[❯](red)"
+success_symbol = "[❯](subtle)"

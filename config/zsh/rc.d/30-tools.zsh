@@ -27,7 +27,8 @@ if [[ "$OS_TYPE" == "linux" || "$OS_TYPE" == "wsl" ]]; then
   fi
 fi
 
-load_tool_init oh-my-posh "oh-my-posh init zsh --config '$XDG_CONFIG_HOME/oh-my-posh/zen.toml'" "$XDG_CONFIG_HOME/oh-my-posh/zen.toml" "${(%):-%N}"
+load_tool_init starship "starship init zsh" "$XDG_CONFIG_HOME/starship.toml" "${(%):-%N}"
+
 load_tool_init zoxide "zoxide init zsh --cmd cd" "${(%):-%N}"
 
 if [[ -t 0 && -t 1 ]]; then
