@@ -1,23 +1,26 @@
-# Mirrors the previous Oh My Posh "zen" prompt.
+# Mirrors the previous Oh My Posh "zen" prompt, with styling borrowed from the Pure preset.
 add_newline = true
 continuation_prompt = "[❯❯ ](subtle)"
-format = "$directory$git_branch$custom$git_status$python $character"
+format = """
+$directory\
+$git_branch\
+$git_state\
+$git_status\
+$python \
+$character"""
+
 right_format = "$cmd_duration"
 palette = "tokyo_night"
 
 [palettes.tokyo_night]
 bg = "#1a1b26"
-bg_dark = "#16161e"
-bg_highlight = "#292e42"
 comment = "#565f89"
 subtle = "#737aa2"
 fg = "#c0caf5"
 red = "#f7768e"
 yellow = "#e0af68"
-orange = "#ff9e64"
-teal = "#73daca"
 cyan = "#7dcfff"
-purple = "#bb9af7"
+pink = "#ffafd7"
 
 [directory]
 format = "[$path]($style)"
@@ -26,32 +29,38 @@ truncation_length = 0
 truncate_to_repo = false
 
 [git_branch]
-format = " [$branch]($style)"
+symbol = ""
+format = " [$symbol $branch]($style)"
 style = "fg"
 
-[custom.git_dirty]
-command = "printf '*'"
-format = "[$output]($style)"
-require_repo = true
-style = "fg"
-when = "test -n \"$(git status --porcelain 2>/dev/null)\""
+[git_state]
+format = ' \([$state( $progress_current/$progress_total)]($style)\)'
+style = "comment"
 
 [git_status]
+format = " [[(*$conflicted$untracked$modified$staged$renamed$deleted)](pink)( $ahead_behind$stashed)]($style)"
+style = "cyan"
+conflicted = "​"
+untracked = "​"
+modified = "​"
+staged = "​"
+renamed = "​"
+deleted = "​"
+stashed = "≡"
 ahead = "⇡"
 behind = "⇣"
 diverged = "⇣⇡"
-format = "[$ahead_behind]($style)"
-style = "teal"
 
 [python]
+symbol = ""
 detect_extensions = []
 detect_files = []
 detect_env_vars = ["VIRTUAL_ENV"]
-format = "[ Py]($style)"
+format = "[$symbol Py]($style)"
 style = "yellow"
 
 [cmd_duration]
-format = "[$duration]($style)"
+format = "[  $duration]($style)"
 min_time = 5000
 style = "yellow"
 
