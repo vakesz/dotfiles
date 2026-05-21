@@ -1,11 +1,13 @@
-# Mirrors the previous Oh My Posh "zen" prompt, with styling borrowed from the Pure preset.
 add_newline = true
 continuation_prompt = "[❯❯ ](subtle)"
 format = """
 $directory\
+$git_status\
 $git_branch\
 $git_state\
-$git_status\
+$c\
+$swift\
+$nodejs\
 $python \
 $character"""
 
@@ -29,8 +31,7 @@ truncation_length = 0
 truncate_to_repo = false
 
 [git_branch]
-symbol = ""
-format = " [$symbol $branch]($style)"
+format = " [$branch]($style)"
 style = "fg"
 
 [git_state]
@@ -38,25 +39,44 @@ format = ' \([$state( $progress_current/$progress_total)]($style)\)'
 style = "comment"
 
 [git_status]
-format = " [[(*$conflicted$untracked$modified$staged$renamed$deleted)](pink)( $ahead_behind$stashed)]($style)"
+format = " [](fg)[($modified)](pink)[($ahead_behind$stashed)]($style)"
 style = "cyan"
-conflicted = "​"
-untracked = "​"
-modified = "​"
-staged = "​"
-renamed = "​"
-deleted = "​"
+modified = "*"
 stashed = "≡"
 ahead = "⇡"
 behind = "⇣"
 diverged = "⇣⇡"
 
+[c]
+symbol = ""
+detect_extensions = ["c", "h"]
+detect_files = ["Makefile", "compile_commands.json", "CMakeLists.txt"]
+detect_folders = ["src"]
+format = " [$symbol]($style)"
+style = "cyan"
+
+[swift]
+symbol = ""
+detect_extensions = ["swift"]
+detect_files = ["Package.swift", "project.yml"]
+detect_folders = ["Sources", "App"]
+format = " [$symbol]($style)"
+style = "pink"
+
+[nodejs]
+symbol = ""
+detect_extensions = []
+detect_files = ["package.json", ".node-version", ".nvmrc"]
+detect_folders = []
+format = " [$symbol]($style)"
+style = "yellow"
+
 [python]
-symbol = ""
+symbol = ""
 detect_extensions = []
 detect_files = []
 detect_env_vars = ["VIRTUAL_ENV"]
-format = "[$symbol Py]($style)"
+format = " [$symbol]($style)"
 style = "yellow"
 
 [cmd_duration]

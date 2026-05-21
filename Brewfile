@@ -89,6 +89,7 @@ cask "visual-studio-code"
 cask "linearmouse"
 cask "notunes"
 cask "thaw"
+cask "alt-tab"
 
 # Desktop Apps: Productivity
 cask "coteditor"
@@ -108,6 +109,7 @@ cask "whatsapp"
 # Optional Workstation Apps: Browsers
 cask "firefox"
 cask "microsoft-edge"
+cask "helium-browser"
 
 # Optional Workstation Apps: Office
 cask "intune-company-portal"
