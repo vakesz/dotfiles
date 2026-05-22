@@ -18,12 +18,9 @@ if [[ "$OS_TYPE" == "linux" || "$OS_TYPE" == "wsl" ]]; then
       [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
     }
 
-    nvm() { load_nvm && nvm "$@"; }
-    node() { load_nvm && node "$@"; }
-    npm() { load_nvm && npm "$@"; }
-    npx() { load_nvm && npx "$@"; }
-    pnpm() { load_nvm && pnpm "$@"; }
-    corepack() { load_nvm && corepack "$@"; }
+    for cmd in nvm node npm npx pnpm corepack; do
+      eval "$cmd() { load_nvm && $cmd \"\$@\"; }"
+    done
   fi
 fi
 

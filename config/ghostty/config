@@ -28,9 +28,6 @@ notify-on-command-finish-after = 10s
 
 # macOS
 macos-titlebar-style = native
-macos-icon = custom
-# Keep the custom icon next to the Ghostty config so the path stays obvious.
-macos-custom-icon = ~/.config/ghostty/icon.icns
 
 # Input
 mouse-hide-while-typing = true

@@ -22,6 +22,13 @@ command_exists() {
   command -v "$1" >/dev/null 2>&1
 }
 
+maybe_zcompile() {
+  local file="$1"
+  (( $+builtins[zcompile] )) || return 0
+  [[ -f "$file" && "$file" -nt "${file}.zwc" ]] || return 0
+  zcompile -R "$file" 2>/dev/null || true
+}
+
 cached_eval() {
   # Source `init_command` output via $cache_file; regen if cache is missing or any dep is newer.
   local cache_file="$1" init_command="$2"; shift 2
@@ -37,10 +44,7 @@ cached_eval() {
     eval "$init_command" > "$cache_file" 2>/dev/null
   fi
 
-  if (( $+builtins[zcompile] )) && [[ -f "$cache_file" && "$cache_file" -nt "${cache_file}.zwc" ]]; then
-    zcompile -R "$cache_file" 2>/dev/null || true
-  fi
-
+  maybe_zcompile "$cache_file"
   source "$cache_file"
 }
 

@@ -114,7 +114,6 @@ cask "helium-browser"
 # Optional Workstation Apps: Office
 cask "intune-company-portal"
 cask "libreoffice"
-cask "microsoft-auto-update"
 cask "microsoft-excel"
 cask "microsoft-outlook"
 cask "microsoft-powerpoint"

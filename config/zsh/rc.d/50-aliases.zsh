@@ -1,10 +1,6 @@
 # Aliases
 
-case "$OS_TYPE" in
-  linux|wsl)
-    command_exists fdfind && alias fd=fdfind
-    ;;
-esac
+command_exists fdfind && alias fd=fdfind
 
 if command_exists uv; then
   alias uv-tools='uv tool list'

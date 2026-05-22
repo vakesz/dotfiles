@@ -10,13 +10,6 @@ ASSETS_DIR="$REPO_ROOT/assets/macos"
 
 source "$REPO_ROOT/scripts/lib/common.sh"
 
-require_macos() {
-    [[ "$OSTYPE" == darwin* ]] || {
-        error "This script is for macOS only"
-        exit 1
-    }
-}
-
 ensure_xcode_cli_tools() {
     info "Installing Xcode Command Line Tools..."
     xcode-select --install 2>/dev/null || true
@@ -84,14 +77,11 @@ apply_macos_defaults() {
     defaults write com.apple.spaces spans-displays -bool false
 
     # Hot corners: all disabled (0 = no action)
-    defaults write com.apple.dock wvous-tl-corner -int 0
-    defaults write com.apple.dock wvous-tl-modifier -int 0
-    defaults write com.apple.dock wvous-tr-corner -int 0
-    defaults write com.apple.dock wvous-tr-modifier -int 0
-    defaults write com.apple.dock wvous-bl-corner -int 0
-    defaults write com.apple.dock wvous-bl-modifier -int 0
-    defaults write com.apple.dock wvous-br-corner -int 0
-    defaults write com.apple.dock wvous-br-modifier -int 0
+    local corner
+    for corner in tl tr bl br; do
+        defaults write com.apple.dock "wvous-${corner}-corner" -int 0
+        defaults write com.apple.dock "wvous-${corner}-modifier" -int 0
+    done
 
     # Screenshots
     defaults write com.apple.screencapture location -string "${HOME}/Desktop"
@@ -178,7 +168,7 @@ configure_spotlight_exclusions() {
 
 
 main() {
-    require_macos
+    require_platform macos
 
     info "macOS setup"
 

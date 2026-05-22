@@ -7,7 +7,7 @@ export XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
 export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 
 # Tool config/cache redirects (apply to non-interactive shells too).
-export LESS='-R -i -M -W -x4 -F'
+export LESS='-R -i -M -W -x4 -F -X'
 export LESSHISTFILE="$XDG_STATE_HOME/less/history"
 export RIPGREP_CONFIG_PATH="$XDG_CONFIG_HOME/ripgrep/config"
 export PYTHONPYCACHEPREFIX="$XDG_CACHE_HOME/python"

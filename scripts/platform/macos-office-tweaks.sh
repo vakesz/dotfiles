@@ -40,13 +40,6 @@ MAU_AGENTS=(
 
 source "$REPO_ROOT/scripts/lib/common.sh"
 
-require_macos() {
-    [[ "$OSTYPE" == darwin* ]] || {
-        error "This script is for macOS only"
-        exit 1
-    }
-}
-
 bootout_plist() {
     local domain="$1" plist="$2"
     [[ -e "$plist" ]] || return 0
@@ -121,14 +114,8 @@ apply_edge_prefs() {
     success "Edge preferences applied"
 }
 
-disable_microsoft_autoupdate() {
-    info "Disabling Microsoft AutoUpdate (MAU) and sealing its agents..."
-
-    defaults write com.microsoft.autoupdate2 HowToCheck -string Manual
-    defaults write com.microsoft.autoupdate2 StartDaemonOnAppLaunch -bool false
-    defaults write com.microsoft.autoupdate2 EnableCheckForUpdatesButton -bool false
-    defaults write com.microsoft.autoupdate2 DisableInsiderCheckbox -bool true
-    defaults write com.microsoft.autoupdate2 ChannelName -string Current
+remove_microsoft_autoupdate() {
+    info "Removing Microsoft AutoUpdate (MAU) LaunchAgents..."
 
     local uid
     uid="$(id -u)"
@@ -139,17 +126,35 @@ disable_microsoft_autoupdate() {
         bootout_plist "system" "/Library/LaunchDaemons/$name"
     done
 
+    success "MAU LaunchAgents removed"
+}
+
+apply_mau_prefs() {
+    info "Applying MAU no-auto-update user-domain preferences..."
+
+    defaults write com.microsoft.autoupdate2 HowToCheck -string Manual
+    defaults write com.microsoft.autoupdate2 StartDaemonOnAppLaunch -bool false
+    defaults write com.microsoft.autoupdate2 EnableCheckForUpdatesButton -bool false
+    defaults write com.microsoft.autoupdate2 DisableInsiderCheckbox -bool true
+    defaults write com.microsoft.autoupdate2 ChannelName -string Current
+
+    success "MAU preferences applied"
+}
+
+seal_microsoft_autoupdate() {
+    info "Sealing MAU LaunchAgent paths with immutable sentinels..."
+
     for name in "${MAU_AGENTS[@]}"; do
         seal_user_path "$HOME/Library/LaunchAgents/$name"
         seal_system_path "/Library/LaunchAgents/$name"
         seal_system_path "/Library/LaunchDaemons/$name"
     done
 
-    success "MAU disabled and sealed"
+    success "MAU paths sealed (chflags uchg / schg)"
 }
 
 main() {
-    require_macos
+    require_platform macos
 
     info "Microsoft updater tweaks (Edge / Office / Teams)"
     warn "Sealing paths with chflags will block Microsoft auto-updates AND any reinstall attempt for those LaunchAgents."
@@ -158,7 +163,9 @@ main() {
     remove_edge_updater
     apply_edge_prefs
     seal_edge_updater
-    disable_microsoft_autoupdate
+    remove_microsoft_autoupdate
+    apply_mau_prefs
+    seal_microsoft_autoupdate
 
     if [[ -f "$PROFILE_PATH" ]]; then
         info "Managed profile is available at: $PROFILE_PATH"

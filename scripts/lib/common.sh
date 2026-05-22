@@ -47,3 +47,12 @@ detect_platform() {
             ;;
     esac
 }
+
+require_platform() {
+    local expected="$1" actual=""
+    actual="$(detect_platform 2>/dev/null)" || actual=""
+    if [[ "$actual" != "$expected" ]]; then
+        error "This script is for $expected only"
+        exit 1
+    fi
+}

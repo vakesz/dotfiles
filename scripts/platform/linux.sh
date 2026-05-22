@@ -8,16 +8,8 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DISTRO_ID=""
 DISTRO_LIKE=""
-LINUX_VARIANT="linux"
 
 source "$REPO_ROOT/scripts/lib/common.sh"
-
-require_linux() {
-    [[ "$OSTYPE" == linux* ]] || {
-        error "This script is for Linux or WSL only"
-        exit 1
-    }
-}
 
 persist_locale_with_systemd() {
     if command -v localectl >/dev/null 2>&1; then
@@ -34,17 +26,20 @@ persist_locale_with_systemd() {
 load_linux_release_info() {
     DISTRO_ID=""
     DISTRO_LIKE=""
-    LINUX_VARIANT="linux"
-
-    if grep -qi microsoft /proc/version 2>/dev/null; then
-        LINUX_VARIANT="wsl"
-    fi
 
     if [[ -r /etc/os-release ]]; then
         # shellcheck disable=SC1091
         . /etc/os-release
         DISTRO_ID="${ID:-}"
         DISTRO_LIKE="${ID_LIKE:-}"
+    fi
+}
+
+detect_linux_variant() {
+    if grep -qi microsoft /proc/version 2>/dev/null; then
+        printf '%s\n' "wsl"
+    else
+        printf '%s\n' "linux"
     fi
 }
 
@@ -102,7 +97,7 @@ persist_locale_for_family() {
 ensure_locale() {
     load_linux_release_info
 
-    info "Detected platform: $LINUX_VARIANT"
+    info "Detected platform: $(detect_linux_variant)"
 
     local family=""
     family="$(distro_family)" || {
@@ -161,7 +156,7 @@ ensure_zsh_shell() {
 }
 
 main() {
-    require_linux
+    require_platform linux
 
     info "Linux / WSL setup"
 
