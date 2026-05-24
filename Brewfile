@@ -43,7 +43,6 @@ brew "glow"
 brew "go"
 brew "node"
 brew "pnpm"
-brew "rust"
 
 # Development Toolchains: Apple
 brew "swiftlint"
@@ -51,9 +50,6 @@ brew "xcbeautify"
 brew "xcode-build-server"
 brew "xcodegen"
 brew "xcinfo"
-
-# Development Toolchains: Android
-cask "android-platform-tools"
 
 # Development Toolchains: C/C++
 brew "cjson"
@@ -74,12 +70,12 @@ brew "swift-format"
 cask "orbstack"
 
 # Development Toolchains: AI & LLM
-cask "claude-code@latest"
+#cask "claude-code@latest"
 cask "codex"
+cask "codex-app"
 cask "steipete/tap/codexbar"
 
 # Development Toolchains: General
-brew "azure-cli"
 brew "sqlite"
 cask "dbeaver-community"
 cask "sf-symbols"
@@ -92,6 +88,7 @@ cask "thaw"
 cask "alt-tab"
 
 # Desktop Apps: Productivity
+cask "affinity"
 cask "coteditor"
 cask "meetingbar"
 cask "mountain-duck"
@@ -100,16 +97,13 @@ cask "mountain-duck"
 brew "pngquant"
 cask "discord"
 cask "iina"
-cask "pinta"
 cask "steam"
-cask "transmission"
 cask "whatsapp"
 #? cask "textual"
 
 # Optional Workstation Apps: Browsers
 cask "firefox"
 cask "microsoft-edge"
-cask "helium-browser"
 
 # Optional Workstation Apps: Office
 cask "intune-company-portal"
