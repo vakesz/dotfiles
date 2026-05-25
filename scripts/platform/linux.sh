@@ -164,7 +164,7 @@ main() {
     confirm "Set zsh as the default shell?" && ensure_zsh_shell
     confirm "Enable pnpm via corepack?" && ensure_pnpm
 
-    success "Done!"
+    success "Linux / WSL setup complete"
 }
 
 main "$@"

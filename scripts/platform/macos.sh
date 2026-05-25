@@ -10,21 +10,42 @@ ASSETS_DIR="$REPO_ROOT/assets/macos"
 
 source "$REPO_ROOT/scripts/lib/common.sh"
 
-ensure_xcode_cli_tools() {
-    info "Installing Xcode Command Line Tools..."
-    xcode-select --install 2>/dev/null || true
-    success "Xcode Command Line Tools installation requested"
+xcode_cli_tools_installed() {
+    xcode-select -p >/dev/null 2>&1
 }
 
-ensure_rosetta() {
+install_xcode_cli_tools() {
+    info "Requesting Xcode Command Line Tools installation..."
+    if xcode-select --install 2>/dev/null; then
+        success "Xcode Command Line Tools installation requested"
+    else
+        warn "Unable to request Xcode Command Line Tools installation"
+        info "Install manually with: xcode-select --install"
+    fi
+}
+
+rosetta_installed() {
+    pkgutil --pkg-info=com.apple.pkg.RosettaUpdateAuto >/dev/null 2>&1
+}
+
+install_rosetta() {
     if [[ "$(uname -m)" != "arm64" ]]; then
         info "Not Apple Silicon; skipping Rosetta"
         return 0
     fi
 
+    if rosetta_installed; then
+        info "Rosetta already installed"
+        return 0
+    fi
+
     info "Installing Rosetta..."
-    softwareupdate --install-rosetta --agree-to-license
-    success "Rosetta install command completed"
+    if softwareupdate --install-rosetta --agree-to-license; then
+        success "Rosetta installed"
+    else
+        warn "Rosetta installation did not complete"
+        return 1
+    fi
 }
 
 apply_macos_defaults() {
@@ -122,6 +143,7 @@ apply_macos_defaults() {
 configure_power_management() {
     info "Configuring power management..."
 
+    sudo -v
     sudo pmset -b sleep 60 displaysleep 15
     sudo pmset -c sleep 0 displaysleep 30
     sudo pmset -a powernap 0
@@ -172,18 +194,42 @@ main() {
 
     info "macOS setup"
 
-    ensure_xcode_cli_tools
-    ensure_rosetta
-    apply_macos_defaults
-    configure_power_management
-    run_if_needed "Exclude high-churn dev paths from Spotlight" spotlight_exclusions_already_applied configure_spotlight_exclusions
-    run_if_needed "Install the custom Hungarian keyboard layout" keyboard_layout_already_installed install_keyboard_layout
+    run_if_needed \
+        "Xcode Command Line Tools" \
+        xcode_cli_tools_installed \
+        install_xcode_cli_tools \
+        "Install Xcode Command Line Tools?" \
+        "Xcode Command Line Tools already installed"
+
+    if [[ "$(uname -m)" == "arm64" ]]; then
+        run_if_needed \
+            "Rosetta" \
+            rosetta_installed \
+            install_rosetta \
+            "Install Rosetta?" \
+            "Rosetta already installed"
+    else
+        info "Not Apple Silicon; skipping Rosetta"
+    fi
+
+    run_if_confirmed "Apply macOS defaults?" apply_macos_defaults
+    run_if_confirmed "Configure power management?" configure_power_management
+    run_if_needed \
+        "Spotlight exclusions" \
+        spotlight_exclusions_already_applied \
+        configure_spotlight_exclusions \
+        "Exclude high-churn dev paths from Spotlight?"
+    run_if_needed \
+        "Custom Hungarian keyboard layout" \
+        keyboard_layout_already_installed \
+        install_keyboard_layout \
+        "Install the custom Hungarian keyboard layout?"
 
     if confirm "Run Microsoft updater tweaks (disable EdgeUpdater / MAU)?"; then
         "$REPO_ROOT/scripts/platform/macos-office-tweaks.sh"
     fi
 
-    success "Done!"
+    success "macOS setup complete"
 }
 
 main "$@"

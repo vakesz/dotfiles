@@ -160,6 +160,11 @@ main() {
     warn "Sealing paths with chflags will block Microsoft auto-updates AND any reinstall attempt for those LaunchAgents."
     warn "To undo later: sudo chflags noschg <path>; chflags nouchg <path>; rm <path>"
 
+    confirm "Apply Microsoft updater tweaks now?" || {
+        info "Skipping Microsoft updater tweaks"
+        return 0
+    }
+
     remove_edge_updater
     apply_edge_prefs
     seal_edge_updater
@@ -172,7 +177,7 @@ main() {
         info "Install it manually only if you need system-level policy enforcement."
     fi
 
-    success "Done!"
+    success "Microsoft updater tweaks complete"
 }
 
 main "$@"

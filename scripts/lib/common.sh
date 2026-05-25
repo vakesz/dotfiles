@@ -18,20 +18,35 @@ error() {
 
 confirm() {
     local answer="n"
+
+    if [[ ! -t 0 || ! -t 1 ]]; then
+        return 1
+    fi
+
     read -r -n 1 -p $'\n'"$1"$' (y/N) ' answer || true
     echo ""
     [[ "$answer" =~ ^[Yy]$ ]]
 }
 
 run_if_needed() {
-    local label="$1" check_fn="$2" action_fn="$3"
+    local check_fn="$2" action_fn="$3" prompt="${4:-$1?}" applied_label="${5:-$1 already applied}"
 
     if "$check_fn"; then
-        info "$label already applied"
+        info "$applied_label"
         return 0
     fi
 
-    confirm "$label?" && "$action_fn"
+    if confirm "$prompt"; then
+        "$action_fn"
+    fi
+}
+
+run_if_confirmed() {
+    local prompt="$1" action_fn="$2"
+
+    if confirm "$prompt"; then
+        "$action_fn"
+    fi
 }
 
 detect_platform() {

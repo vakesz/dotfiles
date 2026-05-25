@@ -100,7 +100,7 @@ dotfiles/
 - `Brewfile`: workstation package manifest for the primary macOS setup
 - `scripts/platform/linux.sh`: locale and default shell setup for Linux / WSL
 - `scripts/platform/macos.sh`: macOS defaults, Xcode CLT, Rosetta, custom keyboard layout, and power settings
-- `scripts/platform/macos-office-tweaks.sh`: permanently disable Microsoft EdgeUpdater and Microsoft AutoUpdate (MAU); installs the managed profile from `assets/macos/disable-microsoft-updates.mobileconfig`
+- `scripts/platform/macos-office-tweaks.sh`: permanently disables Microsoft EdgeUpdater and Microsoft AutoUpdate (MAU); leaves the managed profile at `assets/macos/disable-microsoft-updates.mobileconfig` for manual installation if needed
 
 ## Machine-Local Customizations
 

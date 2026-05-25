@@ -149,7 +149,7 @@ main() {
     stow_selected_packages
     maybe_run_platform_setup
 
-    success "Done!"
+    success "Bootstrap complete"
 }
 
 main "$@"
