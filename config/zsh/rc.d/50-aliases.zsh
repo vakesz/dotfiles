@@ -17,7 +17,7 @@ alias l='ls -CF'
 
 # Navigation
 alias dots='cd ~/.dotfiles'
-alias p='cd ~/projects'
+alias p='cd ~/Code'
 
 # Git
 alias gs='git status'
@@ -37,10 +37,3 @@ if command_exists docker; then
   alias dcu='docker compose up'
   alias dcd='docker compose down'
 fi
-if command_exists podman; then
-  alias pcu='podman compose up'
-  alias pcd='podman compose down'
-fi
-
-command_exists opencode && alias oc='opencode'
-command_exists claude && alias cc='claude'

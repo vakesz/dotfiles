@@ -11,7 +11,7 @@ greedy_auto_updates = true
 autoremove = true
 
 [git]
-repos = ["~/projects/*/"]
+repos = ["~/Code/*/"]
 
 [firmware]
 upgrade = true
