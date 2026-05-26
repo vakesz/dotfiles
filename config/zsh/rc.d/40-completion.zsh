@@ -44,7 +44,5 @@ zstyle ':completion:*:messages' format '%F{purple}-- %d --%f'
 zstyle ':completion:*:warnings' format '%F{red}-- no matches found --%f'
 
 # Syntax highlighting MUST be sourced last (after compinit and after autosuggestions).
-if [[ -n "${HOMEBREW_PREFIX:-}" \
-   && -r "$HOMEBREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
-  source "$HOMEBREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
-fi
+[[ -n "${HOMEBREW_PREFIX:-}" ]] \
+  && source_if_readable "$HOMEBREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"

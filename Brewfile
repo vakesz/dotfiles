@@ -41,7 +41,7 @@ brew "glow"
 
 # Development Toolchains: Languages & Runtimes
 brew "go"
-brew "node"
+brew "fnm"
 brew "pnpm"
 
 # Development Toolchains: Apple
@@ -85,7 +85,6 @@ cask "visual-studio-code"
 cask "linearmouse"
 cask "notunes"
 cask "thaw"
-cask "alt-tab"
 
 # Desktop Apps: Productivity
 cask "affinity"

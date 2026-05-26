@@ -2,24 +2,36 @@
 
 typeset -U path
 
+export OS_TYPE="unknown"
 case "$OSTYPE" in
   darwin*)
-    export OS_TYPE="macos"
+    OS_TYPE="macos"
     ;;
   linux*)
     if grep -qi microsoft /proc/version 2>/dev/null; then
-      export OS_TYPE="wsl"
+      OS_TYPE="wsl"
     else
-      export OS_TYPE="linux"
+      OS_TYPE="linux"
     fi
-    ;;
-  *)
-    export OS_TYPE="unknown"
     ;;
 esac
 
 command_exists() {
   command -v "$1" >/dev/null 2>&1
+}
+
+is_macos() {
+  [[ "$OS_TYPE" == "macos" ]]
+}
+
+is_linux_like() {
+  [[ "$OS_TYPE" == "linux" || "$OS_TYPE" == "wsl" ]]
+}
+
+source_if_readable() {
+  local file="$1"
+  [[ -r "$file" ]] || return 0
+  source "$file"
 }
 
 maybe_zcompile() {
@@ -95,4 +107,4 @@ zle -N down-line-or-beginning-search
 bindkey '^[[A' up-line-or-beginning-search
 bindkey '^[[B' down-line-or-beginning-search
 
-[[ "$OS_TYPE" == "macos" ]] && export ARCHFLAGS="-arch $CPUTYPE"
+is_macos && export ARCHFLAGS="-arch $CPUTYPE"

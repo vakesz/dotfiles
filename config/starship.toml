@@ -12,6 +12,7 @@ $character"""
 
 right_format = "$cmd_duration"
 palette = "tokyo_night"
+command_timeout = 1500
 
 [palettes.tokyo_night]
 bg = "#1a1b26"

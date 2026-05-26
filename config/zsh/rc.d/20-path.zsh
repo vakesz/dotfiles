@@ -9,7 +9,7 @@ prepend_path() {
 
 prepend_path "$XDG_BIN_HOME"
 
-if [[ "$OS_TYPE" == "macos" ]]; then
+if is_macos; then
   for brew_path in /opt/homebrew/bin/brew /usr/local/bin/brew; do
     [[ -x "$brew_path" ]] || continue
     cached_eval "$XDG_CACHE_HOME/zsh/brew-shellenv.zsh" "$brew_path shellenv" "$brew_path"
@@ -22,7 +22,7 @@ if [[ "$OS_TYPE" == "macos" ]]; then
       "$HOMEBREW_PREFIX/opt/ruby/bin" \
       "$HOMEBREW_PREFIX/opt/make/libexec/gnubin"
   fi
-elif [[ "$OS_TYPE" == "linux" || "$OS_TYPE" == "wsl" ]]; then
+elif is_linux_like; then
   prepend_path /snap/bin
 fi
 

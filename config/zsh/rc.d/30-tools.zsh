@@ -2,27 +2,11 @@
 
 # Autosuggestions (syntax highlighting is sourced last in 40-completion.zsh
 # because it must run after compinit and after autosuggestions).
-if [[ -n "${HOMEBREW_PREFIX:-}" \
-   && -r "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
-  source "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
-fi
+[[ -n "${HOMEBREW_PREFIX:-}" ]] \
+  && source_if_readable "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
 
-# Lazy-load NVM on Linux/WSL (macOS uses the Homebrew Node).
-if [[ "$OS_TYPE" == "linux" || "$OS_TYPE" == "wsl" ]]; then
-  export NVM_DIR="$XDG_DATA_HOME/nvm"
-
-  if [[ -s "$NVM_DIR/nvm.sh" ]]; then
-    load_nvm() {
-      unfunction nvm node npm npx pnpm corepack load_nvm 2>/dev/null
-      source "$NVM_DIR/nvm.sh"
-      [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
-    }
-
-    for cmd in nvm node npm npx pnpm corepack; do
-      eval "$cmd() { load_nvm && $cmd \"\$@\"; }"
-    done
-  fi
-fi
+# Node runtime/version management via fnm.
+load_tool_init fnm "fnm env --shell zsh --use-on-cd" "${(%):-%N}"
 
 load_tool_init starship "starship init zsh" "$XDG_CONFIG_HOME/starship.toml" "${(%):-%N}"
 
