@@ -1,16 +1,17 @@
 # Aliases
 
-command_exists fdfind && alias fd=fdfind
+(( $+commands[fdfind] )) && alias fd=fdfind
 
-if command_exists uv; then
+if (( $+commands[uv] )); then
   alias uv-tools='uv tool list'
   alias uv-python='uv python list'
 fi
 
-case "$OS_TYPE" in
-  macos) alias ls='ls -G' ;;
-  *) alias ls='ls --color=auto' ;;
-esac
+if ls --color=auto &>/dev/null; then
+  alias ls='ls --color=auto'
+else
+  alias ls='ls -G'
+fi
 alias ll='ls -la'
 alias la='ls -A'
 alias l='ls -CF'
@@ -33,7 +34,7 @@ alias gb='git branch'
 alias gp='git push'
 alias gpl='git pull'
 
-if command_exists docker; then
+(( $+commands[docker] )) && {
   alias dcu='docker compose up'
   alias dcd='docker compose down'
-fi
+}

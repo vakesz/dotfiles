@@ -1,7 +1,7 @@
 # Completion configuration
 
 # Homebrew completions
-if (( $+commands[brew] )) && [[ -n "${HOMEBREW_PREFIX:-}" ]]; then
+if (( $+commands[brew] )) && [[ -n ${HOMEBREW_PREFIX:-} ]]; then
   fpath=("$HOMEBREW_PREFIX/share/zsh/site-functions" $fpath)
 fi
 
@@ -43,6 +43,6 @@ zstyle ':completion:*:corrections' format '%F{green}-- %d (errors: %e) --%f'
 zstyle ':completion:*:messages' format '%F{purple}-- %d --%f'
 zstyle ':completion:*:warnings' format '%F{red}-- no matches found --%f'
 
-# Syntax highlighting MUST be sourced last (after compinit and after autosuggestions).
-[[ -n "${HOMEBREW_PREFIX:-}" ]] \
-  && source_if_readable "$HOMEBREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+# Syntax highlighting must load last (after compinit and autosuggestions)
+[[ -r ${HOMEBREW_PREFIX:-}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]] \
+  && source "$HOMEBREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"

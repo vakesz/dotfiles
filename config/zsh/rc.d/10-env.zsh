@@ -4,9 +4,7 @@ typeset -U path
 
 export OS_TYPE="unknown"
 case "$OSTYPE" in
-  darwin*)
-    OS_TYPE="macos"
-    ;;
+  darwin*) OS_TYPE="macos" ;;
   linux*)
     if grep -qi microsoft /proc/version 2>/dev/null; then
       OS_TYPE="wsl"
@@ -16,29 +14,10 @@ case "$OSTYPE" in
     ;;
 esac
 
-command_exists() {
-  command -v "$1" >/dev/null 2>&1
-}
-
-is_macos() {
-  [[ "$OS_TYPE" == "macos" ]]
-}
-
-is_linux_like() {
-  [[ "$OS_TYPE" == "linux" || "$OS_TYPE" == "wsl" ]]
-}
-
-source_if_readable() {
-  local file="$1"
-  [[ -r "$file" ]] || return 0
-  source "$file"
-}
-
 maybe_zcompile() {
   local file="$1"
-  (( $+builtins[zcompile] )) || return 0
-  [[ -f "$file" && "$file" -nt "${file}.zwc" ]] || return 0
-  zcompile -R "$file" 2>/dev/null || true
+  [[ -f "$file" && "$file" -nt "${file}.zwc" ]] && zcompile -R "$file" 2>/dev/null
+  return 0
 }
 
 cached_eval() {
@@ -62,9 +41,8 @@ cached_eval() {
 
 load_tool_init() {
   local tool="$1" init_command="$2"; shift 2
-  local exe
-  exe="$(command -v "$tool")" || return 0
-  cached_eval "$XDG_CACHE_HOME/zsh/${tool}-init.zsh" "$init_command" "$exe" "$@"
+  (( $+commands[$tool] )) || return 0
+  cached_eval "$XDG_CACHE_HOME/zsh/${tool}-init.zsh" "$init_command" "$commands[$tool]" "$@"
 }
 
 export LANG="en_US.UTF-8"
@@ -107,4 +85,4 @@ zle -N down-line-or-beginning-search
 bindkey '^[[A' up-line-or-beginning-search
 bindkey '^[[B' down-line-or-beginning-search
 
-is_macos && export ARCHFLAGS="-arch $CPUTYPE"
+[[ $OS_TYPE == macos ]] && export ARCHFLAGS="-arch $CPUTYPE"

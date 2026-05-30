@@ -13,7 +13,7 @@ venv() {
     return 1
   fi
 
-  command_exists uv || {
+  (( $+commands[uv] )) || {
     echo "Error: uv not found" >&2
     return 1
   }
