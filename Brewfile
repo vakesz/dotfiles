@@ -42,7 +42,6 @@ brew "glow"
 # Development Toolchains: Languages & Runtimes
 brew "go"
 brew "fnm"
-brew "pnpm"
 
 # Development Toolchains: Apple
 brew "swiftlint"

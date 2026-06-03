@@ -4,12 +4,12 @@ macOS-primary dotfiles with Linux and WSL support, organized around `home/` for 
 
 ## Quick Start
 
-### 1. Install bootstrap prerequisites
+### 1. Install workstation packages (macOS)
 
-`bootstrap.sh` only needs `git`, `stow`, and `zsh`. On a fresh macOS machine:
+The `Brewfile` is the package manifest for the primary macOS setup.
 
 ```bash
-brew install git stow zsh
+brew bundle install
 ```
 
 ### 2. Bootstrap the dotfiles
@@ -18,17 +18,9 @@ brew install git stow zsh
 ./bootstrap.sh
 ```
 
-This stows `home/` into `$HOME` and `config/` into `$XDG_CONFIG_HOME`, then asks whether to run the matching platform setup script.
+This stows `home/` into `$HOME` and `config/` into `$XDG_CONFIG_HOME`, then offers to run the matching platform setup script.
 
-### 3. Install the rest of the workstation packages (macOS)
-
-`Brewfile` is the workstation package manifest for the primary macOS machine. It is not intended to be a cross-platform dependency source.
-
-```bash
-brew bundle install
-```
-
-### 4. Optional machine setup
+### 3. Optional machine setup
 
 You can run the platform setup scripts directly later:
 
@@ -37,13 +29,15 @@ You can run the platform setup scripts directly later:
 ./scripts/platform/linux.sh
 ```
 
+If `fnm` and a Node runtime with `corepack` are available, the platform setup scripts also offer to enable `pnpm` via `corepack`.
+
 On macOS, an extra opt-in script permanently disables Microsoft auto-updaters (EdgeUpdater + MAU) so updates flow through `topgrade` only:
 
 ```bash
 ./scripts/platform/macos-office-tweaks.sh
 ```
 
-### Adopt an existing setup
+### 4. Adopt an existing setup
 
 If your machine already has dotfiles in place and you want to import them into this repo:
 
@@ -84,7 +78,7 @@ dotfiles/
 
 - `./bootstrap.sh` stows `home/` into `$HOME` and `config/` into `$XDG_CONFIG_HOME`.
 - Re-run `./bootstrap.sh` after adding or moving files inside `home/` or `config/`.
-- Keep XDG-managed config under `config/`; keep only true home-level files in `home/`.
+- Keep XDG-managed config under `config/` and only true home-level files in `home/`.
 
 ### Core config
 
@@ -115,12 +109,12 @@ These files are for local aliases, secrets, machine-specific paths, or other ove
 ## Install Notes
 
 - `bootstrap.sh` is the only stow entrypoint
-- re-run `./bootstrap.sh` after adding or moving tracked files inside `home/` or `config/`
 - the Ghostty custom icon lives in `config/ghostty/` next to the config that references it
 - shell plugins (`zsh-autosuggestions`, `zsh-syntax-highlighting`) install via `Brewfile`; no separate plugin manager bootstrap is required
 
 ## Re-Stowing
-Tracked files are live immediately because Stow symlinks them into place, so adding or moving tracked files under `home/` or `config/` just means re-running `./bootstrap.sh`.
+
+Stow symlinks tracked files into place, so after adding or moving files under `home/` or `config/`, just re-run `./bootstrap.sh`.
 
 ## XDG Compliance
 

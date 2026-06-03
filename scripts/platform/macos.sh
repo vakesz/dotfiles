@@ -163,6 +163,16 @@ install_keyboard_layout() {
     success "Keyboard layout installed"
 }
 
+pnpm_via_corepack_already_available() {
+    command -v pnpm >/dev/null 2>&1
+}
+
+enable_pnpm_via_corepack() {
+    info "Enabling pnpm via corepack..."
+    corepack enable pnpm
+    success "pnpm enabled"
+}
+
 spotlight_exclusions_already_applied() {
     local path
     for path in "$HOME/Library/Developer/Xcode/DerivedData" "$HOME/.cache"; do
@@ -224,6 +234,17 @@ main() {
         keyboard_layout_already_installed \
         install_keyboard_layout \
         "Install the custom Hungarian keyboard layout?"
+
+    if command -v fnm >/dev/null 2>&1 && command -v corepack >/dev/null 2>&1; then
+        run_if_needed \
+            "pnpm via corepack" \
+            pnpm_via_corepack_already_available \
+            enable_pnpm_via_corepack \
+            "Enable pnpm via corepack?" \
+            "pnpm already available"
+    else
+        info "fnm/corepack not available; skipping pnpm setup"
+    fi
 
     if confirm "Run Microsoft updater tweaks (disable EdgeUpdater / MAU)?"; then
         "$REPO_ROOT/scripts/platform/macos-office-tweaks.sh"
