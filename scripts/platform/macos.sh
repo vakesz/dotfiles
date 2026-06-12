@@ -56,7 +56,7 @@ apply_macos_defaults() {
     defaults write NSGlobalDomain AppleShowAllExtensions -bool true
     defaults write com.apple.finder ShowStatusBar -bool true
     defaults write com.apple.finder ShowPathbar -bool true
-    defaults write com.apple.finder FXPreferredViewStyle -string "icnv"
+    defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
     defaults write com.apple.finder _FXSortFoldersFirst -bool true
     defaults write com.apple.finder FXArrangeGroupViewBy -string "Name"
     defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
@@ -163,16 +163,6 @@ install_keyboard_layout() {
     success "Keyboard layout installed"
 }
 
-pnpm_via_corepack_already_available() {
-    command -v pnpm >/dev/null 2>&1
-}
-
-enable_pnpm_via_corepack() {
-    info "Enabling pnpm via corepack..."
-    corepack enable pnpm
-    success "pnpm enabled"
-}
-
 spotlight_exclusions_already_applied() {
     local path
     for path in "$HOME/Library/Developer/Xcode/DerivedData" "$HOME/.cache"; do
@@ -198,22 +188,19 @@ configure_spotlight_exclusions() {
     success "Spotlight exclusions applied"
 }
 
-
 main() {
     require_platform macos
 
     info "macOS setup"
 
-    run_if_needed \
-        "Xcode Command Line Tools" \
+    prompt_if_missing \
         xcode_cli_tools_installed \
         install_xcode_cli_tools \
         "Install Xcode Command Line Tools?" \
         "Xcode Command Line Tools already installed"
 
     if [[ "$(uname -m)" == "arm64" ]]; then
-        run_if_needed \
-            "Rosetta" \
+        prompt_if_missing \
             rosetta_installed \
             install_rosetta \
             "Install Rosetta?" \
@@ -222,29 +209,20 @@ main() {
         info "Not Apple Silicon; skipping Rosetta"
     fi
 
-    run_if_confirmed "Apply macOS defaults?" apply_macos_defaults
-    run_if_confirmed "Configure power management?" configure_power_management
-    run_if_needed \
-        "Spotlight exclusions" \
+    confirm_and_run "Apply macOS defaults?" apply_macos_defaults
+    confirm_and_run "Configure power management?" configure_power_management
+    prompt_if_missing \
         spotlight_exclusions_already_applied \
         configure_spotlight_exclusions \
-        "Exclude high-churn dev paths from Spotlight?"
-    run_if_needed \
-        "Custom Hungarian keyboard layout" \
+        "Exclude high-churn dev paths from Spotlight?" \
+        "Spotlight exclusions already applied"
+    prompt_if_missing \
         keyboard_layout_already_installed \
         install_keyboard_layout \
-        "Install the custom Hungarian keyboard layout?"
+        "Install the custom Hungarian keyboard layout?" \
+        "Custom Hungarian keyboard layout already installed"
 
-    if command -v fnm >/dev/null 2>&1 && command -v corepack >/dev/null 2>&1; then
-        run_if_needed \
-            "pnpm via corepack" \
-            pnpm_via_corepack_already_available \
-            enable_pnpm_via_corepack \
-            "Enable pnpm via corepack?" \
-            "pnpm already available"
-    else
-        info "fnm/corepack not available; skipping pnpm setup"
-    fi
+    offer_javascript_toolchain_setup
 
     if confirm "Run Microsoft updater tweaks (disable EdgeUpdater / MAU)?"; then
         "$REPO_ROOT/scripts/platform/macos-office-tweaks.sh"

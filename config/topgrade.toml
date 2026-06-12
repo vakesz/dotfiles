@@ -1,8 +1,8 @@
 [misc]
-disable = ["containers", "yarn", "microsoft_office"]
+disable = ["containers", "microsoft_office", "node", "pnpm", "yarn"]
 display_time = true
 cleanup = true
-skip_notify = true
+notify_end = "never"
 
 [brew]
 greedy_cask = true

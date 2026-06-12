@@ -115,16 +115,6 @@ ensure_locale() {
     persist_locale_for_family "$family"
 }
 
-pnpm_via_corepack_already_available() {
-    command -v pnpm >/dev/null 2>&1
-}
-
-enable_pnpm_via_corepack() {
-    info "Enabling pnpm via corepack..."
-    corepack enable pnpm
-    success "pnpm enabled"
-}
-
 ensure_zsh_shell() {
     local zsh_path=""
 
@@ -157,16 +147,7 @@ main() {
     confirm "Configure en_US.UTF-8 locale?" && ensure_locale
     confirm "Set zsh as the default shell?" && ensure_zsh_shell
 
-    if command -v fnm >/dev/null 2>&1 && command -v corepack >/dev/null 2>&1; then
-        run_if_needed \
-            "pnpm via corepack" \
-            pnpm_via_corepack_already_available \
-            enable_pnpm_via_corepack \
-            "Enable pnpm via corepack?" \
-            "pnpm already available"
-    else
-        info "fnm/corepack not available; skipping pnpm setup"
-    fi
+    offer_javascript_toolchain_setup
 
     success "Linux / WSL setup complete"
 }

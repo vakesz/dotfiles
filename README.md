@@ -29,7 +29,9 @@ You can run the platform setup scripts directly later:
 ./scripts/platform/linux.sh
 ```
 
-If `fnm` and a Node runtime with `corepack` are available, the platform setup scripts also offer to enable `pnpm` via `corepack`.
+Node is managed through `fnm`, not Homebrew. If `fnm` is available, the platform
+setup scripts offer to install the latest Node.js LTS, select it as the `fnm`
+default, and enable `pnpm` via `corepack`.
 
 On macOS, an extra opt-in script permanently disables Microsoft auto-updaters (EdgeUpdater + MAU) so updates flow through `topgrade` only:
 
@@ -83,7 +85,7 @@ dotfiles/
 ### Core config
 
 - `home/.zshenv`: early shell environment such as XDG dirs and `ZDOTDIR`
-- `config/zsh`: Zsh config fragments and Starship prompt initialization
+- `config/zsh`: Zsh config fragments and cached tool initialization
 - `config/starship.toml`: Starship prompt theme
 - `config/git`: Git config and global ignore rules
 - `config/ghostty`: Ghostty config
@@ -108,9 +110,15 @@ These files are for local aliases, secrets, machine-specific paths, or other ove
 
 ## Install Notes
 
-- `bootstrap.sh` is the only stow entrypoint
-- the Ghostty custom icon lives in `config/ghostty/` next to the config that references it
-- shell plugins (`zsh-autosuggestions`, `zsh-syntax-highlighting`) install via `Brewfile`; no separate plugin manager bootstrap is required
+- `bootstrap.sh` is the only stow entrypoint.
+- Shell plugins (`zsh-autosuggestions`, `zsh-syntax-highlighting`) install via
+  `Brewfile`; no separate plugin manager bootstrap is required.
+- Short navigation aliases are kept as compatibility shims: `dots` -> `dotfiles`, `c` -> `code`.
+- Node runtimes are managed by `fnm`. Homebrew `node` is not declared directly; if
+  it appears locally, it is a dependency of another formula and not the shell's
+  preferred runtime.
+- JavaScript formatter/linter CLIs are intentionally project-local. This repo does
+  not install global `prettier`, `markdownlint-cli`, or similar npm packages.
 
 ## Re-Stowing
 
@@ -127,7 +135,10 @@ Configs are kept out of `$HOME` where possible:
 
 ## Update Strategy
 
-System and tool updates run through `topgrade`. Homebrew app auto-updates are disabled in favor of `brew upgrade --greedy-auto-updates` via topgrade.
+System and tool updates run through `topgrade`. Homebrew cask updates use
+Topgrade's greedy cask mode so apps that normally self-update are still handled
+by Homebrew. Global npm and pnpm package update steps are disabled because
+JavaScript tooling is project-local.
 
 ## Resources
 
@@ -136,4 +147,11 @@ System and tool updates run through `topgrade`. Homebrew app auto-updates are di
 - [Starship](https://starship.rs/)
 - [zoxide](https://github.com/ajeetdsouza/zoxide)
 - [fzf](https://github.com/junegunn/fzf)
+- [fnm](https://github.com/Schniz/fnm)
+- [pnpm](https://pnpm.io/)
+- [ripgrep](https://ripgrep.dev/docs/guide/)
+- [fd](https://github.com/sharkdp/fd)
+- [tealdeer](https://tealdeer-rs.github.io/tealdeer/)
+- [Ghostty](https://ghostty.org/docs/config)
+- [Homebrew Bundle](https://docs.brew.sh/Brew-Bundle-and-Brewfile)
 - [topgrade](https://github.com/topgrade-rs/topgrade)

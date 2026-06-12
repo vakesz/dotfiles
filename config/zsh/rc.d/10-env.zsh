@@ -2,7 +2,7 @@
 
 typeset -U path
 
-export OS_TYPE="unknown"
+typeset -g OS_TYPE="unknown"
 case "$OSTYPE" in
   darwin*) OS_TYPE="macos" ;;
   linux*)
@@ -14,35 +14,41 @@ case "$OSTYPE" in
     ;;
 esac
 
-maybe_zcompile() {
+compile_zsh_file_if_stale() {
   local file="$1"
-  [[ -f "$file" && "$file" -nt "${file}.zwc" ]] && zcompile -R "$file" 2>/dev/null
+  [[ -f "$file" ]] || return 0
+  [[ ! -f "${file}.zwc" || "$file" -nt "${file}.zwc" ]] && zcompile -R "$file" 2>/dev/null
   return 0
 }
 
-cached_eval() {
-  # Source `init_command` output via $cache_file; regen if cache is missing or any dep is newer.
+source_cached_init() {
   local cache_file="$1" init_command="$2"; shift 2
-  local dep regen=0
+  local dep refresh=0 tmp_file
 
-  [[ -f "$cache_file" ]] || regen=1
+  [[ -s "$cache_file" ]] || refresh=1
   for dep in "$@"; do
-    [[ "$dep" -nt "$cache_file" ]] && { regen=1; break; }
+    [[ -e "$dep" && "$dep" -nt "$cache_file" ]] && { refresh=1; break; }
   done
 
-  if (( regen )); then
+  if (( refresh )); then
     mkdir -p "${cache_file:h}"
-    eval "$init_command" > "$cache_file" 2>/dev/null
+    tmp_file="${cache_file}.$$"
+    if eval "$init_command" > "$tmp_file" 2>/dev/null; then
+      mv "$tmp_file" "$cache_file"
+    else
+      rm -f "$tmp_file"
+      return 0
+    fi
   fi
 
-  maybe_zcompile "$cache_file"
+  compile_zsh_file_if_stale "$cache_file"
   source "$cache_file"
 }
 
-load_tool_init() {
+load_cached_tool_init() {
   local tool="$1" init_command="$2"; shift 2
   (( $+commands[$tool] )) || return 0
-  cached_eval "$XDG_CACHE_HOME/zsh/${tool}-init.zsh" "$init_command" "$commands[$tool]" "$@"
+  source_cached_init "$XDG_CACHE_HOME/zsh/${tool}-init.zsh" "$init_command" "$commands[$tool]" "$@"
 }
 
 export LANG="en_US.UTF-8"
@@ -53,7 +59,7 @@ export VISUAL="vi"
 
 [[ -t 0 ]] && export GPG_TTY="$TTY"
 
-export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow'
 export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border --info=inline'
 
 export HOMEBREW_NO_ANALYTICS=1

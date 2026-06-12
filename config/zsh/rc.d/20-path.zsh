@@ -12,7 +12,7 @@ prepend_path "$XDG_BIN_HOME"
 if [[ $OS_TYPE == macos ]]; then
   for brew_path in /opt/homebrew/bin/brew /usr/local/bin/brew; do
     [[ -x "$brew_path" ]] || continue
-    cached_eval "$XDG_CACHE_HOME/zsh/brew-shellenv.zsh" "$brew_path shellenv" "$brew_path"
+    source_cached_init "$XDG_CACHE_HOME/zsh/brew-shellenv.zsh" "$brew_path shellenv" "$brew_path"
     break
   done
 

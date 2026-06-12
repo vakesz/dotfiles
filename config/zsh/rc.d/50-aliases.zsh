@@ -18,7 +18,7 @@ alias l='ls -CF'
 
 # Navigation
 alias dots='cd ~/.dotfiles'
-alias p='cd ~/Code'
+alias c='cd ~/Code'
 
 # Git
 alias gs='git status'

@@ -6,6 +6,7 @@ if (( $+commands[brew] )) && [[ -n ${HOMEBREW_PREFIX:-} ]]; then
 fi
 
 if ! (( ${+_comps} )); then
+  zmodload zsh/complist 2>/dev/null || true
   autoload -Uz compinit
   mkdir -p "${ZSH_COMPDUMP:h}"
   # Skip the slow security audit if the dump is fresh (<24h).
@@ -15,7 +16,7 @@ if ! (( ${+_comps} )); then
     compinit -d "$ZSH_COMPDUMP"
   fi
 
-  maybe_zcompile "$ZSH_COMPDUMP"
+  compile_zsh_file_if_stale "$ZSH_COMPDUMP"
 fi
 
 # Completion options

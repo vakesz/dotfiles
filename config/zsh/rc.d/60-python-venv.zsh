@@ -22,11 +22,15 @@ venv() {
   uv venv "$venv_dir" && source "$venv_dir/bin/activate"
 }
 
-venv-off() {
+venv-deactivate() {
   (( $+functions[deactivate] )) && deactivate
 }
 
-auto_activate_venv() {
+venv-off() {
+  venv-deactivate
+}
+
+_dotfiles_auto_venv() {
   if [[ -n "$VIRTUAL_ENV" ]]; then
     local venv_parent="${VIRTUAL_ENV:h}"
     if [[ "$PWD" != "${venv_parent}/"* && "$PWD" != "$venv_parent" ]]; then
@@ -40,5 +44,5 @@ auto_activate_venv() {
 }
 
 autoload -Uz add-zsh-hook
-add-zsh-hook chpwd auto_activate_venv
-auto_activate_venv
+add-zsh-hook chpwd _dotfiles_auto_venv
+_dotfiles_auto_venv

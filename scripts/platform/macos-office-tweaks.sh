@@ -34,7 +34,7 @@ MAU_AGENTS=(
 
 source "$REPO_ROOT/scripts/lib/common.sh"
 
-bootout_plist() {
+remove_launchd_plist() {
     local domain="$1" plist="$2"
     [[ -e "$plist" ]] || return 0
 
@@ -56,9 +56,9 @@ remove_edge_updater() {
     uid="$(id -u)"
 
     for name in "${EDGE_UPDATER_AGENTS[@]}"; do
-        bootout_plist "gui/$uid" "$HOME/Library/LaunchAgents/$name"
-        bootout_plist "system" "/Library/LaunchAgents/$name"
-        bootout_plist "system" "/Library/LaunchDaemons/$name"
+        remove_launchd_plist "gui/$uid" "$HOME/Library/LaunchAgents/$name"
+        remove_launchd_plist "system" "/Library/LaunchAgents/$name"
+        remove_launchd_plist "system" "/Library/LaunchDaemons/$name"
     done
 
     rm -rf "$HOME/Library/Application Support/Microsoft/EdgeUpdater"
@@ -85,9 +85,9 @@ remove_microsoft_autoupdate() {
     uid="$(id -u)"
 
     for name in "${MAU_AGENTS[@]}"; do
-        bootout_plist "gui/$uid" "$HOME/Library/LaunchAgents/$name"
-        bootout_plist "system" "/Library/LaunchAgents/$name"
-        bootout_plist "system" "/Library/LaunchDaemons/$name"
+        remove_launchd_plist "gui/$uid" "$HOME/Library/LaunchAgents/$name"
+        remove_launchd_plist "system" "/Library/LaunchAgents/$name"
+        remove_launchd_plist "system" "/Library/LaunchDaemons/$name"
     done
 
     success "MAU LaunchAgents removed"

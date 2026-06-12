@@ -59,8 +59,6 @@ brew "raylib"
 
 # Development Toolchains: Linters & Formatters
 brew "clang-format"
-brew "markdownlint-cli"
-brew "prettier"
 brew "ruff"
 brew "shellcheck"
 brew "swift-format"

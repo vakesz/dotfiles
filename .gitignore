@@ -1,5 +1,6 @@
 # Claude Code configuration (user-specific)
 .claude/
+.agents/
 
 # macOS
 .DS_Store
@@ -43,3 +44,4 @@ __pycache__/
 *.pyc
 *.pyo
 .vscode/
+skills-lock.json
