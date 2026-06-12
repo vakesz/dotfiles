@@ -80,7 +80,6 @@ cask "visual-studio-code"
 
 # Desktop Apps: System & Maintenance
 cask "linearmouse"
-cask "notunes"
 cask "thaw"
 
 # Desktop Apps: Productivity
