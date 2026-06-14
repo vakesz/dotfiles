@@ -3,7 +3,7 @@
 prepend_path() {
   local dir
   for dir in "$@"; do
-    [[ -d "$dir" ]] && path=("$dir" $path)
+    [[ -n "$dir" ]] && path=("$dir" $path)
   done
 }
 
@@ -19,6 +19,7 @@ if [[ $OS_TYPE == macos ]]; then
   if [[ -n ${HOMEBREW_PREFIX:-} ]]; then
     prepend_path \
       "$HOMEBREW_PREFIX/opt/curl/bin" \
+      "$HOMEBREW_PREFIX/opt/sqlite/bin" \
       "$HOMEBREW_PREFIX/opt/ruby/bin" \
       "$HOMEBREW_PREFIX/opt/coreutils/libexec/gnubin" \
       "$HOMEBREW_PREFIX/opt/make/libexec/gnubin"
@@ -27,6 +28,6 @@ elif [[ $OS_TYPE == linux || $OS_TYPE == wsl ]]; then
   prepend_path /snap/bin
 fi
 
-prepend_path "$GOPATH/bin" "$UV_TOOL_BIN_DIR"
+prepend_path "$GOPATH/bin" "$UV_TOOL_BIN_DIR" "$GEM_HOME/bin"
 
 export PATH

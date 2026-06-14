@@ -48,10 +48,32 @@ prompt_if_missing() {
     confirm_and_run "$prompt" "$action_fn"
 }
 
-ensure_javascript_environment() {
+set_xdg_environment_defaults() {
+    export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
     export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
     export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
     export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+    export XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
+}
+
+ensure_xdg_runtime_directories() {
+    set_xdg_environment_defaults
+    export GNUPGHOME="${GNUPGHOME:-$XDG_DATA_HOME/gnupg}"
+
+    mkdir -p \
+        "$XDG_CONFIG_HOME" \
+        "$XDG_DATA_HOME" \
+        "$XDG_STATE_HOME" \
+        "$XDG_CACHE_HOME" \
+        "$XDG_BIN_HOME" \
+        "$XDG_STATE_HOME/zsh" \
+        "$XDG_CACHE_HOME/zsh" \
+        "$GNUPGHOME"
+    chmod 700 "$GNUPGHOME"
+}
+
+ensure_javascript_environment() {
+    set_xdg_environment_defaults
     export FNM_DIR="${FNM_DIR:-$XDG_DATA_HOME/fnm}"
     export PNPM_HOME="${PNPM_HOME:-$XDG_DATA_HOME/pnpm}"
 

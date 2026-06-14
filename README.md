@@ -19,6 +19,8 @@ brew bundle install
 ```
 
 This stows `home/` into `$HOME` and `config/` into `$XDG_CONFIG_HOME`, then offers to run the matching platform setup script.
+It also creates the XDG runtime directories used by the shell and prepares
+`$GNUPGHOME` with private permissions.
 
 ### 3. Optional machine setup
 
@@ -32,6 +34,10 @@ You can run the platform setup scripts directly later:
 Node is managed through `fnm`, not Homebrew. If `fnm` is available, the platform
 setup scripts offer to install the latest Node.js LTS, select it as the `fnm`
 default, and enable `pnpm` via `corepack`.
+
+Python runtimes and installable Python CLI tools are managed through `uv`.
+The shell keeps `uv`'s tool bin directory on `PATH`; Homebrew is only expected
+to provide the `uv` executable itself and any non-`uv` workstation formulae.
 
 On macOS, an extra opt-in script permanently disables Microsoft auto-updaters (EdgeUpdater + MAU) so updates flow through `topgrade` only:
 
@@ -111,12 +117,24 @@ These files are for local aliases, secrets, machine-specific paths, or other ove
 ## Install Notes
 
 - `bootstrap.sh` is the only stow entrypoint.
+- `bootstrap.sh` creates XDG config/data/state/cache/bin directories and
+  initializes `$GNUPGHOME` as a `0700` directory for GnuPG.
 - Shell plugins (`zsh-autosuggestions`, `zsh-syntax-highlighting`) install via
   `Brewfile`; no separate plugin manager bootstrap is required.
-- Short navigation aliases are kept as compatibility shims: `dots` -> `dotfiles`, `c` -> `code`.
+- Short navigation aliases are kept as compatibility shims:
+  `dots` changes to `~/.dotfiles`, and `c` changes to `~/Code`.
 - Node runtimes are managed by `fnm`. Homebrew `node` is not declared directly; if
   it appears locally, it is a dependency of another formula and not the shell's
   preferred runtime.
+- Python runtimes and global Python tools should use `uv`; `UV_TOOL_BIN_DIR`
+  is on `PATH` for `uv tool install` executables.
+- Homebrew Ruby is declared because zsh intentionally prefers
+  `$HOMEBREW_PREFIX/opt/ruby/bin` over the macOS system Ruby. RubyGems are kept
+  under `$GEM_HOME`, and `$GEM_HOME/bin` is on `PATH` for installed gem commands.
+- Homebrew replacements that need explicit prefix paths are wired in zsh:
+  `curl`, `sqlite`, GNU `coreutils`, GNU `make`, and Homebrew Ruby. Linked
+  Homebrew tools such as `git` and `diffutils` resolve through
+  `$HOMEBREW_PREFIX/bin` from `brew shellenv`.
 - JavaScript formatter/linter CLIs are intentionally project-local. This repo does
   not install global `prettier`, `markdownlint-cli`, or similar npm packages.
 
@@ -132,6 +150,7 @@ Configs are kept out of `$HOME` where possible:
 - `~/.local/share` for data
 - `~/.local/state` for state
 - `~/.cache` for cache
+- `~/.local/share/gnupg` for GnuPG state and sockets
 
 ## Update Strategy
 
@@ -149,9 +168,11 @@ JavaScript tooling is project-local.
 - [fzf](https://github.com/junegunn/fzf)
 - [fnm](https://github.com/Schniz/fnm)
 - [pnpm](https://pnpm.io/)
+- [uv](https://docs.astral.sh/uv/)
 - [ripgrep](https://ripgrep.dev/docs/guide/)
 - [fd](https://github.com/sharkdp/fd)
 - [tealdeer](https://tealdeer-rs.github.io/tealdeer/)
 - [Ghostty](https://ghostty.org/docs/config)
 - [Homebrew Bundle](https://docs.brew.sh/Brew-Bundle-and-Brewfile)
 - [topgrade](https://github.com/topgrade-rs/topgrade)
+- [GnuPG](https://gnupg.org/)

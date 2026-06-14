@@ -144,6 +144,7 @@ main() {
 
     info "Dotfiles bootstrap"
 
+    ensure_xdg_runtime_directories
     require_stow
     confirm_adopt
     stow_selected_packages

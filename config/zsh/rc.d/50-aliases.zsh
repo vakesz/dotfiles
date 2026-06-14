@@ -23,16 +23,9 @@ alias c='cd ~/Code'
 # Git
 alias gs='git status'
 alias gd='git diff'
-alias gds='git diff --staged'
 alias gc='git commit'
-alias gcan='git commit --amend --no-edit'
-alias gcae='git commit --amend'
 alias ga='git add'
-alias gaa='git add --all'
-alias gco='git checkout'
-alias gb='git branch'
 alias gp='git push'
-alias gpl='git pull'
 
 (( $+commands[docker] )) && {
   alias dcu='docker compose up'

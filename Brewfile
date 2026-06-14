@@ -42,6 +42,7 @@ brew "glow"
 # Development Toolchains: Languages & Runtimes
 brew "go"
 brew "fnm"
+brew "ruby"
 
 # Development Toolchains: Apple
 brew "swiftlint"
@@ -59,7 +60,6 @@ brew "raylib"
 
 # Development Toolchains: Linters & Formatters
 brew "clang-format"
-brew "ruff"
 brew "shellcheck"
 brew "swift-format"
 
