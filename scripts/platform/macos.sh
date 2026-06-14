@@ -224,9 +224,8 @@ main() {
 
     offer_javascript_toolchain_setup
 
-    if confirm "Run Microsoft updater tweaks (disable EdgeUpdater / MAU)?"; then
-        "$REPO_ROOT/scripts/platform/macos-office-tweaks.sh"
-    fi
+    # The office-tweaks script self-gates with its own confirm prompt.
+    "$REPO_ROOT/scripts/platform/macos-office-tweaks.sh"
 
     success "macOS setup complete"
 }

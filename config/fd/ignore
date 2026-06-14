@@ -1,3 +1,4 @@
+# Keep this list in sync with config/ripgrep/config (--glob=! entries).
 .git/
 node_modules/
 .venv/

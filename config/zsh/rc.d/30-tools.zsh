@@ -1,6 +1,6 @@
 # Shell plugins and tool integrations
 
-# Autosuggestions (syntax highlighting must load after compinit and autosuggestions)
+# Autosuggestions (zsh-syntax-highlighting loads last, in 40-completion.zsh)
 [[ -r ${HOMEBREW_PREFIX:-}/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]] \
   && source "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
 

@@ -67,7 +67,7 @@ brew "swift-format"
 cask "orbstack"
 
 # Development Toolchains: AI & LLM
-#cask "claude-code@latest"
+cask "claude-code@latest"
 cask "codex"
 cask "codex-app"
 cask "steipete/tap/codexbar"
