@@ -28,6 +28,15 @@ venv-off() {
 alias venv-deactivate='venv-off'
 
 _dotfiles_auto_venv() {
+  # Recover from a venv whose directory was deleted while still "active".
+  if [[ -n "$VIRTUAL_ENV" && ! -f "$VIRTUAL_ENV/bin/activate" ]]; then
+    if (( $+functions[deactivate] )); then
+      deactivate
+    else
+      unset VIRTUAL_ENV
+    fi
+  fi
+
   if [[ -n "$VIRTUAL_ENV" ]]; then
     local venv_parent="${VIRTUAL_ENV:h}"
     if [[ "$PWD" != "${venv_parent}/"* && "$PWD" != "$venv_parent" ]]; then

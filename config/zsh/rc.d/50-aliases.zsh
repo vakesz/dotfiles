@@ -7,14 +7,25 @@ if (( $+commands[uv] )); then
   alias uv-python='uv python list'
 fi
 
-if ls --color=auto &>/dev/null; then
-  alias ls='ls --color=auto'
+if (( $+commands[eza] )); then
+  alias ls='eza --group-directories-first'
+  alias ll='eza -la --group-directories-first --git'
+  alias la='eza -a --group-directories-first'
+  alias lt='eza --tree --level=2'
 else
-  alias ls='ls -G'
+  if ls --color=auto &>/dev/null; then
+    alias ls='ls --color=auto'
+  else
+    alias ls='ls -G'
+  fi
+  alias ll='ls -la'
+  alias la='ls -A'
+  alias l='ls -CF'
 fi
-alias ll='ls -la'
-alias la='ls -A'
-alias l='ls -CF'
+
+# bat is packaged as `batcat` on Debian/Ubuntu.
+(( $+commands[batcat] )) && alias bat='batcat'
+(( $+commands[bat] || $+commands[batcat] )) && alias cat='bat --paging=never'
 
 # Navigation
 alias dots='cd ~/.dotfiles'

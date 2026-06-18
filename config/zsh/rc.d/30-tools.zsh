@@ -1,8 +1,4 @@
-# Shell plugins and tool integrations
-
-# Autosuggestions (zsh-syntax-highlighting loads last, in 40-completion.zsh)
-[[ -r ${HOMEBREW_PREFIX:-}/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]] \
-  && source "$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+# Tool integrations (interactive shell plugins live in 80-plugins.zsh)
 
 load_fnm_init() {
   (( $+commands[fnm] )) || return 0

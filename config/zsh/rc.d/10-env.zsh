@@ -51,6 +51,14 @@ load_cached_tool_init() {
   source_cached_init "$XDG_CACHE_HOME/zsh/${tool}-init.zsh" "$init_command" "$commands[$tool]" "$@"
 }
 
+# Measure interactive startup time, averaged over N login shells (default 10).
+zsh-profile() {
+  local runs="${1:-10}" i
+  for (( i = 1; i <= runs; i++ )); do
+    /usr/bin/time zsh -lic exit
+  done
+}
+
 export LANG="en_US.UTF-8"
 export COLORTERM="truecolor"
 
@@ -75,20 +83,19 @@ setopt EXTENDED_GLOB
 setopt GLOB_DOTS
 setopt INTERACTIVE_COMMENTS
 
+# Treat / and - as word boundaries so word-wise editing stops at path/flag parts.
+WORDCHARS="${WORDCHARS//[\/-]/}"
+
 export HISTSIZE=100000
 export SAVEHIST=$HISTSIZE
 export HISTFILE="$XDG_STATE_HOME/zsh/history"
+mkdir -p "${HISTFILE:h}"   # Guarantee the dir for non-login shells that skip .zprofile.
 setopt HIST_IGNORE_ALL_DUPS
 setopt HIST_REDUCE_BLANKS
 setopt HIST_IGNORE_SPACE
 setopt SHARE_HISTORY
 setopt HIST_FIND_NO_DUPS
 setopt HIST_VERIFY
-
-autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
-zle -N up-line-or-beginning-search
-zle -N down-line-or-beginning-search
-bindkey '^[[A' up-line-or-beginning-search
-bindkey '^[[B' down-line-or-beginning-search
+setopt EXTENDED_HISTORY       # Record timestamp and duration for each command.
 
 [[ $OS_TYPE == macos ]] && export ARCHFLAGS="-arch $CPUTYPE"
