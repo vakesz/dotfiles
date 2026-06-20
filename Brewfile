@@ -29,6 +29,7 @@ brew "mole"
 brew "coreutils"
 brew "diffutils"
 brew "gnupg"
+brew "llvm"
 brew "jq"
 brew "mas"
 brew "curl"
@@ -52,11 +53,11 @@ brew "xcodegen"
 brew "xcinfo"
 
 # Development Toolchains: C/C++
-brew "cjson"
 brew "cmake"
 brew "gcc"
 brew "make"
 brew "raylib"
+brew "pkgconf"
 
 # Development Toolchains: Linters & Formatters
 brew "clang-format"
@@ -69,7 +70,7 @@ cask "orbstack"
 # Development Toolchains: AI & LLM
 cask "claude-code@latest"
 cask "codex"
-cask "codex-app"
+brew "opencode"
 cask "steipete/tap/codexbar"
 
 # Development Toolchains: General
@@ -97,7 +98,6 @@ cask "whatsapp"
 #? cask "textual"
 
 # Optional Workstation Apps: Browsers
-cask "firefox"
 cask "microsoft-edge"
 
 # Optional Workstation Apps: Office

@@ -42,3 +42,7 @@ alias gp='git push'
   alias dcu='docker compose up'
   alias dcd='docker compose down'
 }
+
+# AI
+(( $+commands[claude] )) && alias cc='claude'
+(( $+commands[opencode] )) && alias oc='opencode'
