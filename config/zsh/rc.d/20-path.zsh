@@ -22,7 +22,10 @@ if [[ $OS_TYPE == macos ]]; then
       "$HOMEBREW_PREFIX/opt/sqlite/bin" \
       "$HOMEBREW_PREFIX/opt/ruby/bin" \
       "$HOMEBREW_PREFIX/opt/coreutils/libexec/gnubin" \
-      "$HOMEBREW_PREFIX/opt/make/libexec/gnubin"
+      "$HOMEBREW_PREFIX/opt/make/libexec/gnubin" \
+      "$HOMEBREW_PREFIX/opt/flex/bin" \
+      "$HOMEBREW_PREFIX/opt/llvm/bin" \
+      "$HOMEBREW_PREFIX/opt/bison/bin"
   fi
 elif [[ $OS_TYPE == linux || $OS_TYPE == wsl ]]; then
   prepend_path /snap/bin

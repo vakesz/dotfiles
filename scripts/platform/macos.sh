@@ -188,6 +188,25 @@ configure_spotlight_exclusions() {
     success "Spotlight exclusions applied"
 }
 
+llvm_dlltool_symlinked() {
+    local llvm_prefix="" target=""
+    llvm_prefix="$(brew --prefix llvm 2>/dev/null)" || return 0
+    target="$HOME/.local/bin/dlltool"
+    [[ -L "$target" ]] && [[ "$(readlink "$target")" == "$llvm_prefix/bin/dlltool" ]]
+}
+
+setup_llvm_dlltool_symlink() {
+    local llvm_prefix="" target=""
+    llvm_prefix="$(brew --prefix llvm 2>/dev/null)" || {
+        warn "LLVM not installed via Homebrew; skipping dlltool symlink"
+        return 1
+    }
+    target="$HOME/.local/bin/dlltool"
+    mkdir -p "$(dirname "$target")"
+    ln -sf "$llvm_prefix/bin/dlltool" "$target"
+    success "Symlinked ~/.local/bin/dlltool -> $llvm_prefix/bin/dlltool"
+}
+
 main() {
     require_platform macos
 
@@ -221,6 +240,12 @@ main() {
         install_keyboard_layout \
         "Install the custom Hungarian keyboard layout?" \
         "Custom Hungarian keyboard layout already installed"
+
+    prompt_if_missing \
+        llvm_dlltool_symlinked \
+        setup_llvm_dlltool_symlink \
+        "Symlink LLVM dlltool into ~/.local/bin for Wine builds?" \
+        "LLVM dlltool symlink already in place"
 
     offer_javascript_toolchain_setup
 
