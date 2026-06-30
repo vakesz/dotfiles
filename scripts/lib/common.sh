@@ -28,7 +28,10 @@ confirm() {
         timeout=30
     fi
 
-    if ! read -r -n 1 -t "$timeout" -p $'\n'"$1"$' (y/N) ' answer; then
+    # Print the prompt explicitly so it is always visible in interactive terminals.
+    printf '\n%s (y/N) ' "$1"
+
+    if ! IFS= read -r -n 1 -t "$timeout" answer; then
         echo ""
         warn "No confirmation input received; defaulting to No"
         return 1
