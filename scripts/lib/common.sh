@@ -18,12 +18,22 @@ error() {
 
 confirm() {
     local answer="n"
+    local timeout="${DOTFILES_CONFIRM_TIMEOUT:-30}"
 
     if [[ ! -t 0 || ! -t 1 ]]; then
         return 1
     fi
 
-    read -r -n 1 -p $'\n'"$1"$' (y/N) ' answer || true
+    if [[ ! "$timeout" =~ ^[0-9]+$ ]]; then
+        timeout=30
+    fi
+
+    if ! read -r -n 1 -t "$timeout" -p $'\n'"$1"$' (y/N) ' answer; then
+        echo ""
+        warn "No confirmation input received; defaulting to No"
+        return 1
+    fi
+
     echo ""
     [[ "$answer" =~ ^[Yy]$ ]]
 }
@@ -73,7 +83,10 @@ ensure_xdg_runtime_directories() {
 }
 
 ensure_javascript_environment() {
-    set_xdg_environment_defaults
+    if [[ -z "${XDG_CONFIG_HOME:-}" || -z "${XDG_DATA_HOME:-}" || -z "${XDG_STATE_HOME:-}" || -z "${XDG_CACHE_HOME:-}" || -z "${XDG_BIN_HOME:-}" ]]; then
+        set_xdg_environment_defaults
+    fi
+
     export FNM_DIR="${FNM_DIR:-$XDG_DATA_HOME/fnm}"
     export PNPM_HOME="${PNPM_HOME:-$XDG_DATA_HOME/pnpm}"
 

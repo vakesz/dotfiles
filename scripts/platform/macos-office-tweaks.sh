@@ -34,6 +34,51 @@ MAU_AGENTS=(
 
 source "$REPO_ROOT/scripts/lib/common.sh"
 
+TWEAKS_STARTED=0
+TWEAKS_COMPLETE=0
+EDGE_PREFS_APPLIED=0
+MAU_PREFS_APPLIED=0
+
+finalize_partial_run() {
+    local exit_code="${1:-1}"
+
+    if (( !TWEAKS_STARTED || TWEAKS_COMPLETE )); then
+        return "$exit_code"
+    fi
+
+    warn "macos-office-tweaks exited before completion; finalizing disable preferences"
+
+    if (( !EDGE_PREFS_APPLIED )); then
+        if apply_edge_prefs; then
+            EDGE_PREFS_APPLIED=1
+        else
+            warn "Unable to finalize Edge disable preferences"
+        fi
+    fi
+
+    if (( !MAU_PREFS_APPLIED )); then
+        if apply_mau_prefs; then
+            MAU_PREFS_APPLIED=1
+        else
+            warn "Unable to finalize MAU disable preferences"
+        fi
+    fi
+
+    return "$exit_code"
+}
+
+on_exit() {
+    local exit_code=$?
+    trap - EXIT INT TERM
+    finalize_partial_run "$exit_code"
+}
+
+on_interrupt() {
+    local signal="${1:-INT}"
+    warn "Interrupted by ${signal}"
+    exit 130
+}
+
 remove_launchd_plist() {
     local domain="$1" plist="$2"
     [[ -e "$plist" ]] || return 0
@@ -75,6 +120,7 @@ apply_edge_prefs() {
     defaults write com.microsoft.Edge UpdateDefault -int 0
     defaults write com.microsoft.Edge InstallDefault -int 0
 
+    EDGE_PREFS_APPLIED=1
     success "Edge preferences applied"
 }
 
@@ -102,6 +148,7 @@ apply_mau_prefs() {
     defaults write com.microsoft.autoupdate2 DisableInsiderCheckbox -bool true
     defaults write com.microsoft.autoupdate2 ChannelName -string Current
 
+    MAU_PREFS_APPLIED=1
     success "MAU preferences applied"
 }
 
@@ -115,11 +162,17 @@ main() {
         return 0
     }
 
+    TWEAKS_STARTED=1
+    trap on_exit EXIT
+    trap 'on_interrupt INT' INT
+    trap 'on_interrupt TERM' TERM
+
     remove_edge_updater
     apply_edge_prefs
     remove_microsoft_autoupdate
     apply_mau_prefs
 
+    TWEAKS_COMPLETE=1
     success "Microsoft updater tweaks complete"
 }
 

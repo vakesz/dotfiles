@@ -107,10 +107,8 @@ stow_selected_packages() {
 
     success "Dotfiles linked"
 
-    if (( ADOPT )) && command -v git >/dev/null 2>&1 && git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-        if ! git -C "$REPO_ROOT" diff --quiet 2>/dev/null; then
-            warn "Existing files were adopted into the repo. Review with: git diff"
-        fi
+    if (( ADOPT )) && command -v git >/dev/null 2>&1 && git -C "$REPO_ROOT" rev-parse --git-dir >/dev/null 2>&1 && ! git -C "$REPO_ROOT" diff --quiet 2>/dev/null; then
+        warn "Existing files were adopted into the repo. Review with: git diff"
     fi
 }
 

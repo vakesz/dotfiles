@@ -30,6 +30,12 @@ export UV_TOOL_DIR="$XDG_DATA_HOME/uv/tools"
 export UV_TOOL_BIN_DIR="$XDG_DATA_HOME/uv/bin"
 export UV_PYTHON_INSTALL_DIR="$XDG_DATA_HOME/uv/python"
 export PNPM_HOME="$XDG_DATA_HOME/pnpm"
+export DOCKER_CONFIG="$XDG_CONFIG_HOME/docker"
+
+if [[ "$OSTYPE" == linux* ]]; then
+  export GTK_RC_FILES="$XDG_CONFIG_HOME/gtk-1.0/gtkrc"
+  export GTK2_RC_FILES="$XDG_CONFIG_HOME/gtk-2.0/gtkrc"
+fi
 
 # Ensure PNPM_HOME/bin is on PATH for non-interactive subshells too (topgrade,
 # make rules, scripts). pnpm 11 uses $PNPM_HOME/bin as the global bin dir and

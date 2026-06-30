@@ -5,6 +5,8 @@
 [core]
 	editor = vi
 	whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
+	fsmonitor = true
+	untrackedcache = true
 
 [pull]
 	rebase = true
@@ -35,6 +37,10 @@
 [diff]
 	algorithm = histogram
 	colorMoved = default
+	renames = true
+
+[maintenance]
+	auto = true
 
 [merge]
 	conflictstyle = zdiff3

@@ -102,7 +102,7 @@ dotfiles/
 - `Brewfile`: workstation package manifest for the primary macOS setup
 - `scripts/platform/linux.sh`: locale and default shell setup for Linux / WSL
 - `scripts/platform/macos.sh`: macOS defaults, Xcode CLT, Rosetta, custom keyboard layout, and power settings
-- `scripts/platform/macos-office-tweaks.sh`: permanently disables Microsoft EdgeUpdater and Microsoft AutoUpdate (MAU) via LaunchAgent removal
+- `scripts/platform/macos-office-tweaks.sh`: permanently disables Microsoft EdgeUpdater and Microsoft AutoUpdate (MAU) via LaunchAgent/bundle cleanup plus disable preferences
 
 ## Machine-Local Customizations
 
@@ -119,6 +119,8 @@ These files are for local aliases, secrets, machine-specific paths, or other ove
 - `bootstrap.sh` is the only stow entrypoint.
 - `bootstrap.sh` creates XDG config/data/state/cache/bin directories and
   initializes `$GNUPGHOME` as a `0700` directory for GnuPG.
+- Interactive prompts default to **No** when no input is received within
+  `DOTFILES_CONFIRM_TIMEOUT` seconds (default: `30`).
 - Shell plugins (`zsh-autosuggestions`, `zsh-syntax-highlighting`) install via
   `Brewfile`; no separate plugin manager bootstrap is required.
 - Short navigation aliases are kept as compatibility shims:
