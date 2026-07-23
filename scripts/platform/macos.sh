@@ -190,7 +190,7 @@ configure_spotlight_exclusions() {
 
 llvm_dlltool_symlinked() {
     local llvm_prefix="" target=""
-    llvm_prefix="$(brew --prefix llvm 2>/dev/null)" || return 0
+    llvm_prefix="$(brew --prefix llvm 2>/dev/null)" || return 1
     target="$HOME/.local/bin/dlltool"
     [[ -L "$target" ]] && [[ "$(readlink "$target")" == "$llvm_prefix/bin/dlltool" ]]
 }

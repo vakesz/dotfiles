@@ -12,6 +12,25 @@ The `Brewfile` is the package manifest for the primary macOS setup.
 brew bundle install
 ```
 
+For Linux / WSL, install the bootstrap prerequisites with the distribution
+package manager:
+
+```bash
+# Debian / Ubuntu
+sudo apt update && sudo apt install -y git stow zsh
+
+# Fedora
+sudo dnf install -y git stow zsh
+
+# Arch Linux
+sudo pacman -S --needed git stow zsh
+```
+
+The Linux setup script configures the locale, default shell, Node.js, and pnpm;
+it does not install the broader macOS-oriented workstation toolset from the
+`Brewfile`. Install optional tools such as `bat`, `fd`, `fzf`, `ripgrep`,
+`starship`, `uv`, and `zoxide` through the distribution package manager.
+
 ### 2. Bootstrap the dotfiles
 
 ```bash
@@ -39,7 +58,10 @@ Python runtimes and installable Python CLI tools are managed through `uv`.
 The shell keeps `uv`'s tool bin directory on `PATH`; Homebrew is only expected
 to provide the `uv` executable itself and any non-`uv` workstation formulae.
 
-On macOS, an extra opt-in script permanently disables Microsoft auto-updaters (EdgeUpdater + MAU) so updates flow through `topgrade` only:
+On macOS, the setup script also offers an opt-in, repeatable cleanup that
+disables Microsoft auto-updaters (EdgeUpdater + MAU) so updates flow through
+`topgrade` only. Application updates can reinstall updater artifacts, so rerun
+the cleanup when needed:
 
 ```bash
 ./scripts/platform/macos-office-tweaks.sh
@@ -101,8 +123,12 @@ dotfiles/
 
 - `Brewfile`: workstation package manifest for the primary macOS setup
 - `scripts/platform/linux.sh`: locale and default shell setup for Linux / WSL
-- `scripts/platform/macos.sh`: macOS defaults, Xcode CLT, Rosetta, custom keyboard layout, and power settings
-- `scripts/platform/macos-office-tweaks.sh`: permanently disables Microsoft EdgeUpdater and Microsoft AutoUpdate (MAU) via LaunchAgent/bundle cleanup plus disable preferences
+- `scripts/platform/macos.sh`: macOS defaults, Xcode CLT, Rosetta, power
+  settings, Spotlight exclusions, the custom keyboard layout, the LLVM
+  `dlltool` symlink, Node/pnpm setup, and the Microsoft updater cleanup prompt
+- `scripts/platform/macos-office-tweaks.sh`: repeatably removes Microsoft
+  EdgeUpdater and Microsoft AutoUpdate (MAU) launch artifacts and applies
+  user-domain disable preferences
 
 ## Machine-Local Customizations
 
@@ -113,6 +139,18 @@ Keep machine-specific overrides untracked in the paths already ignored by git:
 - `config/git/gitconfig.local`
 
 These files are for local aliases, secrets, machine-specific paths, or other overrides that should not be shared.
+
+## Shell Helpers
+
+- `rgf <ripgrep arguments>` searches file contents with ripgrep, lets you choose
+  a match with fzf, and opens it in `$EDITOR` at the matching line.
+- Entering a directory with `.venv/bin/activate` only activates the environment
+  after it has been explicitly trusted. Review the activation script and run
+  `venv-trust` from the project root. Trust is bound to the canonical project
+  path and the activation script's SHA-256; modifying the script requires
+  trusting it again.
+- `venv-untrust` removes trust for the current project's `.venv` and deactivates
+  it when active. `venv [path]` remains the explicit create-or-activate command.
 
 ## Install Notes
 
@@ -130,6 +168,9 @@ These files are for local aliases, secrets, machine-specific paths, or other ove
   preferred runtime.
 - Python runtimes and global Python tools should use `uv`; `UV_TOOL_BIN_DIR`
   is on `PATH` for `uv tool install` executables.
+- Virtualenv trust records are private files under
+  `$XDG_STATE_HOME/zsh/trusted-venvs`; they are machine-local and are not stored
+  in project repositories.
 - Homebrew Ruby is declared because zsh intentionally prefers
   `$HOMEBREW_PREFIX/opt/ruby/bin` over the macOS system Ruby. RubyGems are kept
   under `$GEM_HOME`, and `$GEM_HOME/bin` is on `PATH` for installed gem commands.

@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 #
-# Permanently disable Microsoft auto-updaters on macOS so updates flow
-# through topgrade only.
+# Repeatably disable Microsoft auto-updaters on macOS so updates flow through
+# topgrade only. Rerun after an application update restores updater artifacts.
 #
 # Targets:
 #   - Microsoft EdgeUpdater  (LaunchAgents + bundle + UpdateDefault policy)
 #   - Microsoft AutoUpdate   (MAU; Teams / Office / OneNote / etc.)
 #
 # Strategy:
-#   1. Bootout + delete existing LaunchAgents and updater bundles.
+#   1. Bootout + delete existing LaunchAgents and the EdgeUpdater bundle.
 #   2. Apply user-domain disable preferences.
 #
 # Idempotent: safe to re-run after Edge or an Office app reinstalls anything.

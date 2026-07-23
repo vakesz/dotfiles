@@ -86,6 +86,8 @@ cask "orbstack"
 cask "claude-code@latest"
 cask "codex"
 brew "opencode"
+cask "github-copilot-app"
+cask "t3-code@nightly"
 cask "steipete/tap/codexbar"
 
 # ── General Dev Tools ──
@@ -96,13 +98,13 @@ brew "pngquant"
 
 # ── Desktop Apps: System & Maintenance ──
 cask "linearmouse"
-cask "thaw"
 
 # ── Desktop Apps: Productivity ──
 cask "affinity"
 cask "coteditor"
 cask "meetingbar"
 cask "mountain-duck"
+cask "tiled"
 
 # ── Desktop Apps: Media & Communication ──
 cask "discord"
@@ -113,6 +115,7 @@ cask "whatsapp"
 
 # ── Desktop Apps: Browsers ──
 cask "microsoft-edge"
+cask "helium-browser"
 
 # ── Desktop Apps: Office ──
 cask "intune-company-portal"
