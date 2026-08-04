@@ -32,6 +32,16 @@ export UV_PYTHON_INSTALL_DIR="$XDG_DATA_HOME/uv/python"
 export PNPM_HOME="$XDG_DATA_HOME/pnpm"
 export DOCKER_CONFIG="$XDG_CONFIG_HOME/docker"
 
+# Android SDK. React Native / Gradle read $ANDROID_HOME to locate the SDK and
+# adb; setting it here means non-interactive build shells (gradle, RN CLI) find
+# it too. The location is the default installed by Android Studio per platform.
+if [[ "$OSTYPE" == darwin* ]]; then
+  export ANDROID_HOME="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
+else
+  export ANDROID_HOME="${ANDROID_HOME:-$HOME/Android/Sdk}"
+fi
+export ANDROID_SDK_ROOT="$ANDROID_HOME"
+
 if [[ "$OSTYPE" == linux* ]]; then
   export GTK_RC_FILES="$XDG_CONFIG_HOME/gtk-1.0/gtkrc"
   export GTK2_RC_FILES="$XDG_CONFIG_HOME/gtk-2.0/gtkrc"
@@ -44,6 +54,19 @@ case ":$PATH:" in
   *":$PNPM_HOME/bin:"*) ;;
   *) export PATH="$PNPM_HOME/bin:$PATH" ;;
 esac
+
+# Put the Android SDK tools (adb, emulator, sdkmanager) on PATH for build shells.
+for android_bin in \
+  "$ANDROID_HOME/platform-tools" \
+  "$ANDROID_HOME/emulator" \
+  "$ANDROID_HOME/cmdline-tools/latest/bin"; do
+  [[ -d "$android_bin" ]] || continue
+  case ":$PATH:" in
+    *":$android_bin:"*) ;;
+    *) export PATH="$android_bin:$PATH" ;;
+  esac
+done
+unset android_bin
 
 # Prevent .zsh_sessions from cluttering $ZDOTDIR on macOS.
 [[ "$OSTYPE" == darwin* ]] && export SHELL_SESSIONS_DISABLE=1
