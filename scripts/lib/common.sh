@@ -133,7 +133,8 @@ install_node_with_fnm() {
 }
 
 pnpm_available() {
-    load_fnm_environment >/dev/null 2>&1 || ensure_javascript_environment
+    # Sets up the JS environment even when fnm itself is missing.
+    load_fnm_environment >/dev/null 2>&1 || true
     command -v pnpm >/dev/null 2>&1
 }
 

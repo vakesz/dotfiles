@@ -39,9 +39,9 @@ export NPM_CONFIG_LOGS_DIR="$XDG_STATE_HOME/npm/logs"
 # JDK. Gradle and the Android command-line tools (sdkmanager, avdmanager) need
 # JAVA_HOME; the Android Gradle Plugin requires 17. java_home exits non-zero
 # when no matching JDK is installed, so only export on success.
-if [[ "$OSTYPE" == darwin* ]] && [[ -x /usr/libexec/java_home ]]; then
+if [[ "$OSTYPE" == darwin* && -z "${JAVA_HOME:-}" && -x /usr/libexec/java_home ]]; then
   if _java_home="$(/usr/libexec/java_home -v 17 2>/dev/null)"; then
-    export JAVA_HOME="${JAVA_HOME:-$_java_home}"
+    export JAVA_HOME="$_java_home"
   fi
   unset _java_home
 fi
@@ -66,24 +66,18 @@ fi
 
 # Ensure PNPM_HOME/bin is on PATH for non-interactive subshells too (topgrade,
 # make rules, scripts). pnpm 11 uses $PNPM_HOME/bin as the global bin dir and
-# refuses to run if it's not in PATH.
-case ":$PATH:" in
-  *":$PNPM_HOME/bin:"*) ;;
-  *) export PATH="$PNPM_HOME/bin:$PATH" ;;
-esac
-
-# Put the Android SDK tools (adb, emulator, sdkmanager) on PATH for build shells.
+# refuses to run if it's not in PATH. The Android SDK tools (adb, emulator,
+# sdkmanager) likewise need to be visible to build shells.
+typeset -U path
+path=("$PNPM_HOME/bin" $path)
 for android_bin in \
   "$ANDROID_HOME/platform-tools" \
   "$ANDROID_HOME/emulator" \
   "$ANDROID_HOME/cmdline-tools/latest/bin"; do
-  [[ -d "$android_bin" ]] || continue
-  case ":$PATH:" in
-    *":$android_bin:"*) ;;
-    *) export PATH="$android_bin:$PATH" ;;
-  esac
+  [[ -d "$android_bin" ]] && path=("$android_bin" $path)
 done
 unset android_bin
+export PATH
 
 # Prevent .zsh_sessions from cluttering $ZDOTDIR on macOS.
 [[ "$OSTYPE" == darwin* ]] && export SHELL_SESSIONS_DISABLE=1

@@ -29,16 +29,6 @@ rosetta_installed() {
 }
 
 install_rosetta() {
-    if [[ "$(uname -m)" != "arm64" ]]; then
-        info "Not Apple Silicon; skipping Rosetta"
-        return 0
-    fi
-
-    if rosetta_installed; then
-        info "Rosetta already installed"
-        return 0
-    fi
-
     info "Installing Rosetta..."
     if softwareupdate --install-rosetta --agree-to-license; then
         success "Rosetta installed"

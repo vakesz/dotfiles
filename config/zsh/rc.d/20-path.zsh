@@ -15,6 +15,7 @@ if [[ $OS_TYPE == macos ]]; then
     source_cached_init "$XDG_CACHE_HOME/zsh/brew-shellenv.zsh" "$brew_path shellenv" "$brew_path"
     break
   done
+  unset brew_path
 
   if [[ -n ${HOMEBREW_PREFIX:-} ]]; then
     prepend_path \

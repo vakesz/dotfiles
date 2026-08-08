@@ -87,7 +87,7 @@ cask "claude-code@latest"
 cask "codex"
 brew "anomalyco/tap/opencode"
 cask "github-copilot-app"
-cask "t3-code@nightly"  
+cask "t3-code@nightly"
 cask "steipete/tap/codexbar"
 
 # ── General Dev Tools ──
