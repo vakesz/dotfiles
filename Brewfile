@@ -85,12 +85,13 @@ cask "orbstack"
 # ── AI & LLM ──
 cask "claude-code@latest"
 cask "codex"
-brew "opencode"
+brew "anomalyco/tap/opencode"
 cask "github-copilot-app"
-cask "t3-code@nightly"
+cask "t3-code@nightly"  
 cask "steipete/tap/codexbar"
 
 # ── General Dev Tools ──
+brew "azure-cli"
 brew "sqlite"
 cask "dbeaver-community"
 cask "visual-studio-code"
