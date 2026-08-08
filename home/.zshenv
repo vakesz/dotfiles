@@ -32,10 +32,19 @@ export UV_PYTHON_INSTALL_DIR="$XDG_DATA_HOME/uv/python"
 export PNPM_HOME="$XDG_DATA_HOME/pnpm"
 export DOCKER_CONFIG="$XDG_CONFIG_HOME/docker"
 export GRADLE_USER_HOME="$XDG_DATA_HOME/gradle"
-export CODEX_HOME="$XDG_DATA_HOME/codex"
 export AZURE_CONFIG_DIR="$XDG_DATA_HOME/azure"
 export CP_HOME_DIR="$XDG_CACHE_HOME/cocoapods"
 export NPM_CONFIG_LOGS_DIR="$XDG_STATE_HOME/npm/logs"
+
+# JDK. Gradle and the Android command-line tools (sdkmanager, avdmanager) need
+# JAVA_HOME; the Android Gradle Plugin requires 17. java_home exits non-zero
+# when no matching JDK is installed, so only export on success.
+if [[ "$OSTYPE" == darwin* ]] && [[ -x /usr/libexec/java_home ]]; then
+  if _java_home="$(/usr/libexec/java_home -v 17 2>/dev/null)"; then
+    export JAVA_HOME="${JAVA_HOME:-$_java_home}"
+  fi
+  unset _java_home
+fi
 
 # Android SDK. React Native / Gradle read $ANDROID_HOME to locate the SDK and
 # adb; setting it here means non-interactive build shells (gradle, RN CLI) find
