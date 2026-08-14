@@ -18,10 +18,9 @@ config/tealdeer/tldr-pages/
 *.zwc
 *.zwc.old
 
-# Local overrides (not tracked in git)
-config/zsh/.zshrc.local
+# Local overrides (not tracked in git). *.local is the catch-all;
+# rc.d/*.local.zsh is listed because that suffix does not match *.local.
 config/zsh/rc.d/*.local.zsh
-config/git/gitconfig.local
 *.local
 
 # Backup, swap, and log files

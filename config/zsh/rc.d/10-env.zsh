@@ -80,7 +80,6 @@ setopt AUTO_PUSHD
 setopt PUSHD_IGNORE_DUPS
 setopt PUSHD_SILENT
 setopt EXTENDED_GLOB
-setopt GLOB_DOTS
 setopt INTERACTIVE_COMMENTS
 
 # Treat / and - as word boundaries so word-wise editing stops at path/flag parts.

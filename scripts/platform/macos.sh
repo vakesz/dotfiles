@@ -8,21 +8,30 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 ASSETS_DIR="$REPO_ROOT/assets/macos"
 
+XCODE_APP="${XCODE_APP:-/Applications/Xcode.app}"
+
+# Dock contents, in order, applied by configure_dock. Missing apps are skipped.
+DOCK_APPS=(
+    "/System/Applications/Apps.app"
+    "/Applications/Safari.app"
+    "/Applications/Helium.app"
+    "/Applications/Microsoft Edge.app"
+    "/System/Applications/Messages.app"
+    "/System/Applications/Mail.app"
+    "/System/Applications/Calendar.app"
+    "/Applications/WhatsApp.app"
+    "/Applications/Microsoft Teams.app"
+    "/Applications/Microsoft Outlook.app"
+    "/Applications/Discord.app"
+    "/System/Applications/Music.app"
+    "/Applications/Ghostty.app"
+    "/Applications/Visual Studio Code.app"
+    "/Applications/Xcode.app"
+)
+
 source "$REPO_ROOT/scripts/lib/common.sh"
-
-xcode_cli_tools_installed() {
-    xcode-select -p >/dev/null 2>&1
-}
-
-install_xcode_cli_tools() {
-    info "Requesting Xcode Command Line Tools installation..."
-    if xcode-select --install 2>/dev/null; then
-        success "Xcode Command Line Tools installation requested"
-    else
-        warn "Unable to request Xcode Command Line Tools installation"
-        info "Install manually with: xcode-select --install"
-    fi
-}
+# Provides ensure_xcode_cli_tools, shared with the bootstrap preflight.
+source "$REPO_ROOT/scripts/lib/macos-preflight.sh"
 
 rosetta_installed() {
     pkgutil --pkg-info=com.apple.pkg.RosettaUpdateAuto >/dev/null 2>&1
@@ -178,6 +187,158 @@ configure_spotlight_exclusions() {
     success "Spotlight exclusions applied"
 }
 
+touchid_sudo_enabled() {
+    [[ -f /etc/pam.d/sudo_local ]] && grep -qE '^[[:space:]]*auth.*pam_tid\.so' /etc/pam.d/sudo_local
+}
+
+enable_touchid_sudo() {
+    # macOS 14+ ships sudo_local.template and preserves sudo_local across system
+    # updates, so this survives OS upgrades unlike editing /etc/pam.d/sudo.
+    if [[ ! -f /etc/pam.d/sudo_local.template ]]; then
+        warn "/etc/pam.d/sudo_local.template not found; needs macOS 14 or newer"
+        return 1
+    fi
+
+    info "Enabling Touch ID for sudo..."
+    sudo -v
+    sed 's/^#auth/auth/' /etc/pam.d/sudo_local.template | sudo tee /etc/pam.d/sudo_local >/dev/null
+    sudo chmod 444 /etc/pam.d/sudo_local
+
+    success "Touch ID for sudo enabled"
+}
+
+computer_name_configured() {
+    # There is no "correct" name to compare against, so only treat Apple's
+    # generated default ("Gabor's MacBook Pro") as unconfigured and leave any
+    # deliberate name alone. macOS uses a curly apostrophe in that default.
+    local current=""
+    current="$(scutil --get ComputerName 2>/dev/null)" || return 1
+    [[ -n "$current" && "$current" != *"'s "* && "$current" != *"’s "* ]]
+}
+
+configure_computer_name() {
+    local current="" new="" local_name=""
+
+    if [[ ! -t 0 || ! -t 1 ]]; then
+        info "Non-interactive shell; skipping computer name"
+        return 0
+    fi
+
+    current="$(scutil --get ComputerName 2>/dev/null || printf '%s' "unknown")"
+    printf '\nComputer name [%s]: ' "$current"
+    IFS= read -r new
+
+    if [[ -z "$new" ]]; then
+        info "Keeping the current computer name"
+        return 0
+    fi
+
+    # LocalHostName (the Bonjour name) accepts only alphanumerics and hyphens.
+    local_name="${new//[^a-zA-Z0-9-]/-}"
+
+    sudo -v
+    sudo scutil --set ComputerName "$new"
+    sudo scutil --set HostName "$local_name"
+    sudo scutil --set LocalHostName "$local_name"
+    sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server \
+        NetBIOSName -string "$local_name"
+
+    success "Computer name set to $new ($local_name)"
+}
+
+configure_dock() {
+    if ! command -v dockutil >/dev/null 2>&1; then
+        warn "dockutil not installed; skipping Dock layout"
+        info "Install it with: brew install dockutil"
+        return 1
+    fi
+
+    info "Applying Dock layout..."
+
+    local app
+    dockutil --no-restart --remove all >/dev/null
+
+    for app in "${DOCK_APPS[@]}"; do
+        if [[ ! -d "$app" ]]; then
+            warn "Not installed, skipping in Dock: $app"
+            continue
+        fi
+        dockutil --no-restart --add "$app" >/dev/null
+    done
+
+    killall Dock 2>/dev/null || true
+    success "Dock layout applied"
+}
+
+xcode_ready() {
+    [[ -d "$XCODE_APP" ]] || return 1
+    [[ "$(xcode-select -p 2>/dev/null)" == "$XCODE_APP"/* ]] || return 1
+    xcodebuild -checkFirstLaunchStatus >/dev/null 2>&1
+}
+
+configure_xcode_first_launch() {
+    if [[ ! -d "$XCODE_APP" ]]; then
+        warn "$XCODE_APP not found; install Xcode first (Brewfile installs it via mas)"
+        return 1
+    fi
+
+    info "Running Xcode first-launch setup..."
+    sudo -v
+    sudo xcode-select -s "$XCODE_APP/Contents/Developer"
+    sudo xcodebuild -license accept
+    sudo xcodebuild -runFirstLaunch
+
+    success "Xcode first-launch setup complete"
+}
+
+# mas 7 removed the `account` subcommand, so a signed-in App Store account
+# cannot be probed directly. Report which declared apps are actually missing
+# instead, which is the symptom that matters.
+report_missing_app_store_apps() {
+    local installed="" id="" name="" missing=()
+
+    command -v mas >/dev/null 2>&1 || return 0
+    [[ -f "$REPO_ROOT/Brewfile" ]] || return 0
+
+    installed="$(mas list 2>/dev/null | awk '{print $1}')" || return 0
+
+    while read -r id name; do
+        grep -qx "$id" <<<"$installed" && continue
+        # An app can be present without an App Store receipt (Xcode installed
+        # via xcinfo or a direct download), which mas does not list.
+        [[ -d "/Applications/$name.app" ]] && continue
+        missing+=("$name ($id)")
+    done < <(sed -n 's/^mas "\([^"]*\)", id: \([0-9]*\).*/\2 \1/p' "$REPO_ROOT/Brewfile")
+
+    if (( ${#missing[@]} == 0 )); then
+        info "All Mac App Store apps installed"
+        return 0
+    fi
+
+    warn "Mac App Store apps not installed: ${missing[*]}"
+    info "Sign in to the App Store, then: brew bundle install --file $REPO_ROOT/Brewfile"
+}
+
+gh_authenticated() {
+    gh auth status >/dev/null 2>&1
+}
+
+setup_gh_auth() {
+    if ! command -v gh >/dev/null 2>&1; then
+        warn "gh not installed; skipping GitHub authentication"
+        return 1
+    fi
+
+    info "Authenticating with GitHub..."
+    gh auth login
+
+    # Routes git's HTTPS credentials through gh, so clones and pushes work
+    # without a separate credential setup.
+    gh auth setup-git
+
+    success "GitHub authentication configured"
+}
+
 llvm_dlltool_symlinked() {
     local llvm_prefix="" target=""
     llvm_prefix="$(brew --prefix llvm 2>/dev/null)" || return 1
@@ -202,11 +363,7 @@ main() {
 
     info "macOS setup"
 
-    prompt_if_missing \
-        xcode_cli_tools_installed \
-        install_xcode_cli_tools \
-        "Install Xcode Command Line Tools?" \
-        "Xcode Command Line Tools already installed"
+    ensure_xcode_cli_tools
 
     if [[ "$(uname -m)" == "arm64" ]]; then
         prompt_if_missing \
@@ -218,8 +375,22 @@ main() {
         info "Not Apple Silicon; skipping Rosetta"
     fi
 
+    prompt_if_missing \
+        computer_name_configured \
+        configure_computer_name \
+        "Set the computer name?" \
+        "Computer name already set"
+
     confirm_and_run "Apply macOS defaults?" apply_macos_defaults
     confirm_and_run "Configure power management?" configure_power_management
+    confirm_and_run "Apply the Dock layout?" configure_dock
+
+    prompt_if_missing \
+        touchid_sudo_enabled \
+        enable_touchid_sudo \
+        "Enable Touch ID for sudo?" \
+        "Touch ID for sudo already enabled"
+
     prompt_if_missing \
         spotlight_exclusions_already_applied \
         configure_spotlight_exclusions \
@@ -237,9 +408,32 @@ main() {
         "Symlink LLVM dlltool into ~/.local/bin for Wine builds?" \
         "LLVM dlltool symlink already in place"
 
+    report_missing_app_store_apps
+
+    if [[ ! -d "$XCODE_APP" ]]; then
+        info "Xcode not installed; skipping first-launch setup"
+    else
+        prompt_if_missing \
+            xcode_ready \
+            configure_xcode_first_launch \
+            "Run Xcode first-launch setup (license, components, xcode-select)?" \
+            "No pending Xcode first-launch setup"
+    fi
+
+    if ! command -v gh >/dev/null 2>&1; then
+        info "gh not installed; skipping GitHub authentication"
+    else
+        prompt_if_missing \
+            gh_authenticated \
+            setup_gh_auth \
+            "Authenticate the GitHub CLI?" \
+            "GitHub CLI already authenticated"
+    fi
+
     offer_javascript_toolchain_setup
 
-    # The office-tweaks script self-gates with its own confirm prompt.
+    # Both scripts self-gate with their own confirm prompt.
+    "$REPO_ROOT/scripts/platform/macos-hardening.sh"
     "$REPO_ROOT/scripts/platform/macos-office-tweaks.sh"
 
     success "macOS setup complete"

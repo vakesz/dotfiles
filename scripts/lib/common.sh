@@ -9,11 +9,11 @@ success() {
 }
 
 warn() {
-    printf '\033[33m[WARN]\033[0m %s\n' "$1"
+    printf '\033[33m[WARN]\033[0m %s\n' "$1" >&2
 }
 
 error() {
-    printf '\033[31m[ERROR]\033[0m %s\n' "$1"
+    printf '\033[31m[ERROR]\033[0m %s\n' "$1" >&2
 }
 
 confirm() {
@@ -29,16 +29,20 @@ confirm() {
     fi
 
     # Print the prompt explicitly so it is always visible in interactive terminals.
+    # Read a full line so Enter is consumed here; `read -n 1` would leave a
+    # newline for the next prompt and skip it as No.
     printf '\n%s (y/N) ' "$1"
 
-    if ! IFS= read -r -n 1 -t "$timeout" answer; then
-        echo ""
+    if ! IFS= read -r -t "$timeout" answer; then
+        printf '\n'
         warn "No confirmation input received; defaulting to No"
         return 1
     fi
 
-    echo ""
-    [[ "$answer" =~ ^[Yy]$ ]]
+    case "$answer" in
+        y|Y|yes|YES|Yes) return 0 ;;
+        *) return 1 ;;
+    esac
 }
 
 confirm_and_run() {

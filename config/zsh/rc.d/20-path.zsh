@@ -18,6 +18,8 @@ if [[ $OS_TYPE == macos ]]; then
   unset brew_path
 
   if [[ -n ${HOMEBREW_PREFIX:-} ]]; then
+    # Homebrew LLVM stays keg-only: putting llvm/bin on PATH would shadow
+    # Apple clang. macos.sh symlinks dlltool into ~/.local/bin instead.
     prepend_path \
       "$HOMEBREW_PREFIX/opt/curl/bin" \
       "$HOMEBREW_PREFIX/opt/sqlite/bin" \
@@ -25,7 +27,6 @@ if [[ $OS_TYPE == macos ]]; then
       "$HOMEBREW_PREFIX/opt/coreutils/libexec/gnubin" \
       "$HOMEBREW_PREFIX/opt/make/libexec/gnubin" \
       "$HOMEBREW_PREFIX/opt/flex/bin" \
-      "$HOMEBREW_PREFIX/opt/llvm/bin" \
       "$HOMEBREW_PREFIX/opt/bison/bin"
   fi
 elif [[ $OS_TYPE == linux || $OS_TYPE == wsl ]]; then

@@ -29,5 +29,6 @@ _darcs
 # Generated and local-only config
 ^/zsh/\.zsh_history$
 ^/zsh/\.zcompdump.*
+.*\.local$
 ^/zsh/rc\.d/.*\.local\.zsh$
 ^/tealdeer/tldr-pages(/|$)

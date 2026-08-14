@@ -9,23 +9,27 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_NAME="$(basename "$0")"
 CONFIG_TARGET="${XDG_CONFIG_HOME:-$HOME/.config}"
 ADOPT=0
+SKIP_PREFLIGHT=0
 
 source "$REPO_ROOT/scripts/lib/common.sh"
 
 usage() {
     cat <<EOF
-Usage: ./$SCRIPT_NAME [--adopt]
+Usage: ./$SCRIPT_NAME [--adopt] [--skip-preflight]
 
-Stows ./home into \$HOME and ./config into \$XDG_CONFIG_HOME.
-Then optionally offers to run the matching platform setup script.
+On macOS, first ensures the Xcode Command Line Tools, Homebrew, and the
+Brewfile packages are present. Then stows ./home into \$HOME and ./config
+into \$XDG_CONFIG_HOME, and offers to run the matching platform setup script.
 
 Options:
-  --adopt     Import existing files into the repo with 'stow --adopt'
-  -h, --help  Show this help text
+  --adopt           Import existing files into the repo with 'stow --adopt'
+  --skip-preflight  Skip the macOS Command Line Tools / Homebrew / Brewfile step
+  -h, --help        Show this help text
 
 Examples:
   ./$SCRIPT_NAME
   ./$SCRIPT_NAME --adopt
+  ./$SCRIPT_NAME --skip-preflight
 EOF
 }
 
@@ -34,6 +38,9 @@ parse_args() {
         case "$1" in
             --adopt)
                 ADOPT=1
+                ;;
+            --skip-preflight)
+                SKIP_PREFLIGHT=1
                 ;;
             -h|--help)
                 usage
@@ -49,9 +56,23 @@ parse_args() {
     done
 }
 
+maybe_run_preflight() {
+    if (( SKIP_PREFLIGHT )); then
+        info "Skipping preflight"
+        return 0
+    fi
+
+    [[ "$(detect_platform 2>/dev/null)" == "macos" ]] || return 0
+
+    source "$REPO_ROOT/scripts/lib/macos-preflight.sh"
+    run_macos_preflight "$REPO_ROOT/Brewfile"
+}
+
 require_stow() {
     command -v stow >/dev/null 2>&1 || {
         error "stow is required"
+        info "On macOS it comes from the Brewfile; rerun without --skip-preflight"
+        info "On Linux install it with your package manager, e.g. 'sudo apt install stow'"
         exit 1
     }
 }
@@ -145,6 +166,7 @@ main() {
 
     info "Dotfiles bootstrap"
 
+    maybe_run_preflight
     ensure_xdg_runtime_directories
     require_stow
     confirm_adopt

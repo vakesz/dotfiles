@@ -4,16 +4,30 @@ macOS-primary dotfiles with Linux and WSL support, organized around `home/` for 
 
 ## Quick Start
 
-### 1. Install workstation packages (macOS)
-
-The `Brewfile` is the package manifest for the primary macOS setup.
+### macOS: one command on a clean machine
 
 ```bash
-brew bundle install
+curl -fsSL https://raw.githubusercontent.com/vakesz/dotfiles/main/install.sh | bash
 ```
 
-For Linux / WSL, install the bootstrap prerequisites with the distribution
-package manager:
+This installs the Xcode Command Line Tools, clones the repo to `~/.dotfiles`,
+and runs `bootstrap.sh`, which handles Homebrew, the Brewfile, stow, and the
+optional macOS setup. Pass flags through with `bash -s --`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/vakesz/dotfiles/main/install.sh | bash -s -- --adopt
+```
+
+Override the defaults with `DOTFILES_REPO`, `DOTFILES_DIR`, or `DOTFILES_BRANCH`.
+
+If you have already cloned the repo, `./bootstrap.sh` alone does the same work;
+its macOS preflight installs the Command Line Tools, Homebrew, and the Brewfile
+packages before it needs `stow`. Skip that stage with `--skip-preflight`.
+
+### Linux / WSL
+
+There is no preflight for Linux. Install the bootstrap prerequisites with the
+distribution package manager first:
 
 ```bash
 # Debian / Ubuntu
@@ -31,17 +45,30 @@ it does not install the broader macOS-oriented workstation toolset from the
 `Brewfile`. Install optional tools such as `bat`, `fd`, `fzf`, `ripgrep`,
 `starship`, `uv`, and `zoxide` through the distribution package manager.
 
-### 2. Bootstrap the dotfiles
+Then run the bootstrap:
 
 ```bash
 ./bootstrap.sh
 ```
 
 This stows `home/` into `$HOME` and `config/` into `$XDG_CONFIG_HOME`, then offers to run the matching platform setup script.
-It also creates the XDG runtime directories used by the shell and prepares
+It also creates the XDG runtime directories used by the shell, prepares
 `$GNUPGHOME` with private permissions.
 
-### 3. Optional machine setup
+### Verify the result
+
+```bash
+make doctor
+```
+
+`scripts/doctor.sh` checks that every tracked file resolves to a symlink into
+this repo, that the XDG and private directories exist with the right modes,
+that expected commands are on `PATH`, and that the Brewfile is satisfied. On
+Linux, workstation CLIs from the Brewfile (starship, fzf, ripgrep, and so on)
+are warnings rather than failures. It reports problems and exits non-zero; it
+never changes anything.
+
+### Optional machine setup
 
 You can run the platform setup scripts directly later:
 
@@ -67,7 +94,7 @@ the cleanup when needed:
 ./scripts/platform/macos-office-tweaks.sh
 ```
 
-### 4. Adopt an existing setup
+### Adopt an existing setup
 
 If your machine already has dotfiles in place and you want to import them into this repo:
 
@@ -88,6 +115,7 @@ dotfiles/
 │   ├── fd/
 │   ├── ghostty/
 │   ├── git/
+│   ├── linearmouse/
 │   ├── ripgrep/
 │   ├── starship.toml
 │   ├── tealdeer/
@@ -96,13 +124,31 @@ dotfiles/
 ├── home/                 # Stowed into ~
 │   └── .zshenv
 ├── scripts/
-│   ├── lib/common.sh
+│   ├── doctor.sh         # Verify a bootstrapped machine
+│   ├── lib/
+│   │   ├── common.sh
+│   │   └── macos-preflight.sh
 │   └── platform/         # Optional platform setup scripts
 │       ├── linux.sh
 │       ├── macos.sh
+│       ├── macos-hardening.sh
 │       └── macos-office-tweaks.sh
-└── bootstrap.sh
+├── bootstrap.sh
+├── install.sh            # Remote one-liner entrypoint
+└── Makefile
 ```
+
+## Make Targets
+
+| Target | Purpose |
+| --- | --- |
+| `make bootstrap` | Full bootstrap: preflight, stow, platform setup |
+| `make adopt` | Bootstrap and import existing dotfiles into the repo |
+| `make macos` / `make linux` | Run one platform setup script on its own |
+| `make doctor` | Verify the machine matches what bootstrap produces |
+| `make lint` | Shellcheck every bash script |
+| `make brew-check` | Report Brewfile entries that are not installed |
+| `make brew-install` | Install everything declared in the Brewfile |
 
 ## Repo Model
 
@@ -117,22 +163,34 @@ dotfiles/
 - `config/starship.toml`: Starship prompt theme
 - `config/git`: Git config and global ignore rules
 - `config/ghostty`: Ghostty config
+- `config/linearmouse`: LinearMouse pointer and scroll settings. Matched by
+  device *category* rather than product ID, so any mouse gets acceleration
+  disabled and reversed scrolling, and any trackpad keeps system acceleration
 - `config/fd`, `config/ripgrep`, `config/tealdeer`, and `config/topgrade.toml`: CLI tool config
 
 ### Optional layers
 
 - `Brewfile`: workstation package manifest for the primary macOS setup
 - `scripts/platform/linux.sh`: locale and default shell setup for Linux / WSL
-- `scripts/platform/macos.sh`: macOS defaults, Xcode CLT, Rosetta, power
-  settings, Spotlight exclusions, the custom keyboard layout, the LLVM
-  `dlltool` symlink, Node/pnpm setup, and the Microsoft updater cleanup prompt
+- `scripts/lib/macos-preflight.sh`: Command Line Tools, Homebrew, and Brewfile
+  install, shared by `bootstrap.sh` and `scripts/platform/macos.sh`
+- `scripts/platform/macos.sh`: macOS defaults, Xcode CLT, Rosetta, computer
+  name, power settings, Dock layout, Touch ID for sudo, Spotlight exclusions,
+  the custom keyboard layout, the LLVM `dlltool` symlink, Xcode first-launch
+  setup, GitHub CLI authentication, Node/pnpm setup, and the Microsoft updater
+  cleanup prompt
+- `scripts/platform/macos-hardening.sh`: optional security hardening (see
+  [macOS Hardening](#macos-hardening))
 - `scripts/platform/macos-office-tweaks.sh`: repeatably removes Microsoft
   EdgeUpdater and Microsoft AutoUpdate (MAU) launch artifacts and applies
   user-domain disable preferences
 
 ## Machine-Local Customizations
 
-Keep machine-specific overrides untracked in the paths already ignored by git:
+Keep machine-specific overrides untracked. Git ignores every `*.local` file,
+plus `config/zsh/rc.d/*.local.zsh` (that suffix does not match `*.local`).
+Stow uses the same rules, so these files stay in the repo tree without being
+linked as a separate package entry:
 
 - `config/zsh/.zshrc.local`
 - `config/zsh/rc.d/*.local.zsh`
@@ -154,9 +212,11 @@ These files are for local aliases, secrets, machine-specific paths, or other ove
 
 ## Install Notes
 
-- `bootstrap.sh` is the only stow entrypoint.
-- `bootstrap.sh` creates XDG config/data/state/cache/bin directories and
-  initializes `$GNUPGHOME` as a `0700` directory for GnuPG.
+- `bootstrap.sh` is the only stow entrypoint. `install.sh` exists solely to get
+  a clean machine as far as running it.
+- Mac App Store entries in the `Brewfile` need a signed-in App Store account.
+- Touch ID for sudo is written to `/etc/pam.d/sudo_local`, which macOS 14+
+  preserves across system updates.
 - Interactive prompts default to **No** when no input is received within
   `DOTFILES_CONFIRM_TIMEOUT` seconds (default: `30`).
 - Shell plugins (`zsh-autosuggestions`, `zsh-syntax-highlighting`) install via
@@ -175,11 +235,38 @@ These files are for local aliases, secrets, machine-specific paths, or other ove
   `$HOMEBREW_PREFIX/opt/ruby/bin` over the macOS system Ruby. RubyGems are kept
   under `$GEM_HOME`, and `$GEM_HOME/bin` is on `PATH` for installed gem commands.
 - Homebrew replacements that need explicit prefix paths are wired in zsh:
-  `curl`, `sqlite`, GNU `coreutils`, GNU `make`, and Homebrew Ruby. Linked
-  Homebrew tools such as `git` and `diffutils` resolve through
-  `$HOMEBREW_PREFIX/bin` from `brew shellenv`.
+  `curl`, `sqlite`, GNU `coreutils`, GNU `make`, Homebrew Ruby, `flex`, and
+  `bison`. Homebrew LLVM stays keg-only so `clang` remains Apple's; `macos.sh`
+  only symlinks `dlltool` into `~/.local/bin`. Linked Homebrew tools such as
+  `git` and `diffutils` resolve through `$HOMEBREW_PREFIX/bin` from
+  `brew shellenv`.
 - JavaScript formatter/linter CLIs are intentionally project-local. This repo does
   not install global `prettier`, `markdownlint-cli`, or similar npm packages.
+
+## macOS Hardening
+
+`scripts/platform/macos-hardening.sh` raises the security floor without getting
+in the way of daily development. It is optional, idempotent, and prompted from
+`macos.sh`.
+
+It can:
+
+- Enable the application firewall (signed apps that listen still work)
+- Disable the SSH server (remote login)
+- Stop crash-reporter prompts, default-to-iCloud saves, and Bonjour
+  multicast advertisements
+- Persist Homebrew analytics opt-out outside interactive shells
+- Unhide `~/Library` in Finder
+
+It does not:
+
+- Turn off `--setallowsigned` (every local dev server would prompt)
+- Enable stealth mode (breaks ping during local network debugging)
+- Enable FileVault or SIP (both require Recovery; `make doctor` only reports
+  them)
+- Apply the rest of the [drduh macOS security guide](https://github.com/drduh/macOS-Security-and-Privacy-Guide)
+  (firmware passwords, guest-account lockdown, and similar measures that fight
+  a development workstation)
 
 ## Re-Stowing
 
