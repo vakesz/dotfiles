@@ -1,5 +1,6 @@
 [misc]
 disable = ["containers", "microsoft_office", "node", "pnpm", "yarn"]
+assume_yes = true
 display_time = true
 cleanup = true
 notify_end = "never"

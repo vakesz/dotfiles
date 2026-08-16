@@ -266,6 +266,9 @@ configure_dock() {
         dockutil --no-restart --add "$app" >/dev/null
     done
 
+    # Re-add the Downloads folder, wiped out by --remove all above.
+    dockutil --no-restart --add "$HOME/Downloads" --view auto --display folder --section others >/dev/null
+
     killall Dock 2>/dev/null || true
     success "Dock layout applied"
 }
