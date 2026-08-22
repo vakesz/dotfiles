@@ -19,8 +19,7 @@ XCODE_CLI_TOOLS_WAIT_TIMEOUT="${XCODE_CLI_TOOLS_WAIT_TIMEOUT:-1800}"
 
 HOMEBREW_INSTALLER_URL="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
 
-# Set by run_macos_preflight so brewfile_satisfied / install_brewfile know
-# which Brewfile to act on when called without an argument.
+# Set by run_macos_preflight; brewfile_satisfied and install_brewfile act on it.
 DOTFILES_BREWFILE=""
 
 xcode_cli_tools_installed() {
@@ -115,14 +114,14 @@ ensure_homebrew() {
 }
 
 brewfile_satisfied() {
-    local brewfile="${1:-$DOTFILES_BREWFILE}"
+    local brewfile="$DOTFILES_BREWFILE"
     [[ -f "$brewfile" ]] || return 0
     load_homebrew_environment || return 1
     brew bundle check --file "$brewfile" >/dev/null 2>&1
 }
 
 install_brewfile() {
-    local brewfile="${1:-$DOTFILES_BREWFILE}"
+    local brewfile="$DOTFILES_BREWFILE"
 
     [[ -f "$brewfile" ]] || {
         warn "No Brewfile at $brewfile; skipping"
