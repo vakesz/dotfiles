@@ -3,12 +3,15 @@ SHELL := /usr/bin/env bash
 SHELL_SCRIPTS := bootstrap.sh install.sh $(wildcard scripts/*.sh) $(wildcard scripts/lib/*.sh) $(wildcard scripts/platform/*.sh)
 
 .DEFAULT_GOAL := help
-.PHONY: help bootstrap adopt macos linux doctor lint brew-check brew-install
+.PHONY: help install bootstrap adopt macos linux doctor lint brew-check brew-install
 
 help: ## Show this help
 	@printf 'Targets:\n'
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
 		| awk -F':.*?## ' '{printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
+
+install: ## Run the one-line installer (clone + bootstrap) on a fresh machine
+	@./install.sh
 
 bootstrap: ## Run the full bootstrap (preflight, stow, platform setup)
 	@./bootstrap.sh
