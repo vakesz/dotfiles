@@ -12,7 +12,8 @@ $character"""
 
 right_format = "$cmd_duration"
 palette = "tokyo_night"
-command_timeout = 2000
+# git_status in large repos can exceed the 500ms default on a cold cache.
+command_timeout = 5000
 scan_timeout = 1000
 
 [palettes.tokyo_night]
@@ -40,6 +41,9 @@ format = ' \([$state( $progress_current/$progress_total)]($style)\)'
 style = "comment"
 
 [git_status]
+# Shell out to git so core.fsmonitor and core.untrackedcache from
+# config/git/config apply; the built-in library ignores both.
+use_git_executable = true
 format = " [](fg)[($modified)](pink)[($ahead_behind$stashed)]($style)"
 style = "cyan"
 modified = "*"

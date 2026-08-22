@@ -90,9 +90,7 @@ ensure_xdg_runtime_directories() {
 }
 
 ensure_javascript_environment() {
-    if [[ -z "${XDG_CONFIG_HOME:-}" || -z "${XDG_DATA_HOME:-}" || -z "${XDG_STATE_HOME:-}" || -z "${XDG_CACHE_HOME:-}" || -z "${XDG_BIN_HOME:-}" ]]; then
-        set_xdg_environment_defaults
-    fi
+    set_xdg_environment_defaults
 
     export FNM_DIR="${FNM_DIR:-$XDG_DATA_HOME/fnm}"
     export PNPM_HOME="${PNPM_HOME:-$XDG_DATA_HOME/pnpm}"

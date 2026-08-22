@@ -3,7 +3,6 @@
 
 # ── Terminal & Shell ──
 brew "starship"
-brew "zsh"
 brew "zsh-autosuggestions"
 brew "zsh-syntax-highlighting"
 cask "ghostty"
@@ -18,7 +17,6 @@ brew "fzf"
 brew "ripgrep"
 brew "tealdeer"
 brew "zoxide"
-brew "tree"
 
 # ── CLI Tools: Utilities ──
 brew "bat"
@@ -61,6 +59,7 @@ cask "sf-symbols"
 brew "cmake"
 brew "gcc"
 brew "make"
+brew "ninja"
 brew "raylib"
 brew "pkgconf"
 brew "lld"
@@ -88,7 +87,6 @@ cask "claude-code@latest"
 cask "codex"
 brew "anomalyco/tap/opencode"
 cask "github-copilot-app"
-cask "t3-code@nightly"
 cask "steipete/tap/codexbar"
 
 # ── General Dev Tools ──
@@ -100,6 +98,7 @@ brew "pngquant"
 
 # ── Desktop Apps: System & Maintenance ──
 cask "linearmouse"
+cask "thaw"
 
 # ── Desktop Apps: Productivity ──
 cask "affinity"
@@ -113,7 +112,6 @@ cask "discord"
 cask "iina"
 cask "steam"
 cask "whatsapp"
-#? cask "textual"
 
 # ── Desktop Apps: Browsers ──
 cask "microsoft-edge"

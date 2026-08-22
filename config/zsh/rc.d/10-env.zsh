@@ -85,9 +85,9 @@ setopt INTERACTIVE_COMMENTS
 # Treat / and - as word boundaries so word-wise editing stops at path/flag parts.
 WORDCHARS="${WORDCHARS//[\/-]/}"
 
-export HISTSIZE=100000
-export SAVEHIST=$HISTSIZE
-export HISTFILE="$XDG_STATE_HOME/zsh/history"
+HISTSIZE=100000
+SAVEHIST=$HISTSIZE
+HISTFILE="$XDG_STATE_HOME/zsh/history"
 mkdir -p "${HISTFILE:h}"   # Guarantee the dir for non-login shells that skip .zprofile.
 setopt HIST_IGNORE_ALL_DUPS
 setopt HIST_REDUCE_BLANKS
@@ -96,5 +96,3 @@ setopt SHARE_HISTORY
 setopt HIST_FIND_NO_DUPS
 setopt HIST_VERIFY
 setopt EXTENDED_HISTORY       # Record timestamp and duration for each command.
-
-[[ $OS_TYPE == macos ]] && export ARCHFLAGS="-arch $CPUTYPE"

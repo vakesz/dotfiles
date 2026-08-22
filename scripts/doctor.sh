@@ -21,8 +21,8 @@ source "$REPO_ROOT/scripts/lib/common.sh"
 # Commands bootstrap itself requires on every platform.
 CORE_COMMANDS=(git stow zsh)
 # Workstation tools the Brewfile installs on macOS. On Linux they are optional.
-WORKSTATION_COMMANDS=(starship fzf rg fd bat eza zoxide jq uv)
-MACOS_COMMANDS=(brew gh mas topgrade)
+WORKSTATION_COMMANDS=(starship fzf rg fd bat eza zoxide jq uv tldr)
+MACOS_COMMANDS=(brew dockutil gh mas topgrade)
 
 pass() {
     printf '\033[32m  ok  \033[0m %s\n' "$1"

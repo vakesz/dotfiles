@@ -4,7 +4,6 @@
 
 # macOS
 .DS_Store
-.DS_Store?
 ._*
 .AppleDouble
 .LSOverride
@@ -23,18 +22,16 @@ config/tealdeer/tldr-pages/
 config/zsh/rc.d/*.local.zsh
 *.local
 
-# Backup, swap, and log files
+# Backup and editor temp files
 *.backup
 *.bak
 *~
 \#*\#
 .#*
-
-# Editor swap/temp files
 *.swp
 *.swo
-.*.swp
-.*.swo
+
+# Logs
 *.log
 
 # Common tooling detritus

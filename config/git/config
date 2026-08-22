@@ -3,7 +3,6 @@
 	email = vakesz@users.noreply.github.com
 
 [core]
-	editor = vi
 	whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
 	fsmonitor = true
 	untrackedcache = true
@@ -39,9 +38,6 @@
 	colorMoved = default
 	renames = true
 
-[maintenance]
-	auto = true
-
 [merge]
 	conflictstyle = zdiff3
 
@@ -56,9 +52,6 @@
 [fetch]
 	prune = true
 	pruneTags = true
-
-[color]
-	ui = auto
 
 [color "branch"]
 	current = yellow bold
