@@ -53,10 +53,10 @@ make doctor
 `scripts/doctor.sh` checks that every tracked file resolves to a symlink into
 this repo, that the XDG and private directories exist with the right modes,
 that expected commands are on `PATH`, and that the Brewfile is satisfied. On
-macOS it also reports Touch ID for sudo, GitHub CLI auth, FileVault, SIP, and
-the application firewall. On Linux, Brewfile workstation CLIs are warnings
-rather than failures. It exits non-zero on any failure and never changes
-anything.
+macOS it also reports Touch ID for sudo, GitHub CLI auth, FileVault, SIP,
+Gatekeeper, automatic security responses, and the application firewall. On
+Linux, Brewfile workstation CLIs are warnings rather than failures. It exits
+non-zero on any failure and never changes anything.
 
 ### Adopt an existing setup
 
@@ -91,6 +91,7 @@ dotfiles/
 │   ├── doctor.sh         # Verify a bootstrapped machine
 │   ├── lib/
 │   │   ├── common.sh
+│   │   ├── macos-common.sh   # Read-only macOS state checks (firewall, MDM, ...)
 │   │   └── macos-preflight.sh
 │   └── platform/         # Optional platform setup scripts
 │       ├── linux.sh
@@ -120,9 +121,12 @@ dotfiles/
   redirects that must apply to non-interactive shells too (Go, uv, pnpm,
   Gradle, Android SDK, JDK 17 via `java_home`)
 - `config/zsh`: `.zshrc` sources `rc.d/*.zsh` in order: environment, PATH,
-  tool init (fnm, starship, zoxide, fzf), completion, aliases, Python venv
-  helpers, keybindings, then plugins. Tool init output is cached under
-  `$XDG_CACHE_HOME/zsh` and recompiled only when the tool or its config changes
+  tool init (fnm, starship, zoxide, fzf, dircolors), completion, aliases,
+  Python venv helpers, keybindings, then plugins. Tool init output is cached
+  under `$XDG_CACHE_HOME/zsh` and recompiled only when the tool or its config
+  changes. The line editor uses the **vi** keymap, selected explicitly in
+  `rc.d/10-env.zsh` rather than inherited from `$EDITOR`, and it must be set
+  there because fzf's init binds Tab into whichever keymap is current
 - `config/starship.toml`: prompt. `git_status` shells out to `git` so the
   `fsmonitor` and `untrackedcache` settings in `config/git/config` apply
 - `config/git`: config and global ignore rules. `gh auth setup-git` (run by
@@ -152,6 +156,11 @@ applies the same rules, so these stay untracked while living in the repo tree:
 
 - `rgf <ripgrep arguments>`: search file contents with ripgrep, pick a match
   with fzf, and open it in `$EDITOR` at that line.
+- Vi keymap, with the parts vi mode normally lacks filled in: backspace and
+  `^W` work past the insert point, `^A`/`^E`/`^U`/`^K` behave as expected, `k`
+  and `j` search history from normal mode, `v` opens the line in `$EDITOR`,
+  `ci"`/`da(` text objects work, and the cursor is a block in normal mode and a
+  bar in insert. `KEYTIMEOUT` is 1, so mode switches are immediate.
 - `venv [path]`: create (with `uv`) or activate a virtualenv. `venv-off`
   deactivates.
 - Entering a directory with `.venv/bin/activate` auto-activates it only after
@@ -189,13 +198,14 @@ applies the same rules, so these stay untracked while living in the repo tree:
 own. Every step prompts, and prompts default to **No** after
 `DOTFILES_CONFIRM_TIMEOUT` seconds (default `30`).
 
-- `scripts/platform/macos.sh`: Rosetta, computer name, macOS defaults, power
-  settings, Dock layout (needs `dockutil`), Touch ID for sudo (written to
-  `/etc/pam.d/sudo_local`, which macOS 14+ preserves across updates),
+- `scripts/platform/macos.sh`: Touch ID for sudo (written to
+  `/etc/pam.d/sudo_local`, which macOS 14+ preserves across updates, and
+  offered first so every later sudo prompt is a fingerprint), Rosetta, computer
+  name, macOS defaults, power settings, Dock layout (needs `dockutil`),
   Spotlight exclusions, the custom Hungarian keyboard layout, the LLVM
   `dlltool` symlink, Xcode first-launch setup, GitHub CLI auth, Node/pnpm, then
-  the two scripts below
-- `scripts/platform/macos-hardening.sh`: see [macOS Hardening](#macos-hardening)
+  the two scripts below. Separate Spaces per display only takes effect after a
+  log out, which the script says when it applies the defaults
 - `scripts/platform/macos-office-tweaks.sh`: disables Microsoft EdgeUpdater and
   Microsoft AutoUpdate (MAU) so updates flow through `topgrade` only. App
   updates can reinstall the updater artifacts, so it is safe to rerun
@@ -203,32 +213,6 @@ own. Every step prompts, and prompts default to **No** after
   Node/pnpm
 - `scripts/lib/macos-preflight.sh`: Command Line Tools, Homebrew, and Brewfile
   install, shared by `bootstrap.sh` and `macos.sh`
-
-## macOS Hardening
-
-`scripts/platform/macos-hardening.sh` raises the security floor without
-getting in the way of daily development. It is optional and idempotent.
-
-It can:
-
-- Enable the application firewall (signed apps that listen still work)
-- Disable the SSH server (remote login)
-- Stop crash-reporter prompts, default-to-iCloud saves, and Bonjour
-  multicast advertisements
-- Require the password immediately on screen lock (best effort; macOS 13+
-  may manage this from Lock Screen settings instead)
-- Persist Homebrew analytics opt-out outside interactive shells
-- Unhide `~/Library` in Finder
-
-It does not:
-
-- Turn off `--setallowsigned` (every local dev server would prompt)
-- Enable stealth mode (breaks ping during local network debugging)
-- Enable FileVault or SIP (both require Recovery; `make doctor` only reports
-  them)
-- Apply the rest of the [drduh macOS security guide](https://github.com/drduh/macOS-Security-and-Privacy-Guide)
-  (firmware passwords, guest-account lockdown, and similar measures that fight
-  a development workstation)
 
 ## Resources
 

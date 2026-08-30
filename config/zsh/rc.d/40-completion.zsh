@@ -28,7 +28,11 @@ setopt MENU_COMPLETE          # Auto-select first completion entry
 
 # Completion styling
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
-zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+# Unquoted so an empty LS_COLORS yields no arguments rather than one empty one.
+# 30-tools.zsh populates LS_COLORS from dircolors before this runs.
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+# Offer . and .. where they are valid, which cd and the git subcommands need.
+zstyle ':completion:*' special-dirs true
 zstyle ':completion:*:*:*:*:*' menu select
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#) ([0-9a-z-]#)*=01;34=0=01'
 zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm -w -w"

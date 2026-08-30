@@ -11,6 +11,11 @@ load_fnm_init() {
   typeset -U path
 }
 
+# LS_COLORS, which 40-completion.zsh feeds to the completion list-colors zstyle.
+# Nothing else defines it (ls is aliased to eza, which uses its own palette), so
+# without this the completion menu renders with no colour at all.
+load_cached_tool_init dircolors "dircolors -b" "${(%):-%N}"
+
 load_fnm_init
 [[ -t 1 && ${TERM:-} != dumb ]] \
   && load_cached_tool_init starship "starship init zsh" "$XDG_CONFIG_HOME/starship.toml" "${(%):-%N}"

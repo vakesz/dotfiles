@@ -29,6 +29,22 @@ DOCK_APPS=(
     "/Applications/Xcode.app"
 )
 
+# High-churn build output that Spotlight gains nothing from indexing. These are
+# created if missing so a fresh machine is covered before the tools that fill
+# them ever run.
+SPOTLIGHT_EXCLUDED_PATHS=(
+    "$HOME/Library/Developer/Xcode/DerivedData"
+    "${XDG_CACHE_HOME:-$HOME/.cache}"
+)
+
+# Same idea, but owned by tools that create them on first use. Marked only when
+# already present, so this script never pre-creates another program's directory.
+SPOTLIGHT_OPTIONAL_PATHS=(
+    "$HOME/Library/Developer/CoreSimulator"
+    "${XDG_DATA_HOME:-$HOME/.local/share}/gradle"
+    "${ANDROID_HOME:-$HOME/Library/Android/sdk}"
+)
+
 source "$REPO_ROOT/scripts/lib/common.sh"
 # Provides ensure_xcode_cli_tools, shared with the bootstrap preflight.
 source "$REPO_ROOT/scripts/lib/macos-preflight.sh"
@@ -61,6 +77,11 @@ apply_macos_defaults() {
     defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
     defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
     defaults write com.apple.finder FXEnableExtensionChangeWarning -bool false
+    # Search the folder you are standing in, not the whole Mac.
+    defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
+    # New windows open in the home folder ("PfHm") rather than Recents.
+    defaults write com.apple.finder NewWindowTarget -string "PfHm"
+    defaults write com.apple.finder NewWindowTargetPath -string "file://${HOME}/"
 
     # Keyboard
     defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
@@ -75,10 +96,16 @@ apply_macos_defaults() {
     # Panels
     defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
     defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
+    # Hold Control-Command and drag a window from anywhere in its body.
+    defaults write NSGlobalDomain NSWindowShouldDragOnGesture -bool true
 
-    # Trackpad
+    # Trackpad. The two domains are separate devices: AppleMultitouchTrackpad is
+    # the built-in one, AppleBluetoothMultitouch.trackpad an external Magic
+    # Trackpad. Setting only the Bluetooth domain leaves a laptop untouched.
+    defaults write com.apple.AppleMultitouchTrackpad Clicking -bool true
     defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
     defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+    defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
     defaults write com.apple.dock showAppExposeGestureEnabled -bool true
 
     # Dock
@@ -94,6 +121,9 @@ apply_macos_defaults() {
     defaults write com.apple.dock mru-spaces -bool false
     defaults write com.apple.dock expose-group-apps -bool true
     defaults write NSGlobalDomain AppleSpacesSwitchOnActivate -bool true
+    # false = "Displays have separate Spaces" stays on. The key is named for the
+    # opposite behaviour, and unlike the rest of this block it only takes effect
+    # after a log out; killall Dock is not enough.
     defaults write com.apple.spaces spans-displays -bool false
 
     # Hot corners: all disabled (0 = no action)
@@ -106,12 +136,19 @@ apply_macos_defaults() {
     # Screenshots
     defaults write com.apple.screencapture location -string "${HOME}/Desktop"
     defaults write com.apple.screencapture type -string "png"
+    # Drop the wide translucent drop shadow around window captures.
+    defaults write com.apple.screencapture disable-shadow -bool true
 
-    # Safari Developer (may fail without Full Disk Access due to sandbox)
-    defaults write com.apple.Safari IncludeDevelopMenu -bool true 2>/dev/null || true
-    defaults write com.apple.Safari WebKitDeveloperExtrasEnabledPreferenceKey -bool true 2>/dev/null || true
-    defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2DeveloperExtrasEnabled -bool true 2>/dev/null || true
+    # Enables the Web Inspector in the WebKit views other apps embed (Xcode
+    # documentation, Mail). Safari itself is NOT configured here: it is
+    # sandboxed, so `defaults write com.apple.Safari` lands in
+    # ~/Library/Preferences and Safari reads its container plist instead. Those
+    # writes look like they work and change nothing. Turn on the Develop menu in
+    # Safari > Settings > Advanced.
     defaults write NSGlobalDomain WebKitDeveloperExtras -bool true
+
+    # Xcode
+    defaults write com.apple.dt.Xcode ShowBuildOperationDuration -bool true
 
     # Tips
     defaults write com.apple.tips TipsEnabled -bool false
@@ -123,11 +160,11 @@ apply_macos_defaults() {
     defaults write com.apple.Siri StatusMenuVisible -bool false
     defaults write com.apple.Siri VoiceTriggerUserEnabled -bool false
 
-    # Animation
+    # Animation. NSWindowResizeTime is deliberately absent: it only ever applied
+    # to the pre-Cocoa-Autolayout resize path and does nothing on current macOS.
     defaults write com.apple.universalaccess reduceMotion -bool false
     defaults write com.apple.dock launchanim -bool true
     defaults write com.apple.dock expose-animation-duration -float 0.1
-    defaults write NSGlobalDomain NSWindowResizeTime -float 0.001
     defaults write NSGlobalDomain NSAutomaticWindowAnimationsEnabled -bool false
 
     # Time Machine
@@ -135,8 +172,11 @@ apply_macos_defaults() {
 
     killall Finder 2>/dev/null || true
     killall Dock 2>/dev/null || true
+    # Picks up the menu bar and Control Center side of the changes above.
+    killall SystemUIServer 2>/dev/null || true
 
     success "macOS defaults applied"
+    info "Separate Spaces per display takes effect after the next log out"
 }
 
 configure_power_management() {
@@ -144,7 +184,7 @@ configure_power_management() {
 
     sudo -v
     sudo pmset -b sleep 60 displaysleep 15
-    sudo pmset -c sleep 0 displaysleep 30
+    sudo pmset -c sleep 0 displaysleep 60
     sudo pmset -a powernap 0
 
     success "Power management configured"
@@ -164,22 +204,35 @@ install_keyboard_layout() {
 
 spotlight_exclusions_already_applied() {
     local path
-    for path in "$HOME/Library/Developer/Xcode/DerivedData" "$HOME/.cache"; do
+
+    # Required paths are checked unconditionally. Skipping absent ones (as this
+    # used to) reported "already applied" on a fresh machine, where none of them
+    # exist yet, so the exclusions were never written at all.
+    for path in "${SPOTLIGHT_EXCLUDED_PATHS[@]}"; do
+        [[ -f "$path/.metadata_never_index" ]] || return 1
+    done
+
+    for path in "${SPOTLIGHT_OPTIONAL_PATHS[@]}"; do
         [[ -d "$path" ]] || continue
         [[ -f "$path/.metadata_never_index" ]] || return 1
     done
+
     return 0
 }
 
 configure_spotlight_exclusions() {
     info "Excluding high-churn dev paths from Spotlight..."
 
-    local exclusion_paths=(
-        "$HOME/Library/Developer/Xcode/DerivedData"
-        "$HOME/.cache"
-    )
+    # .metadata_never_index stops future indexing of a directory tree; anything
+    # already in the index stays until the volume is reindexed. Marking the
+    # paths before the build tools fill them is the point of creating them here.
+    local path
+    for path in "${SPOTLIGHT_EXCLUDED_PATHS[@]}"; do
+        mkdir -p "$path"
+        touch "$path/.metadata_never_index"
+    done
 
-    for path in "${exclusion_paths[@]}"; do
+    for path in "${SPOTLIGHT_OPTIONAL_PATHS[@]}"; do
         [[ -d "$path" ]] || continue
         touch "$path/.metadata_never_index"
     done
@@ -368,6 +421,14 @@ main() {
 
     ensure_xcode_cli_tools
 
+    # First, so every later sudo prompt in this run (and in the two scripts at
+    # the end) is a fingerprint instead of a typed password.
+    prompt_if_missing \
+        touchid_sudo_enabled \
+        enable_touchid_sudo \
+        "Enable Touch ID for sudo?" \
+        "Touch ID for sudo already enabled"
+
     if [[ "$(uname -m)" == "arm64" ]]; then
         prompt_if_missing \
             rosetta_installed \
@@ -387,12 +448,6 @@ main() {
     confirm_and_run "Apply macOS defaults?" apply_macos_defaults
     confirm_and_run "Configure power management?" configure_power_management
     confirm_and_run "Apply the Dock layout?" configure_dock
-
-    prompt_if_missing \
-        touchid_sudo_enabled \
-        enable_touchid_sudo \
-        "Enable Touch ID for sudo?" \
-        "Touch ID for sudo already enabled"
 
     prompt_if_missing \
         spotlight_exclusions_already_applied \

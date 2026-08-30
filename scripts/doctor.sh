@@ -17,6 +17,9 @@ FAIL_COUNT=0
 WARN_COUNT=0
 
 source "$REPO_ROOT/scripts/lib/common.sh"
+# macOS-only state checks. Sourcing on Linux is harmless: nothing here runs
+# until check_macos_security gates on the platform.
+[[ "$OSTYPE" == darwin* ]] && source "$REPO_ROOT/scripts/lib/macos-common.sh"
 
 # Commands bootstrap itself requires on every platform.
 CORE_COMMANDS=(git stow zsh)
@@ -240,31 +243,43 @@ check_macos_extras() {
 # Report-only. FileVault and SIP are changed from Recovery, and the firewall
 # from scripts/platform/macos-hardening.sh, so doctor never touches them.
 check_macos_security() {
-    local firewall="/usr/libexec/ApplicationFirewall/socketfilterfw"
-
     [[ "$(detect_platform 2>/dev/null)" == "macos" ]] || return 0
 
     section "macOS security"
 
-    if fdesetup status 2>/dev/null | grep -q "FileVault is On"; then
+    if macos_filevault_enabled; then
         pass "FileVault enabled"
     else
-        fail "FileVault is off (enable in System Settings > Privacy & Security)"
+        fail "FileVault is off (run scripts/platform/macos-hardening.sh)"
     fi
 
-    if csrutil status 2>/dev/null | grep -q "enabled"; then
+    if macos_sip_enabled; then
         pass "System Integrity Protection enabled"
     else
         fail "SIP is disabled (re-enable from Recovery: csrutil enable)"
     fi
 
-    if [[ ! -x "$firewall" ]]; then
-        soft_warn "socketfilterfw not found; cannot check the firewall"
-        return 0
+    if macos_gatekeeper_enabled; then
+        pass "Gatekeeper assessments enabled"
+    else
+        # spctl only offers --global-disable now; re-enabling is a GUI-only step.
+        fail "Gatekeeper is off (re-enable in System Settings > Privacy & Security)"
     fi
 
-    if "$firewall" --getglobalstate 2>/dev/null | grep -q "enabled"; then
+    if macos_security_updates_automatic; then
+        pass "Security responses install automatically"
+    else
+        soft_warn "Security responses are not automatic (run scripts/platform/macos-hardening.sh)"
+    fi
+
+    if ! macos_firewall_available; then
+        soft_warn "socketfilterfw not found; cannot check the firewall"
+    elif macos_firewall_enabled; then
         pass "Application firewall enabled"
+    elif macos_mdm_managed; then
+        # The hardening script cannot fix this one: socketfilterfw refuses every
+        # command-line change on a managed Mac.
+        soft_warn "Application firewall is off and this Mac is MDM-managed; ask IT"
     else
         fail "Application firewall is off (run scripts/platform/macos-hardening.sh)"
     fi

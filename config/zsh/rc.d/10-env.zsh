@@ -74,7 +74,24 @@ export HOMEBREW_NO_ANALYTICS=1
 export HOMEBREW_NO_AUTO_UPDATE=1
 export HOMEBREW_NO_ENV_HINTS=1
 
+# Vi keybindings, stated explicitly. zsh was already landing on this keymap, but
+# only as a side effect of $EDITOR above containing "vi" — so the mode silently
+# depended on an unrelated setting. Declaring it keeps the two independent.
+#
+# This has to happen here rather than in 70-keybindings.zsh: fzf's init in
+# 30-tools.zsh binds Tab into whichever keymap is current at the time, so
+# switching keymaps afterwards would drop fzf completion.
+bindkey -v
+
+# zsh waits KEYTIMEOUT hundredths of a second after ESC to see whether an escape
+# sequence follows. The default 40 puts a 0.4s stall on every insert-to-normal
+# switch. 1 makes the mode change feel immediate; the cost is that a terminal
+# delivering an arrow-key sequence in pieces can be misread as bare ESC, which
+# only shows up over a laggy remote session.
+KEYTIMEOUT=1
+
 unsetopt FLOW_CONTROL
+unsetopt BEEP
 setopt AUTO_CD
 setopt AUTO_PUSHD
 setopt PUSHD_IGNORE_DUPS
@@ -85,8 +102,10 @@ setopt INTERACTIVE_COMMENTS
 # Treat / and - as word boundaries so word-wise editing stops at path/flag parts.
 WORDCHARS="${WORDCHARS//[\/-]/}"
 
-HISTSIZE=100000
-SAVEHIST=$HISTSIZE
+# HISTSIZE is deliberately larger than SAVEHIST: HIST_EXPIRE_DUPS_FIRST can
+# only drop duplicates ahead of unique entries if the in-memory list has slack.
+HISTSIZE=120000
+SAVEHIST=100000
 HISTFILE="$XDG_STATE_HOME/zsh/history"
 mkdir -p "${HISTFILE:h}"   # Guarantee the dir for non-login shells that skip .zprofile.
 setopt HIST_IGNORE_ALL_DUPS
@@ -96,3 +115,12 @@ setopt SHARE_HISTORY
 setopt HIST_FIND_NO_DUPS
 setopt HIST_VERIFY
 setopt EXTENDED_HISTORY       # Record timestamp and duration for each command.
+setopt HIST_EXPIRE_DUPS_FIRST # Trim duplicates before unique entries when full.
+setopt HIST_SAVE_NO_DUPS      # Never write a duplicate to the history file.
+setopt HIST_NO_STORE          # Keep `history` and `fc` calls out of history.
+# SHARE_HISTORY has every terminal writing to one file; fcntl locking is the
+# only mode that is safe when several of them flush at once.
+setopt HIST_FCNTL_LOCK
+
+# Print a timing breakdown for anything that runs longer than this many seconds.
+REPORTTIME=10
