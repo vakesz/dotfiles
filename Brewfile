@@ -27,6 +27,7 @@ brew "diffutils"
 brew "dockutil"
 brew "glow"
 brew "gnupg"
+brew "graphviz"
 brew "jq"
 brew "mas"
 brew "midnight-commander"
@@ -43,11 +44,16 @@ brew "git"
 cask "git-credential-manager"
 
 # Languages and runtimes
+brew "bun"
+brew "dotnet@9", link: true
 brew "fnm"
 brew "go"
+brew "protobuf"
 brew "ruby"
+cask "temurin@17"
 
 # Apple and iOS development
+brew "cocoapods"
 brew "swiftlint"
 brew "xcbeautify"
 brew "xcode-build-server"
@@ -57,10 +63,13 @@ cask "sf-symbols"
 
 # C and C++ development
 brew "bison"
+brew "ccache"
 brew "cmake"
+brew "cppcheck"
 brew "flex"
 brew "freetype"
 brew "gcc"
+brew "glslang"
 brew "gnutls"
 brew "jpeg-turbo"
 brew "libpng"
@@ -74,24 +83,34 @@ brew "pkgconf"
 brew "raylib"
 
 # Linters and formatters
+brew "actionlint"
 brew "clang-format"
 brew "shellcheck"
+brew "shfmt"
 brew "swift-format"
+brew "swiftformat"
 
 # Containers and virtualization
+brew "qemu"
+brew "squashfs"
 cask "orbstack"
+
+# Android development
+cask "android-commandlinetools"
 
 # AI tools
 brew "anomalyco/tap/opencode"
 cask "claude-code@latest"
-cask "codex"
+cask "chatgpt"
 cask "github-copilot-app"
 cask "steipete/tap/codexbar"
 
 # General development tools
 brew "azure-cli"
 brew "pngquant"
+brew "ruff"
 brew "sqlite"
+brew "watchman"
 cask "dbeaver-community"
 cask "visual-studio-code"
 
@@ -113,6 +132,7 @@ cask "steam"
 cask "whatsapp"
 
 # Desktop apps: browsers
+cask "firefox"
 cask "helium-browser"
 cask "microsoft-edge"
 

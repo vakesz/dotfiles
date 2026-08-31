@@ -4,9 +4,6 @@
 # Include hidden files
 --hidden
 
-# Follow symlinks
---follow
-
 # Don't search these directories
 # make config-check keeps this aligned with config/fd/ignore.
 --glob=!.git/

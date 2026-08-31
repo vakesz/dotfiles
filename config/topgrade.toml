@@ -1,5 +1,20 @@
 [misc]
-disable = ["containers", "microsoft_office", "node", "pnpm", "yarn"]
+# Homebrew owns the installed Bun, Claude Code, Codex, OpenCode, and uv
+# binaries. Project-local managers own the JavaScript package-manager steps.
+disable = [
+    "bun",
+    "bun_packages",
+    "claude_code",
+    "codex",
+    "containers",
+    "dotnet",
+    "microsoft_office",
+    "node",
+    "opencode",
+    "pnpm",
+    "uv",
+    "yarn",
+]
 assume_yes = true
 display_time = true
 cleanup = true
@@ -12,7 +27,7 @@ greedy_auto_updates = true
 autoremove = true
 
 [git]
-repos = ["~/Code/*/"]
+repos = ["~/Code/*/", "~/Work/*/"]
 
 [firmware]
 upgrade = true

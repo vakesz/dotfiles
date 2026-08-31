@@ -353,7 +353,7 @@ xcode_ready() {
 
 configure_xcode_first_launch() {
     if [[ ! -d "$XCODE_APP" ]]; then
-        warn "$XCODE_APP not found; install Xcode first (Brewfile installs it via mas)"
+        warn "$XCODE_APP not found; install the desired Xcode build first"
         return 1
     fi
 

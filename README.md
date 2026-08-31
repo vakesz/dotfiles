@@ -114,6 +114,7 @@ dotfiles/
 | `make macos` / `make linux` | Run one platform setup script on its own |
 | `make doctor` | Verify the machine matches what bootstrap produces |
 | `make check` | Run all source and configuration checks |
+| `make app-check` | Ask installed applications to load and validate their config |
 | `make lint` | Shellcheck every bash script |
 | `make brew-check` | Report Brewfile entries that are not installed |
 | `make brew-install` | Install everything declared in the Brewfile |
@@ -175,24 +176,33 @@ applies the same rules, so these stay untracked while living in the repo tree:
 
 ## Toolchains
 
-- **Homebrew** provides the workstation CLIs and apps declared in the
-  `Brewfile`. Mac App Store entries need a signed-in account. Shell plugins
-  (`zsh-autosuggestions`, `zsh-syntax-highlighting`) come from the Brewfile
-  too; there is no plugin manager. The login shell is macOS's own `/bin/zsh`.
+- **Homebrew Bundle** provides the workstation CLIs, apps, Mac App Store apps,
+  and Visual Studio Code extensions declared in the `Brewfile`. Mac App Store
+  entries need a signed-in account. Shell plugins (`zsh-autosuggestions`,
+  `zsh-syntax-highlighting`) come from the Brewfile too; there is no plugin
+  manager. The login shell is macOS's own `/bin/zsh`.
 - **Node** is managed by `fnm`, not Homebrew. The platform scripts offer to
   install the latest LTS, make it the `fnm` default, and enable `pnpm` via
   `corepack`. JavaScript formatter/linter CLIs are project-local; no global
   `prettier` or similar is installed, and topgrade's npm/pnpm steps are off.
-- **Python** runtimes and global Python CLIs go through `uv`; `UV_TOOL_BIN_DIR`
-  is on `PATH`. Homebrew only supplies the `uv` binary.
+- **Bun**, **.NET**, and **JDK 17** are Homebrew-managed runtimes. Topgrade does
+  not run their standalone updaters.
+- **Python** runtimes and project environments go through `uv`;
+  `UV_TOOL_BIN_DIR` is on `PATH`. Homebrew supplies the `uv` binary and the
+  standalone `ruff` CLI.
 - **Ruby** is Homebrew's, preferred over the system Ruby. Gems install under
   `$GEM_HOME`, whose `bin` is on `PATH`.
 - **Homebrew keg-only tools** that need explicit prefix paths are wired in
   `rc.d/20-path.zsh`: `curl`, `sqlite`, GNU `coreutils`, GNU `make`, Homebrew
   Ruby, `flex`, and `bison`. Homebrew LLVM stays keg-only so `clang` remains
   Apple's; `macos.sh` only symlinks `dlltool` into `~/.local/bin`.
-- **Updates** run through `topgrade`. Greedy cask mode keeps self-updating apps
-  under Homebrew's control.
+- **Updates** run through `topgrade`. Homebrew owns installed application and
+  runtime binaries; Topgrade owns TLDR cache, editor extension, GitHub CLI
+  extension, global skill, repository, operating-system, and firmware updates.
+  Greedy cask mode keeps self-updating apps under Homebrew's control.
+- **Xcode** is installed separately so stable, beta, and direct-download builds
+  remain interchangeable. The macOS setup handles first-launch configuration,
+  and `make doctor` reports whether a full Xcode installation is available.
 
 ## Platform setup
 

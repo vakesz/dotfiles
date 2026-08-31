@@ -23,7 +23,3 @@ foreground = { rgb = { r = 122, g = 162, b = 247 } }  # #7aa2f7
 [style.example_variable]
 foreground = { rgb = { r = 187, g = 154, b = 247 } }  # #bb9af7
 underline = true
-
-[updates]
-auto_update = true
-auto_update_interval_hours = 720  # 30 days

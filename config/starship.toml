@@ -17,7 +17,6 @@ command_timeout = 5000
 scan_timeout = 1000
 
 [palettes.tokyo_night]
-bg = "#1a1b26"
 comment = "#565f89"
 subtle = "#737aa2"
 fg = "#c0caf5"
@@ -44,10 +43,16 @@ style = "comment"
 # Shell out to git so core.fsmonitor and core.untrackedcache from
 # config/git/config apply; the built-in library ignores both.
 use_git_executable = true
-format = " [](fg)[($modified)](pink)[($ahead_behind$stashed)]($style)"
+format = " [](fg)[($all_status)](pink)[($ahead_behind)]($style)"
 style = "cyan"
+conflicted = "!"
+deleted = "-"
 modified = "*"
+renamed = ">"
+staged = "+"
 stashed = "≡"
+typechanged = "~"
+untracked = "?"
 ahead = "⇡"
 behind = "⇣"
 diverged = "⇣⇡"
@@ -55,7 +60,7 @@ diverged = "⇣⇡"
 [c]
 symbol = ""
 detect_extensions = ["c", "h"]
-detect_files = ["Makefile", "compile_commands.json", "CMakeLists.txt"]
+detect_files = ["compile_commands.json", "CMakeLists.txt"]
 format = " [$symbol]($style)"
 style = "cyan"
 

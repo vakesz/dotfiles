@@ -238,6 +238,12 @@ check_macos_extras() {
         fail "Xcode Command Line Tools missing"
     fi
 
+    if [[ -d /Applications/Xcode.app ]] && xcodebuild -version >/dev/null 2>&1; then
+        pass "full Xcode installation available"
+    else
+        soft_warn "full Xcode installation not available"
+    fi
+
     if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
         pass "GitHub CLI authenticated"
     else

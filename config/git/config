@@ -3,9 +3,12 @@
 	email = vakesz@users.noreply.github.com
 
 [core]
-	whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
+	whitespace = trailing-space,cr-at-eol
 	fsmonitor = true
 	untrackedcache = true
+
+[apply]
+	whitespace = fix
 
 [pull]
 	rebase = true
@@ -47,11 +50,9 @@
 
 [rerere]
 	enabled = true
-	autoupdate = true
 
 [fetch]
 	prune = true
-	pruneTags = true
 
 [color "branch"]
 	current = yellow bold

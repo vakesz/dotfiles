@@ -1,5 +1,7 @@
 # Global gitignore file
 # Managed via dotfiles repository
+# Keep this limited to universal machine/editor artifacts. Repositories own
+# ignores for project files, build output, logs, and IDE configuration.
 
 # macOS
 .DS_Store
@@ -12,23 +14,3 @@
 *.swo
 *~
 .vim/
-
-# IDEs
-.idea/
-.vscode/
-*.iml
-
-# Build artifacts
-*.o
-*.a
-*.so
-*.dylib
-*.exe
-*.out
-
-# Logs
-*.log
-
-# Temporary files
-tmp/
-temp/

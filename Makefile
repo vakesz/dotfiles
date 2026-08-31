@@ -4,9 +4,10 @@ SHELL_SCRIPTS := bootstrap.sh install.sh $(wildcard scripts/*.sh) $(wildcard scr
 ZSH_SCRIPTS := home/.zshenv config/zsh/.zprofile config/zsh/.zshrc $(wildcard config/zsh/rc.d/*.zsh)
 JSON_FILES := config/linearmouse/linearmouse.json
 TOML_FILES := config/starship.toml config/tealdeer/config.toml config/topgrade.toml
+YAML_FILES := .github/workflows/checks.yml
 
 .DEFAULT_GOAL := help
-.PHONY: help install bootstrap adopt macos linux doctor check lint zsh-check config-check brew-check brew-install
+.PHONY: help install bootstrap adopt macos linux doctor check lint zsh-check config-check app-check brew-check brew-install
 
 help: ## Show this help
 	@printf 'Targets:\n'
@@ -49,13 +50,17 @@ config-check: ## Parse structured configuration and check whitespace
 	@command -v ruby >/dev/null 2>&1 || { echo "ruby not installed"; exit 1; }
 	@jq empty $(JSON_FILES)
 	@python3 -c 'import sys, tomllib; [tomllib.load(open(path, "rb")) for path in sys.argv[1:]]' $(TOML_FILES)
+	@ruby -e 'require "yaml"; ARGV.each { |path| YAML.safe_load_file(path, aliases: true) }' $(YAML_FILES)
 	@git config --file config/git/config --list >/dev/null
 	@ruby -c Brewfile >/dev/null
 	@diff -u <(grep -vE '^(#|$$)' config/fd/ignore) <(sed -n 's/^--glob=!\(.*\)$$/\1/p' config/ripgrep/config)
-	@duplicates=$$(sed -nE 's/^(brew|cask) "([^"]+)".*/\2/p' Brewfile | sort | uniq -d); \
+	@duplicates=$$(sed -nE 's/^(brew|cask|vscode|uv) "([^"]+)".*/\2/p' Brewfile | sort | uniq -d); \
 		test -z "$$duplicates" || { printf 'duplicate Brewfile entries:\n%s\n' "$$duplicates"; exit 1; }
 	@git diff --check HEAD
 	@echo "config syntax and whitespace: clean"
+
+app-check: ## Ask installed applications to validate their configuration
+	@./scripts/check-app-configs.sh
 
 brew-check: ## Report Brewfile entries that are not installed
 	@brew bundle check --file Brewfile --verbose
