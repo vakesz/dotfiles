@@ -64,12 +64,12 @@ ensure_command_line_tools() {
 
     info "Complete the installer dialog; waiting for it to finish..."
     while ! xcode-select -p >/dev/null 2>&1; do
-        if (( waited >= XCODE_CLI_TOOLS_WAIT_TIMEOUT )); then
+        if ((waited >= XCODE_CLI_TOOLS_WAIT_TIMEOUT)); then
             error "Timed out after ${XCODE_CLI_TOOLS_WAIT_TIMEOUT}s waiting for Command Line Tools"
             exit 1
         fi
         sleep 5
-        (( waited += 5 ))
+        ((waited += 5))
     done
 
     success "Xcode Command Line Tools installed"

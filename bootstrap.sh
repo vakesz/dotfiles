@@ -11,7 +11,8 @@ CONFIG_TARGET="${XDG_CONFIG_HOME:-$HOME/.config}"
 ADOPT=0
 SKIP_PREFLIGHT=0
 
-source "$REPO_ROOT/scripts/lib/common.sh"
+source "$REPO_ROOT/scripts/lib/setup.sh"
+source "$REPO_ROOT/scripts/lib/xdg.sh"
 
 usage() {
     cat <<EOF
@@ -42,7 +43,7 @@ parse_args() {
             --skip-preflight)
                 SKIP_PREFLIGHT=1
                 ;;
-            -h|--help)
+            -h | --help)
                 usage
                 exit 0
                 ;;
@@ -57,7 +58,7 @@ parse_args() {
 }
 
 maybe_run_preflight() {
-    if (( SKIP_PREFLIGHT )); then
+    if ((SKIP_PREFLIGHT)); then
         info "Skipping preflight"
         return 0
     fi
@@ -78,7 +79,7 @@ require_stow() {
 }
 
 confirm_adopt() {
-    if (( ADOPT == 0 )); then
+    if ((ADOPT == 0)); then
         return 0
     fi
 
@@ -120,7 +121,7 @@ stow_selected_packages() {
     mkdir -p "$CONFIG_TARGET"
     info "Stowing home/ into $HOME and config/ into $CONFIG_TARGET"
 
-    if (( ADOPT )); then
+    if ((ADOPT)); then
         stow_args+=(--adopt)
     else
         assert_stow_targets_clean
@@ -131,7 +132,7 @@ stow_selected_packages() {
 
     success "Dotfiles linked"
 
-    if (( ADOPT )) && command -v git >/dev/null 2>&1 && git -C "$REPO_ROOT" rev-parse --git-dir >/dev/null 2>&1 && ! git -C "$REPO_ROOT" diff --quiet 2>/dev/null; then
+    if ((ADOPT)) && command -v git >/dev/null 2>&1 && git -C "$REPO_ROOT" rev-parse --git-dir >/dev/null 2>&1 && ! git -C "$REPO_ROOT" diff --quiet 2>/dev/null; then
         warn "Existing files were adopted into the repo. Review with: git diff"
     fi
 }

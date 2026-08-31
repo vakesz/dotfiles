@@ -33,7 +33,7 @@ MAU_AGENTS=(
     com.microsoft.autoupdate.helpertool.plist
 )
 
-source "$REPO_ROOT/scripts/lib/common.sh"
+source "$REPO_ROOT/scripts/lib/setup.sh"
 
 remove_launchd_plist() {
     local domain="$1" plist="$2"

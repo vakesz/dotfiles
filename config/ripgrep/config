@@ -8,7 +8,7 @@
 --follow
 
 # Don't search these directories
-# Keep this list in sync with config/fd/ignore.
+# make config-check keeps this aligned with config/fd/ignore.
 --glob=!.git/
 --glob=!node_modules/
 --glob=!.venv/

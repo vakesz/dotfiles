@@ -1,4 +1,4 @@
-# Keep this list in sync with config/ripgrep/config (--glob=! entries).
+# make config-check keeps this aligned with config/ripgrep/config.
 .git/
 node_modules/
 .venv/

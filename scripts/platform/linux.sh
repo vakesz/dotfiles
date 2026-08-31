@@ -9,7 +9,8 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DISTRO_ID=""
 DISTRO_LIKE=""
 
-source "$REPO_ROOT/scripts/lib/common.sh"
+source "$REPO_ROOT/scripts/lib/setup.sh"
+source "$REPO_ROOT/scripts/lib/javascript.sh"
 
 persist_locale_with_systemd() {
     if command -v localectl >/dev/null 2>&1; then
@@ -45,13 +46,22 @@ detect_linux_variant() {
 
 distro_family() {
     case "$DISTRO_ID" in
-        debian|ubuntu) printf 'debian\n'; return 0 ;;
-        fedora) printf 'redhat\n'; return 0 ;;
-        arch) printf 'arch\n'; return 0 ;;
+        debian | ubuntu)
+            printf 'debian\n'
+            return 0
+            ;;
+        fedora)
+            printf 'redhat\n'
+            return 0
+            ;;
+        arch)
+            printf 'arch\n'
+            return 0
+            ;;
     esac
     case "$DISTRO_LIKE" in
         *debian*) printf 'debian\n' ;;
-        *rhel*|*fedora*) printf 'redhat\n' ;;
+        *rhel* | *fedora*) printf 'redhat\n' ;;
         *arch*) printf 'arch\n' ;;
         *) return 1 ;;
     esac
@@ -60,7 +70,10 @@ distro_family() {
 install_locale_for_family() {
     case "$1" in
         debian)
-            command -v apt-get >/dev/null 2>&1 || { warn "apt-get not found; skipping locale install"; return 0; }
+            command -v apt-get >/dev/null 2>&1 || {
+                warn "apt-get not found; skipping locale install"
+                return 0
+            }
             sudo apt-get update -qq
             sudo apt-get install -y locales
             sudo locale-gen en_US.UTF-8
@@ -78,7 +91,10 @@ install_locale_for_family() {
             success "Locale en_US.UTF-8 installed"
             ;;
         arch)
-            [[ -f /etc/locale.gen ]] || { warn "/etc/locale.gen not found; skipping locale generation"; return 0; }
+            [[ -f /etc/locale.gen ]] || {
+                warn "/etc/locale.gen not found; skipping locale generation"
+                return 0
+            }
             sudo sed -i 's/^# *\(en_US.UTF-8 UTF-8\)/\1/' /etc/locale.gen
             sudo locale-gen
             success "Locale en_US.UTF-8 generated"

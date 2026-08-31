@@ -45,7 +45,9 @@ SPOTLIGHT_OPTIONAL_PATHS=(
     "${ANDROID_HOME:-$HOME/Library/Android/sdk}"
 )
 
-source "$REPO_ROOT/scripts/lib/common.sh"
+source "$REPO_ROOT/scripts/lib/setup.sh"
+source "$REPO_ROOT/scripts/lib/javascript.sh"
+source "$REPO_ROOT/scripts/lib/macos-state.sh"
 # Provides ensure_xcode_cli_tools, shared with the bootstrap preflight.
 source "$REPO_ROOT/scripts/lib/macos-preflight.sh"
 
@@ -190,6 +192,17 @@ configure_power_management() {
     success "Power management configured"
 }
 
+library_folder_visible() {
+    # BSD find matches file flags directly, so there is no ls output to parse.
+    [[ -z "$(find "$HOME/Library" -maxdepth 0 -flags +hidden 2>/dev/null)" ]]
+}
+
+unhide_library_folder() {
+    info "Unhiding $HOME/Library..."
+    chflags nohidden "$HOME/Library"
+    success "$HOME/Library is visible in Finder"
+}
+
 keyboard_layout_already_installed() {
     local target="$HOME/Library/Keyboard Layouts/Hungarian_Win.keylayout"
     [[ -f "$target" ]] && cmp -s "$ASSETS_DIR/hungarian-win.keylayout" "$target"
@@ -240,10 +253,6 @@ configure_spotlight_exclusions() {
     success "Spotlight exclusions applied"
 }
 
-touchid_sudo_enabled() {
-    [[ -f /etc/pam.d/sudo_local ]] && grep -qE '^[[:space:]]*auth.*pam_tid\.so' /etc/pam.d/sudo_local
-}
-
 enable_touchid_sudo() {
     # macOS 14+ ships sudo_local.template and preserves sudo_local across system
     # updates, so this survives OS upgrades unlike editing /etc/pam.d/sudo.
@@ -256,6 +265,11 @@ enable_touchid_sudo() {
     sudo -v
     sed 's/^#auth/auth/' /etc/pam.d/sudo_local.template | sudo tee /etc/pam.d/sudo_local >/dev/null
     sudo chmod 444 /etc/pam.d/sudo_local
+
+    if ! macos_touch_id_sudo_enabled; then
+        error "Touch ID for sudo still reports disabled after the change"
+        return 1
+    fi
 
     success "Touch ID for sudo enabled"
 }
@@ -286,8 +300,13 @@ configure_computer_name() {
         return 0
     fi
 
-    # LocalHostName (the Bonjour name) accepts only alphanumerics and hyphens.
-    local_name="${new//[^a-zA-Z0-9-]/-}"
+    # LocalHostName is a DNS label. Collapse unsupported characters into one
+    # hyphen and strip hyphens from both ends.
+    local_name="$(printf '%s' "$new" | sed -E 's/[^a-zA-Z0-9]+/-/g; s/^-+//; s/-+$//')"
+    if [[ -z "$local_name" ]]; then
+        warn "Computer name must contain at least one ASCII letter or number"
+        return 1
+    fi
 
     sudo -v
     sudo scutil --set ComputerName "$new"
@@ -366,7 +385,7 @@ report_missing_app_store_apps() {
         missing+=("$name ($id)")
     done < <(sed -n 's/^mas "\([^"]*\)", id: \([0-9]*\).*/\2 \1/p' "$REPO_ROOT/Brewfile")
 
-    if (( ${#missing[@]} == 0 )); then
+    if ((${#missing[@]} == 0)); then
         info "All Mac App Store apps installed"
         return 0
     fi
@@ -424,7 +443,7 @@ main() {
     # First, so every later sudo prompt in this run (and in the two scripts at
     # the end) is a fingerprint instead of a typed password.
     prompt_if_missing \
-        touchid_sudo_enabled \
+        macos_touch_id_sudo_enabled \
         enable_touchid_sudo \
         "Enable Touch ID for sudo?" \
         "Touch ID for sudo already enabled"
@@ -448,6 +467,11 @@ main() {
     confirm_and_run "Apply macOS defaults?" apply_macos_defaults
     confirm_and_run "Configure power management?" configure_power_management
     confirm_and_run "Apply the Dock layout?" configure_dock
+    prompt_if_missing \
+        library_folder_visible \
+        unhide_library_folder \
+        "Unhide the user Library folder in Finder?" \
+        "User Library folder already visible"
 
     prompt_if_missing \
         spotlight_exclusions_already_applied \

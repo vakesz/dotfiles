@@ -3,9 +3,7 @@
 # Optional macOS hardening, drawn from drduh/macOS-Security-and-Privacy-Guide.
 #
 # Scope is deliberately narrow: settings that raise the security floor without
-# getting in the way of daily development work. The guide's heavier measures are
-# intentionally excluded, and the reasons are recorded in README.md so this file
-# does not quietly grow them back.
+# getting in the way of daily development work. Heavier measures remain manual.
 #
 # Idempotent: safe to re-run.
 #
@@ -14,9 +12,9 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
-source "$REPO_ROOT/scripts/lib/common.sh"
+source "$REPO_ROOT/scripts/lib/setup.sh"
 # Provides MACOS_FIREWALL and the read-only state checks, shared with doctor.sh.
-source "$REPO_ROOT/scripts/lib/macos-common.sh"
+source "$REPO_ROOT/scripts/lib/macos-state.sh"
 
 enable_firewall() {
     macos_firewall_available || {
@@ -75,6 +73,8 @@ disable_remote_login() {
 }
 
 disable_remote_services() {
+    local failed=0
+
     # Screen Sharing / Apple Remote Desktop and Remote Apple Events are both
     # off by default; this makes that explicit and undoes a machine where a
     # guide or an old setup turned them on.
@@ -85,11 +85,20 @@ disable_remote_services() {
     # call above passes it.
     sudo systemsetup -f -setremoteappleevents off >/dev/null 2>&1 || {
         warn "Could not change Remote Apple Events; grant Full Disk Access to your terminal"
+        failed=1
     }
 
     sudo launchctl bootout system/com.apple.screensharing 2>/dev/null || true
     # `disable` persists across reboots; `bootout` alone does not.
-    sudo launchctl disable system/com.apple.screensharing 2>/dev/null || true
+    sudo launchctl disable system/com.apple.screensharing 2>/dev/null || {
+        warn "Could not persistently disable Screen Sharing"
+        failed=1
+    }
+
+    if ((failed)); then
+        error "One or more remote services could not be disabled"
+        return 1
+    fi
 
     success "Screen Sharing and Remote Apple Events disabled"
 }
@@ -144,6 +153,11 @@ enable_security_updates() {
     sudo defaults write /Library/Preferences/com.apple.SoftwareUpdate \
         CriticalUpdateInstall -bool true
 
+    if ! macos_automatic_security_updates_enabled; then
+        error "Automatic security responses still report disabled after the change"
+        return 1
+    fi
+
     success "Automatic security responses enabled"
 }
 
@@ -183,17 +197,6 @@ disable_homebrew_analytics() {
     info "Opting out of Homebrew analytics..."
     brew analytics off
     success "Homebrew analytics disabled"
-}
-
-library_folder_visible() {
-    # BSD find matches on file flags directly, which avoids parsing ls output.
-    [[ -z "$(find "$HOME/Library" -maxdepth 0 -flags +hidden 2>/dev/null)" ]]
-}
-
-unhide_library_folder() {
-    info "Unhiding $HOME/Library..."
-    chflags nohidden "$HOME/Library"
-    success "$HOME/Library is visible in Finder"
 }
 
 report_protection_status() {
@@ -254,7 +257,7 @@ main() {
     confirm_and_run "Apply privacy defaults (crash reports, ads, analytics, iCloud, Bonjour)?" apply_privacy_defaults
 
     prompt_if_missing \
-        macos_security_updates_automatic \
+        macos_automatic_security_updates_enabled \
         enable_security_updates \
         "Auto-install security responses and system data files?" \
         "Automatic security responses already enabled"
@@ -268,12 +271,6 @@ main() {
             "Opt out of Homebrew analytics?" \
             "Homebrew analytics already disabled"
     fi
-
-    prompt_if_missing \
-        library_folder_visible \
-        unhide_library_folder \
-        "Unhide the user Library folder in Finder?" \
-        "User Library folder already visible"
 
     success "macOS hardening complete"
 }

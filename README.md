@@ -4,7 +4,7 @@ macOS-primary dotfiles with Linux and WSL support. `home/` holds the few files
 that must live in `$HOME`; `config/` holds everything XDG-managed. Both are
 linked into place with GNU Stow.
 
-## Quick Start
+## Quick start
 
 ### macOS: one command on a clean machine
 
@@ -50,10 +50,10 @@ Then run `./bootstrap.sh`. It creates the XDG directories, prepares
 make doctor
 ```
 
-`scripts/doctor.sh` checks that every tracked file resolves to a symlink into
-this repo, that the XDG and private directories exist with the right modes,
-that expected commands are on `PATH`, and that the Brewfile is satisfied. On
-macOS it also reports Touch ID for sudo, GitHub CLI auth, FileVault, SIP,
+`scripts/doctor.sh` checks that every managed file in the current working tree
+resolves into this repo, that the XDG and private directories have the right
+modes, that expected commands are on `PATH`, and that the Brewfile is satisfied.
+On macOS it also reports Touch ID for sudo, GitHub CLI auth, FileVault, SIP,
 Gatekeeper, automatic security responses, and the application firewall. On
 Linux, Brewfile workstation CLIs are warnings rather than failures. It exits
 non-zero on any failure and never changes anything.
@@ -71,7 +71,7 @@ existing local copies; review the result with `git diff`.
 
 ```text
 dotfiles/
-├── .github/workflows/    # CI: shellcheck on push and PR
+├── .github/workflows/    # CI: source and configuration checks
 ├── assets/macos/         # Non-stowed assets used by platform setup
 ├── Brewfile
 ├── config/               # Stowed into ~/.config
@@ -90,9 +90,11 @@ dotfiles/
 ├── scripts/
 │   ├── doctor.sh         # Verify a bootstrapped machine
 │   ├── lib/
-│   │   ├── common.sh
-│   │   ├── macos-common.sh   # Read-only macOS state checks (firewall, MDM, ...)
-│   │   └── macos-preflight.sh
+│   │   ├── javascript.sh      # fnm-managed Node.js and Corepack setup
+│   │   ├── macos-preflight.sh # Command Line Tools, Homebrew, Brewfile
+│   │   ├── macos-state.sh     # Read-only macOS state checks
+│   │   ├── setup.sh           # Prompts, status output, platform guards
+│   │   └── xdg.sh             # XDG defaults and runtime directories
 │   └── platform/         # Optional platform setup scripts
 │       ├── linux.sh
 │       ├── macos.sh
@@ -103,7 +105,7 @@ dotfiles/
 └── Makefile
 ```
 
-## Make Targets
+## Make targets
 
 | Target | Purpose |
 | --- | --- |
@@ -111,22 +113,22 @@ dotfiles/
 | `make adopt` | Bootstrap and import existing dotfiles into the repo |
 | `make macos` / `make linux` | Run one platform setup script on its own |
 | `make doctor` | Verify the machine matches what bootstrap produces |
+| `make check` | Run all source and configuration checks |
 | `make lint` | Shellcheck every bash script |
 | `make brew-check` | Report Brewfile entries that are not installed |
 | `make brew-install` | Install everything declared in the Brewfile |
 
-## What Is Configured
+## What is configured
 
 - `home/.zshenv`: XDG directories, `ZDOTDIR`, and tool cache/config
   redirects that must apply to non-interactive shells too (Go, uv, pnpm,
   Gradle, Android SDK, JDK 17 via `java_home`)
-- `config/zsh`: `.zshrc` sources `rc.d/*.zsh` in order: environment, PATH,
-  tool init (fnm, starship, zoxide, fzf, dircolors), completion, aliases,
+- `config/zsh`: `.zshrc` sources `rc.d/*.zsh` in order: environment, cached
+  initialization, PATH, shell behavior, tool integration, completion, commands,
   Python venv helpers, keybindings, then plugins. Tool init output is cached
   under `$XDG_CACHE_HOME/zsh` and recompiled only when the tool or its config
-  changes. The line editor uses the **vi** keymap, selected explicitly in
-  `rc.d/10-env.zsh` rather than inherited from `$EDITOR`, and it must be set
-  there because fzf's init binds Tab into whichever keymap is current
+  changes. `25-shell.zsh` selects the **vi** keymap before fzf initializes,
+  because fzf binds Tab into whichever keymap is current
 - `config/starship.toml`: prompt. `git_status` shells out to `git` so the
   `fsmonitor` and `untrackedcache` settings in `config/git/config` apply
 - `config/git`: config and global ignore rules. `gh auth setup-git` (run by
@@ -136,8 +138,8 @@ dotfiles/
   *category*, so any mouse gets acceleration disabled and reversed scrolling,
   and any trackpad keeps system acceleration
 - `config/fd`, `config/ripgrep`, `config/tealdeer`, `config/topgrade.toml`:
-  CLI tool config. The `fd` and `ripgrep` exclusion lists are kept in sync by
-  hand
+  CLI tool config. `make config-check` verifies that the `fd` and `ripgrep`
+  exclusion lists match
 
 Stow symlinks tracked files, so after adding or moving files under `home/` or
 `config/`, re-run `./bootstrap.sh`. Keep XDG-managed config under `config/` and
@@ -192,7 +194,7 @@ applies the same rules, so these stay untracked while living in the repo tree:
 - **Updates** run through `topgrade`. Greedy cask mode keeps self-updating apps
   under Homebrew's control.
 
-## Platform Setup
+## Platform setup
 
 `bootstrap.sh` offers the matching script; each can also be run later on its
 own. Every step prompts, and prompts default to **No** after
@@ -202,10 +204,15 @@ own. Every step prompts, and prompts default to **No** after
   `/etc/pam.d/sudo_local`, which macOS 14+ preserves across updates, and
   offered first so every later sudo prompt is a fingerprint), Rosetta, computer
   name, macOS defaults, power settings, Dock layout (needs `dockutil`),
-  Spotlight exclusions, the custom Hungarian keyboard layout, the LLVM
-  `dlltool` symlink, Xcode first-launch setup, GitHub CLI auth, Node/pnpm, then
-  the two scripts below. Separate Spaces per display only takes effect after a
-  log out, which the script says when it applies the defaults
+  Finder visibility for `~/Library`, Spotlight exclusions, the custom Hungarian
+  keyboard layout, the LLVM `dlltool` symlink, Xcode first-launch setup, GitHub
+  CLI auth, Node/pnpm, then the two scripts below. Separate Spaces per display
+  only takes effect after a log out, which the script says when it applies the
+  defaults
+- `scripts/platform/macos-hardening.sh`: optionally configures FileVault, the
+  application firewall, automatic security responses, remote access, privacy
+  defaults, and Homebrew analytics. It reports SIP and MDM state but does not
+  try to override either one
 - `scripts/platform/macos-office-tweaks.sh`: disables Microsoft EdgeUpdater and
   Microsoft AutoUpdate (MAU) so updates flow through `topgrade` only. App
   updates can reinstall the updater artifacts, so it is safe to rerun

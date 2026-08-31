@@ -1,6 +1,6 @@
 # Keybindings
 #
-# The vi keymap itself is selected in 10-env.zsh, which has to run before fzf's
+# The vi keymap itself is selected in 25-shell.zsh, which has to run before fzf's
 # init in 30-tools.zsh. Everything here layers on top of it.
 #
 # Bindings name their keymap explicitly. An unqualified bindkey only touches
@@ -36,7 +36,7 @@ bindkey -M viins '^K' kill-line
 # Home / End / Delete and word-wise motion, in both modes. terminfo carries what
 # the running terminal actually sends; the literal sequences cover terminals
 # that report nothing useful and the application-cursor mode some multiplexers
-# leave the keypad in. WORDCHARS in 10-env.zsh drops / and - so the word motions
+# leave the keypad in. WORDCHARS in 25-shell.zsh drops / and - so the word motions
 # stop at each path segment and each flag.
 _dotfiles_bind_shared_keys() {
   local keymap

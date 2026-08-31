@@ -14,17 +14,17 @@ if [[ -n "${_DOTFILES_MACOS_PREFLIGHT_LOADED:-}" ]]; then
 fi
 _DOTFILES_MACOS_PREFLIGHT_LOADED=1
 
+_dotfiles_preflight_lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib/setup.sh
+source "$_dotfiles_preflight_lib_dir/setup.sh"
+# shellcheck source=scripts/lib/macos-state.sh
+source "$_dotfiles_preflight_lib_dir/macos-state.sh"
+unset _dotfiles_preflight_lib_dir
+
 # How long to wait for the GUI Command Line Tools installer, in seconds.
 XCODE_CLI_TOOLS_WAIT_TIMEOUT="${XCODE_CLI_TOOLS_WAIT_TIMEOUT:-1800}"
 
 HOMEBREW_INSTALLER_URL="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
-
-# Set by run_macos_preflight; brewfile_satisfied and install_brewfile act on it.
-DOTFILES_BREWFILE=""
-
-xcode_cli_tools_installed() {
-    xcode-select -p >/dev/null 2>&1
-}
 
 # `xcode-select --install` spawns a GUI installer and returns immediately, so
 # callers that depend on git/clang must wait for it to actually finish.
@@ -34,13 +34,13 @@ wait_for_xcode_cli_tools() {
     info "Waiting for the Command Line Tools installer to finish..."
     info "Complete the installer dialog if it is still open."
 
-    while ! xcode_cli_tools_installed; do
-        if (( waited >= XCODE_CLI_TOOLS_WAIT_TIMEOUT )); then
+    while ! macos_xcode_cli_tools_installed; do
+        if ((waited >= XCODE_CLI_TOOLS_WAIT_TIMEOUT)); then
             error "Timed out after ${XCODE_CLI_TOOLS_WAIT_TIMEOUT}s waiting for Command Line Tools"
             return 1
         fi
         sleep 5
-        (( waited += 5 ))
+        ((waited += 5))
     done
 
     success "Xcode Command Line Tools installed"
@@ -56,7 +56,7 @@ install_xcode_cli_tools() {
 }
 
 ensure_xcode_cli_tools() {
-    if xcode_cli_tools_installed; then
+    if macos_xcode_cli_tools_installed; then
         info "Xcode Command Line Tools already installed"
         return 0
     fi
@@ -114,14 +114,14 @@ ensure_homebrew() {
 }
 
 brewfile_satisfied() {
-    local brewfile="$DOTFILES_BREWFILE"
+    local brewfile="$1"
     [[ -f "$brewfile" ]] || return 0
     load_homebrew_environment || return 1
     brew bundle check --file "$brewfile" >/dev/null 2>&1
 }
 
 install_brewfile() {
-    local brewfile="$DOTFILES_BREWFILE"
+    local brewfile="$1"
 
     [[ -f "$brewfile" ]] || {
         warn "No Brewfile at $brewfile; skipping"
@@ -151,17 +151,17 @@ install_brewfile() {
 # Everything a clean macOS install needs before bootstrap.sh can stow anything.
 # The Brewfile is not optional here: bootstrap needs `stow` from it.
 run_macos_preflight() {
-    DOTFILES_BREWFILE="$1"
+    local brewfile="$1"
 
     info "macOS preflight"
 
     ensure_xcode_cli_tools || return 1
     ensure_homebrew || return 1
 
-    if brewfile_satisfied; then
+    if brewfile_satisfied "$brewfile"; then
         info "Brewfile packages already installed"
         return 0
     fi
 
-    install_brewfile || return 1
+    install_brewfile "$brewfile" || return 1
 }

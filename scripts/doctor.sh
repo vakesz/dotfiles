@@ -16,10 +16,11 @@ PASS_COUNT=0
 FAIL_COUNT=0
 WARN_COUNT=0
 
-source "$REPO_ROOT/scripts/lib/common.sh"
+source "$REPO_ROOT/scripts/lib/setup.sh"
+source "$REPO_ROOT/scripts/lib/xdg.sh"
 # macOS-only state checks. Sourcing on Linux is harmless: nothing here runs
 # until check_macos_security gates on the platform.
-[[ "$OSTYPE" == darwin* ]] && source "$REPO_ROOT/scripts/lib/macos-common.sh"
+[[ "$OSTYPE" == darwin* ]] && source "$REPO_ROOT/scripts/lib/macos-state.sh"
 
 # Commands bootstrap itself requires on every platform.
 CORE_COMMANDS=(git stow zsh)
@@ -29,17 +30,17 @@ MACOS_COMMANDS=(brew dockutil gh mas topgrade)
 
 pass() {
     printf '\033[32m  ok  \033[0m %s\n' "$1"
-    (( PASS_COUNT++ ))
+    ((PASS_COUNT++))
 }
 
 fail() {
     printf '\033[31m fail \033[0m %s\n' "$1"
-    (( FAIL_COUNT++ ))
+    ((FAIL_COUNT++))
 }
 
 soft_warn() {
     printf '\033[33m warn \033[0m %s\n' "$1"
-    (( WARN_COUNT++ ))
+    ((WARN_COUNT++))
 }
 
 section() {
@@ -78,6 +79,10 @@ check_stow_links() {
     section "Stow symlinks"
 
     while IFS= read -r repo_file; do
+        # Validate the effective working tree. This skips tracked files deleted
+        # by an uncommitted rename and includes their untracked replacements.
+        [[ -e "$REPO_ROOT/$repo_file" || -L "$REPO_ROOT/$repo_file" ]] || continue
+
         # The stow control file is never linked into the target tree.
         [[ "$repo_file" == "config/.stow-local-ignore" ]] && continue
 
@@ -101,10 +106,10 @@ check_stow_links() {
             fail "does not resolve into this repo: $target -> $resolved"
             missing=1
         fi
-    done < <(git -C "$REPO_ROOT" ls-files home config 2>/dev/null)
+    done < <(git -C "$REPO_ROOT" ls-files --cached --others --exclude-standard home config 2>/dev/null | sort -u)
 
-    if (( missing == 0 )); then
-        pass "all tracked home/ and config/ files are linked"
+    if ((missing == 0)); then
+        pass "all managed home/ and config/ files are linked"
     fi
 }
 
@@ -221,13 +226,13 @@ check_macos_extras() {
 
     section "macOS extras"
 
-    if [[ -f /etc/pam.d/sudo_local ]] && grep -qE '^[[:space:]]*auth.*pam_tid\.so' /etc/pam.d/sudo_local; then
+    if macos_touch_id_sudo_enabled; then
         pass "Touch ID for sudo enabled"
     else
         soft_warn "Touch ID for sudo not enabled (run scripts/platform/macos.sh)"
     fi
 
-    if xcode-select -p >/dev/null 2>&1; then
+    if macos_xcode_cli_tools_installed; then
         pass "Xcode Command Line Tools installed"
     else
         fail "Xcode Command Line Tools missing"
@@ -240,8 +245,8 @@ check_macos_extras() {
     fi
 }
 
-# Report-only. FileVault and SIP are changed from Recovery, and the firewall
-# from scripts/platform/macos-hardening.sh, so doctor never touches them.
+# Report-only. The hardening script can configure FileVault, security updates,
+# and the firewall. SIP still requires Recovery.
 check_macos_security() {
     [[ "$(detect_platform 2>/dev/null)" == "macos" ]] || return 0
 
@@ -266,7 +271,7 @@ check_macos_security() {
         fail "Gatekeeper is off (re-enable in System Settings > Privacy & Security)"
     fi
 
-    if macos_security_updates_automatic; then
+    if macos_automatic_security_updates_enabled; then
         pass "Security responses install automatically"
     else
         soft_warn "Security responses are not automatic (run scripts/platform/macos-hardening.sh)"
@@ -289,7 +294,7 @@ print_summary() {
     section "Summary"
     printf '  %d passed, %d failed, %d warnings\n\n' "$PASS_COUNT" "$FAIL_COUNT" "$WARN_COUNT"
 
-    if (( FAIL_COUNT > 0 )); then
+    if ((FAIL_COUNT > 0)); then
         error "Some checks failed"
         return 1
     fi
