@@ -100,6 +100,7 @@ cask "android-commandlinetools"
 
 # AI tools
 brew "anomalyco/tap/opencode"
+brew "codex"
 cask "claude-code@latest"
 cask "chatgpt"
 cask "github-copilot-app"

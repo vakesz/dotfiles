@@ -84,4 +84,5 @@ alias gp='git push'
 
 # AI tools
 (( $+commands[claude] )) && alias cc='claude'
+(( $+commands[codex] )) && alias cx='codex'
 (( $+commands[opencode] )) && alias oc='opencode'
