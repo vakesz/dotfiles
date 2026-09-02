@@ -133,7 +133,6 @@ cask "whatsapp"
 
 # Desktop apps: browsers
 cask "firefox"
-cask "helium-browser"
 cask "microsoft-edge"
 
 # Desktop apps: Office

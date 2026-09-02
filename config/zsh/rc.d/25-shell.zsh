@@ -36,6 +36,3 @@ setopt HIST_EXPIRE_DUPS_FIRST
 setopt HIST_SAVE_NO_DUPS
 setopt HIST_NO_STORE
 setopt HIST_FCNTL_LOCK
-
-# Print a timing breakdown for commands that run longer than ten seconds.
-REPORTTIME=10
