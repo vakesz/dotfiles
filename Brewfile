@@ -31,7 +31,6 @@ brew "graphviz"
 brew "jq"
 brew "mas"
 brew "midnight-commander"
-brew "mole"
 brew "nmap"
 brew "stow"
 brew "telnet"
@@ -62,6 +61,8 @@ brew "xcinfo"
 cask "sf-symbols"
 
 # C and C++ development
+brew "autoconf"
+brew "automake"
 brew "bison"
 brew "ccache"
 brew "cmake"
@@ -81,6 +82,7 @@ brew "molten-vk"
 brew "ninja"
 brew "pkgconf"
 brew "raylib"
+brew "tree"
 
 # Linters and formatters
 brew "actionlint"
@@ -100,7 +102,7 @@ cask "android-commandlinetools"
 
 # AI tools
 brew "anomalyco/tap/opencode"
-brew "codex"
+cask "codex"
 cask "claude-code@latest"
 cask "chatgpt"
 cask "github-copilot-app"
@@ -118,6 +120,8 @@ cask "visual-studio-code"
 # Desktop apps: system and maintenance
 cask "linearmouse"
 cask "thaw"
+cask "puremac"
+cask "shottr"
 
 # Desktop apps: productivity
 cask "affinity"
