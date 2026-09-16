@@ -14,7 +14,6 @@ XCODE_APP="${XCODE_APP:-/Applications/Xcode.app}"
 DOCK_APPS=(
     "/System/Applications/Apps.app"
     "/Applications/Safari.app"
-    "/Applications/Helium.app"
     "/Applications/Microsoft Edge.app"
     "/System/Applications/Messages.app"
     "/System/Applications/Mail.app"
@@ -379,8 +378,8 @@ report_missing_app_store_apps() {
 
     while read -r id name; do
         grep -qx "$id" <<<"$installed" && continue
-        # An app can be present without an App Store receipt (Xcode installed
-        # via xcinfo or a direct download), which mas does not list.
+        # An app can be present without an App Store receipt (Xcode from a
+        # direct download), which mas does not list.
         [[ -d "/Applications/$name.app" ]] && continue
         missing+=("$name ($id)")
     done < <(sed -n 's/^mas "\([^"]*\)", id: \([0-9]*\).*/\2 \1/p' "$REPO_ROOT/Brewfile")
@@ -404,12 +403,11 @@ setup_gh_auth() {
         return 1
     fi
 
+    # Only the gh CLI itself. Git's HTTPS credentials go through Git
+    # Credential Manager (config/git/config); `gh auth setup-git` would write
+    # a second helper into that stowed file and dirty the repo.
     info "Authenticating with GitHub..."
     gh auth login
-
-    # Routes git's HTTPS credentials through gh, so clones and pushes work
-    # without a separate credential setup.
-    gh auth setup-git
 
     success "GitHub authentication configured"
 }

@@ -132,8 +132,9 @@ dotfiles/
   because fzf binds Tab into whichever keymap is current
 - `config/starship.toml`: prompt. `git_status` shells out to `git` so the
   `fsmonitor` and `untrackedcache` settings in `config/git/config` apply
-- `config/git`: config and global ignore rules. `gh auth setup-git` (run by
-  `macos.sh`) routes GitHub HTTPS credentials through `gh`
+- `config/git`: config and global ignore rules. HTTPS credentials go through
+  Git Credential Manager (`credential.helper = manager`); `macos.sh` only
+  signs in the `gh` CLI itself
 - `config/ghostty`: terminal
 - `config/linearmouse`: pointer and scroll settings matched by device
   *category*, so any mouse gets acceleration disabled and reversed scrolling,
@@ -176,17 +177,17 @@ applies the same rules, so these stay untracked while living in the repo tree:
 
 ## Toolchains
 
-- **Homebrew Bundle** provides the workstation CLIs, apps, Mac App Store apps,
-  and Visual Studio Code extensions declared in the `Brewfile`. Mac App Store
-  entries need a signed-in account. Shell plugins (`zsh-autosuggestions`,
-  `zsh-syntax-highlighting`) come from the Brewfile too; there is no plugin
-  manager. The login shell is macOS's own `/bin/zsh`.
+- **Homebrew Bundle** provides the workstation CLIs, apps, and Mac App Store
+  apps declared in the `Brewfile`. Mac App Store entries need a signed-in
+  account. Shell plugins (`zsh-autosuggestions`, `zsh-syntax-highlighting`)
+  come from the Brewfile too; there is no plugin manager. The login shell is
+  macOS's own `/bin/zsh`.
 - **Node** is managed by `fnm`, not Homebrew. The platform scripts offer to
   install the latest LTS, make it the `fnm` default, and enable `pnpm` via
   `corepack`. JavaScript formatter/linter CLIs are project-local; no global
   `prettier` or similar is installed, and topgrade's npm/pnpm steps are off.
-- **Bun**, **.NET**, and **JDK 17** are Homebrew-managed runtimes. Topgrade does
-  not run their standalone updaters.
+- **Bun**, **.NET 10 LTS**, and **JDK 17** are Homebrew-managed runtimes.
+  Topgrade does not run their standalone updaters.
 - **Python** runtimes and project environments go through `uv`;
   `UV_TOOL_BIN_DIR` is on `PATH`. Homebrew supplies the `uv` binary and the
   standalone `ruff` CLI.

@@ -47,32 +47,6 @@ section() {
     printf '\n\033[1m%s\033[0m\n' "$1"
 }
 
-# Resolve a path to its real location, following symlinks in any component.
-#
-# Stow folds directories: it links ~/.config/zsh to the repo and leaves the
-# files inside it as ordinary files, so checking only the leaf for -L reports
-# correctly stowed files as missing. `pwd -P` resolves the parent chain; the
-# leaf is then resolved separately, one level, which is all stow ever creates.
-# This avoids depending on GNU readlink -f, which stock macOS does not ship.
-resolve_path() {
-    local target="$1" parent="" leaf="" destination=""
-
-    parent="$(cd "$(dirname "$target")" 2>/dev/null && pwd -P)" || return 1
-    leaf="$(basename "$target")"
-
-    if [[ -L "$parent/$leaf" ]]; then
-        destination="$(readlink "$parent/$leaf")" || return 1
-        if [[ "$destination" == /* ]]; then
-            printf '%s\n' "$destination"
-        else
-            printf '%s\n' "$(cd "$parent" && cd "$(dirname "$destination")" && pwd -P)/$(basename "$destination")"
-        fi
-        return 0
-    fi
-
-    printf '%s\n' "$parent/$leaf"
-}
-
 check_stow_links() {
     local repo_file target package rest resolved missing=0
 
@@ -101,7 +75,9 @@ check_stow_links() {
             continue
         fi
 
-        resolved="$(resolve_path "$target")"
+        # Stow folds directories, so any path component may be the symlink.
+        # realpath resolves them all; macOS 13+ and Linux both ship it.
+        resolved="$(realpath "$target")"
         if [[ "$resolved" != "$REPO_ROOT/$repo_file" ]]; then
             fail "does not resolve into this repo: $target -> $resolved"
             missing=1

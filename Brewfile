@@ -44,7 +44,7 @@ cask "git-credential-manager"
 
 # Languages and runtimes
 brew "bun"
-brew "dotnet@9", link: true
+brew "dotnet"
 brew "fnm"
 brew "go"
 brew "protobuf"
@@ -57,7 +57,6 @@ brew "swiftlint"
 brew "xcbeautify"
 brew "xcode-build-server"
 brew "xcodegen"
-brew "xcinfo"
 cask "sf-symbols"
 
 # C and C++ development

@@ -18,7 +18,6 @@ export NPM_CONFIG_CACHE="$XDG_CACHE_HOME/npm"
 export BUNDLE_USER_CACHE="$XDG_CACHE_HOME/bundle"
 export BUNDLE_USER_PLUGIN="$XDG_DATA_HOME/bundle"
 export GNUPGHOME="$XDG_DATA_HOME/gnupg"
-export GCM_CREDENTIAL_CACHE_DIR="$XDG_CACHE_HOME/git-credential-manager"
 export TEALDEER_CONFIG_DIR="$XDG_CONFIG_HOME/tealdeer"
 export ZSH_COMPDUMP="$XDG_CACHE_HOME/zsh/.zcompdump"
 

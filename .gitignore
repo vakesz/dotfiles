@@ -10,13 +10,6 @@
 .Spotlight-V100
 .Trashes
 
-# Generated shell files
-config/zsh/.zcompdump*
-config/zsh/.zsh_history
-config/tealdeer/tldr-pages/
-*.zwc
-*.zwc.old
-
 # Local overrides (not tracked in git). *.local is the catch-all;
 # rc.d/*.local.zsh is listed because that suffix does not match *.local.
 config/zsh/rc.d/*.local.zsh

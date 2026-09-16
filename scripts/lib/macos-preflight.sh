@@ -64,12 +64,9 @@ ensure_xcode_cli_tools() {
     install_xcode_cli_tools
 }
 
-homebrew_installed() {
-    command -v brew >/dev/null 2>&1 || [[ -x /opt/homebrew/bin/brew || -x /usr/local/bin/brew ]]
-}
-
-# Put brew on PATH for the rest of this script run. A freshly installed
-# Homebrew is not on PATH until a new shell picks up the stowed zsh config.
+# Put brew on PATH for the rest of this script run and report whether it
+# exists at all. A freshly installed Homebrew is not on PATH until a new
+# shell picks up the stowed zsh config.
 load_homebrew_environment() {
     local brew_path
 
@@ -104,9 +101,8 @@ install_homebrew() {
 }
 
 ensure_homebrew() {
-    if homebrew_installed; then
+    if load_homebrew_environment; then
         info "Homebrew already installed"
-        load_homebrew_environment
         return 0
     fi
 

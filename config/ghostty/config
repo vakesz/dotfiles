@@ -26,8 +26,14 @@ notify-on-command-finish = unfocused
 notify-on-command-finish-action = bell,notify
 notify-on-command-finish-after = 10s
 
+# Shell integration. zsh (rc.d/70-keybindings.zsh) owns the cursor shape,
+# so Ghostty must not force a bar at every prompt.
+shell-integration-features = no-cursor
+
 # macOS
 macos-titlebar-style = native
+# Homebrew and topgrade own updates; keep Sparkle out of it.
+auto-update = off
 
 # Input
 mouse-hide-while-typing = true

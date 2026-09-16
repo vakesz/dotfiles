@@ -36,14 +36,6 @@ load_linux_release_info() {
     fi
 }
 
-detect_linux_variant() {
-    if grep -qi microsoft /proc/version 2>/dev/null; then
-        printf '%s\n' "wsl"
-    else
-        printf '%s\n' "linux"
-    fi
-}
-
 distro_family() {
     case "$DISTRO_ID" in
         debian | ubuntu)
@@ -112,8 +104,6 @@ persist_locale_for_family() {
 
 ensure_locale() {
     load_linux_release_info
-
-    info "Detected platform: $(detect_linux_variant)"
 
     local family=""
     family="$(distro_family)" || {
