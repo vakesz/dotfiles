@@ -1,11 +1,10 @@
-# Interactive shell behavior
+# Interactive shell options and history
 
-# Select vi mode before fzf initializes in 30-tools.zsh. fzf binds Tab into the
-# current keymap, so changing modes afterwards would drop its completion.
+# Select vi mode before fzf initializes in 40-tools.zsh: fzf binds Tab into the
+# current keymap, so switching modes afterwards would drop its completion.
 bindkey -v
 
-# KEYTIMEOUT is in hundredths of a second. A value of 1 removes the default
-# 0.4-second delay after Escape; laggy remote sessions may need a local override.
+# Hundredths of a second; 1 removes the default 0.4s delay after Escape.
 KEYTIMEOUT=1
 
 unsetopt FLOW_CONTROL
@@ -17,10 +16,10 @@ setopt PUSHD_SILENT
 setopt EXTENDED_GLOB
 setopt INTERACTIVE_COMMENTS
 
-# Treat / and - as word boundaries so word-wise editing stops at path/flag parts.
+# Drop / and - so word-wise editing stops at path segments and flags.
 WORDCHARS="${WORDCHARS//[\/-]/}"
 
-# The in-memory history has slack so duplicate expiry can preserve unique entries.
+# HISTSIZE exceeds SAVEHIST so duplicate expiry can preserve unique entries.
 HISTSIZE=120000
 SAVEHIST=100000
 HISTFILE="$XDG_STATE_HOME/zsh/history"

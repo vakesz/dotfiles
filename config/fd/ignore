@@ -1,4 +1,4 @@
-# make config-check keeps this aligned with config/ripgrep/config.
+# make check-config keeps this aligned with config/ripgrep/config.
 .git/
 node_modules/
 .venv/

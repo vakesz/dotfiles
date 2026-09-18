@@ -1,17 +1,10 @@
 #!/usr/bin/env bash
-#
-# Read-only macOS state checks shared by setup and doctor scripts.
-#
-
-if [[ -n "${_DOTFILES_MACOS_STATE_LOADED:-}" ]]; then
-    return 0
-fi
-_DOTFILES_MACOS_STATE_LOADED=1
+# Read-only macOS state probes shared by the setup and doctor scripts.
 
 MACOS_FIREWALL="/usr/libexec/ApplicationFirewall/socketfilterfw"
+XCODE_APP="${XCODE_APP:-/Applications/Xcode.app}"
 
-# A managed Mac may reject or later revert command-line settings even when the
-# command reports success. Callers use this to avoid claiming a change stuck.
+# A managed Mac may reject or later revert a setting the command reported as applied.
 macos_mdm_managed() {
     profiles status -type enrollment 2>/dev/null | grep -qi 'MDM enrollment: Yes'
 }
@@ -52,4 +45,8 @@ macos_touch_id_sudo_enabled() {
 
 macos_xcode_cli_tools_installed() {
     xcode-select -p >/dev/null 2>&1
+}
+
+macos_full_xcode_installed() {
+    [[ -d "$XCODE_APP" ]] && xcodebuild -version >/dev/null 2>&1
 }

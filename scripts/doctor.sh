@@ -8,19 +8,16 @@
 
 set -uo pipefail
 
-# -P so the path is comparable against resolve_path output below.
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+# shellcheck source=scripts/lib/paths.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib/paths.sh"
+# shellcheck source=scripts/lib/ui.sh
+source "$DOTFILES_ROOT/scripts/lib/ui.sh"
+# shellcheck source=scripts/lib/platform.sh
+source "$DOTFILES_ROOT/scripts/lib/platform.sh"
+# shellcheck source=scripts/lib/macos-state.sh
+is_macos && source "$DOTFILES_ROOT/scripts/lib/macos-state.sh"
+
 CONFIG_TARGET="${XDG_CONFIG_HOME:-$HOME/.config}"
-
-PASS_COUNT=0
-FAIL_COUNT=0
-WARN_COUNT=0
-
-source "$REPO_ROOT/scripts/lib/setup.sh"
-source "$REPO_ROOT/scripts/lib/xdg.sh"
-# macOS-only state checks. Sourcing on Linux is harmless: nothing here runs
-# until check_macos_security gates on the platform.
-[[ "$OSTYPE" == darwin* ]] && source "$REPO_ROOT/scripts/lib/macos-state.sh"
 
 # Commands bootstrap itself requires on every platform.
 CORE_COMMANDS=(git stow zsh)
@@ -28,23 +25,23 @@ CORE_COMMANDS=(git stow zsh)
 WORKSTATION_COMMANDS=(starship fzf rg fd bat eza zoxide jq uv tldr)
 MACOS_COMMANDS=(brew dockutil gh mas topgrade)
 
-pass() {
-    printf '\033[32m  ok  \033[0m %s\n' "$1"
-    ((PASS_COUNT++))
+has_command() {
+    command -v "$1" >/dev/null 2>&1
 }
 
-fail() {
-    printf '\033[31m fail \033[0m %s\n' "$1"
-    ((FAIL_COUNT++))
+quietly() {
+    "$@" >/dev/null 2>&1
 }
 
-soft_warn() {
-    printf '\033[33m warn \033[0m %s\n' "$1"
-    ((WARN_COUNT++))
-}
+verify() {
+    local ok="$1" bad="$2" reporter="$3"
+    shift 3
 
-section() {
-    printf '\n\033[1m%s\033[0m\n' "$1"
+    if "$@"; then
+        pass "$ok"
+    else
+        "$reporter" "$bad"
+    fi
 }
 
 check_stow_links() {
@@ -55,7 +52,7 @@ check_stow_links() {
     while IFS= read -r repo_file; do
         # Validate the effective working tree. This skips tracked files deleted
         # by an uncommitted rename and includes their untracked replacements.
-        [[ -e "$REPO_ROOT/$repo_file" || -L "$REPO_ROOT/$repo_file" ]] || continue
+        [[ -e "$DOTFILES_ROOT/$repo_file" || -L "$DOTFILES_ROOT/$repo_file" ]] || continue
 
         # The stow control file is never linked into the target tree.
         [[ "$repo_file" == "config/.stow-local-ignore" ]] && continue
@@ -78,11 +75,11 @@ check_stow_links() {
         # Stow folds directories, so any path component may be the symlink.
         # realpath resolves them all; macOS 13+ and Linux both ship it.
         resolved="$(realpath "$target")"
-        if [[ "$resolved" != "$REPO_ROOT/$repo_file" ]]; then
+        if [[ "$resolved" != "$DOTFILES_ROOT/$repo_file" ]]; then
             fail "does not resolve into this repo: $target -> $resolved"
             missing=1
         fi
-    done < <(git -C "$REPO_ROOT" ls-files --cached --others --exclude-standard home config 2>/dev/null | sort -u)
+    done < <(git -C "$DOTFILES_ROOT" ls-files --cached --others --exclude-standard home config 2>/dev/null | sort -u)
 
     if ((missing == 0)); then
         pass "all managed home/ and config/ files are linked"
@@ -94,15 +91,8 @@ check_xdg_directories() {
 
     section "XDG directories"
 
-    set_xdg_environment_defaults
-    export GNUPGHOME="${GNUPGHOME:-$XDG_DATA_HOME/gnupg}"
-
-    for dir in "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME" "$XDG_BIN_HOME"; do
-        if [[ -d "$dir" ]]; then
-            pass "exists: $dir"
-        else
-            fail "missing: $dir"
-        fi
+    for dir in "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME" "$XDG_BIN_HOME" "${DOTFILES_STATE_DIRS[@]}"; do
+        verify "exists: $dir" "missing: $dir" fail test -d "$dir"
     done
 }
 
@@ -120,144 +110,85 @@ check_directory_permissions() {
         # GNU coreutils stat is ahead of BSD stat on PATH here, and the two use
         # incompatible flags. Try the GNU form first, then fall back to BSD.
         mode="$(stat -c '%a' "$dir" 2>/dev/null)" || mode="$(stat -f '%Lp' "$dir" 2>/dev/null)"
-        if [[ "$mode" == "700" ]]; then
-            pass "0700: $dir"
-        else
-            fail "expected 0700, found 0$mode: $dir"
-        fi
+        verify "0700: $dir" "expected 0700, found 0$mode: $dir" fail test "$mode" = "700"
     done
 }
 
 check_commands() {
-    local command_name platform=""
+    local command_name
 
     section "Commands"
 
     for command_name in "${CORE_COMMANDS[@]}"; do
-        if command -v "$command_name" >/dev/null 2>&1; then
-            pass "found: $command_name"
-        else
-            fail "not on PATH: $command_name"
-        fi
+        verify "found: $command_name" "not on PATH: $command_name" fail has_command "$command_name"
     done
 
-    platform="$(detect_platform 2>/dev/null)" || platform=""
-
     for command_name in "${WORKSTATION_COMMANDS[@]}"; do
-        if command -v "$command_name" >/dev/null 2>&1; then
+        if has_command "$command_name"; then
             pass "found: $command_name"
-        elif [[ "$platform" == "macos" ]]; then
+        elif is_macos; then
             fail "not on PATH: $command_name"
         else
             soft_warn "not on PATH: $command_name (optional on Linux)"
         fi
     done
 
-    [[ "$platform" == "macos" ]] || return 0
+    is_macos || return 0
 
     for command_name in "${MACOS_COMMANDS[@]}"; do
-        if command -v "$command_name" >/dev/null 2>&1; then
-            pass "found: $command_name"
-        else
-            fail "not on PATH: $command_name"
-        fi
+        verify "found: $command_name" "not on PATH: $command_name" fail has_command "$command_name"
     done
 }
 
 check_shell() {
     section "Shell"
 
-    if [[ "$(basename "${SHELL:-}")" == "zsh" ]]; then
-        pass "login shell is zsh"
-    else
-        fail "login shell is ${SHELL:-unset}, expected zsh"
-    fi
-
-    if [[ -r "$CONFIG_TARGET/zsh/.zshrc" ]]; then
-        pass "zshrc readable at $CONFIG_TARGET/zsh/.zshrc"
-    else
-        fail "no readable zshrc at $CONFIG_TARGET/zsh/.zshrc"
-    fi
+    verify "login shell is zsh" "login shell is ${SHELL:-unset}, expected zsh" \
+        fail test "$(basename "${SHELL:-}")" = "zsh"
+    verify "zshrc readable at $CONFIG_TARGET/zsh/.zshrc" "no readable zshrc at $CONFIG_TARGET/zsh/.zshrc" \
+        fail test -r "$CONFIG_TARGET/zsh/.zshrc"
 }
 
 check_brewfile() {
-    [[ "$(detect_platform 2>/dev/null)" == "macos" ]] || return 0
-
     section "Brewfile"
 
-    if ! command -v brew >/dev/null 2>&1; then
+    if ! has_command brew; then
         fail "brew not on PATH"
         return 0
     fi
 
-    if brew bundle check --file "$REPO_ROOT/Brewfile" >/dev/null 2>&1; then
-        pass "all Brewfile entries installed"
-    else
-        soft_warn "Brewfile has unsatisfied entries; see: brew bundle check --file Brewfile --verbose"
-    fi
+    verify "all Brewfile entries installed" \
+        "Brewfile has unsatisfied entries; see: brew bundle check --file Brewfile --verbose" \
+        soft_warn quietly brew bundle check --file "$DOTFILES_BREWFILE"
 }
 
-check_macos_extras() {
-    [[ "$(detect_platform 2>/dev/null)" == "macos" ]] || return 0
+check_macos_tooling() {
+    section "macOS tooling"
 
-    section "macOS extras"
-
-    if macos_touch_id_sudo_enabled; then
-        pass "Touch ID for sudo enabled"
-    else
-        soft_warn "Touch ID for sudo not enabled (run scripts/platform/macos.sh)"
-    fi
-
-    if macos_xcode_cli_tools_installed; then
-        pass "Xcode Command Line Tools installed"
-    else
-        fail "Xcode Command Line Tools missing"
-    fi
-
-    if [[ -d /Applications/Xcode.app ]] && xcodebuild -version >/dev/null 2>&1; then
-        pass "full Xcode installation available"
-    else
-        soft_warn "full Xcode installation not available"
-    fi
-
-    if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
-        pass "GitHub CLI authenticated"
-    else
-        soft_warn "GitHub CLI not authenticated (run: gh auth login)"
-    fi
+    verify "Touch ID for sudo enabled" "Touch ID for sudo not enabled (run scripts/platform/macos.sh)" \
+        soft_warn macos_touch_id_sudo_enabled
+    verify "Xcode Command Line Tools installed" "Xcode Command Line Tools missing" \
+        fail macos_xcode_cli_tools_installed
+    verify "full Xcode installation available" "full Xcode installation not available" \
+        soft_warn macos_full_xcode_installed
+    verify "GitHub CLI authenticated" "GitHub CLI not authenticated (run: gh auth login)" \
+        soft_warn quietly gh auth status
 }
 
 # Report-only. The hardening script can configure FileVault, security updates,
 # and the firewall. SIP still requires Recovery.
 check_macos_security() {
-    [[ "$(detect_platform 2>/dev/null)" == "macos" ]] || return 0
-
     section "macOS security"
 
-    if macos_filevault_enabled; then
-        pass "FileVault enabled"
-    else
-        fail "FileVault is off (run scripts/platform/macos-hardening.sh)"
-    fi
-
-    if macos_sip_enabled; then
-        pass "System Integrity Protection enabled"
-    else
-        fail "SIP is disabled (re-enable from Recovery: csrutil enable)"
-    fi
-
-    if macos_gatekeeper_enabled; then
-        pass "Gatekeeper assessments enabled"
-    else
-        # spctl only offers --global-disable now; re-enabling is a GUI-only step.
-        fail "Gatekeeper is off (re-enable in System Settings > Privacy & Security)"
-    fi
-
-    if macos_automatic_security_updates_enabled; then
-        pass "Security responses install automatically"
-    else
-        soft_warn "Security responses are not automatic (run scripts/platform/macos-hardening.sh)"
-    fi
+    verify "FileVault enabled" "FileVault is off (run scripts/platform/macos-hardening.sh)" \
+        fail macos_filevault_enabled
+    verify "System Integrity Protection enabled" "SIP is disabled (re-enable from Recovery: csrutil enable)" \
+        fail macos_sip_enabled
+    # spctl only offers --global-disable now; re-enabling is a GUI-only step.
+    verify "Gatekeeper assessments enabled" "Gatekeeper is off (re-enable in System Settings > Privacy & Security)" \
+        fail macos_gatekeeper_enabled
+    verify "Security responses install automatically" "Security responses are not automatic (run scripts/platform/macos-hardening.sh)" \
+        soft_warn macos_automatic_security_updates_enabled
 
     if ! macos_firewall_available; then
         soft_warn "socketfilterfw not found; cannot check the firewall"
@@ -285,16 +216,21 @@ print_summary() {
 }
 
 main() {
-    info "Dotfiles doctor ($REPO_ROOT)"
+    info "Dotfiles doctor ($DOTFILES_ROOT)"
+
+    set_xdg_environment_defaults
 
     check_stow_links
     check_xdg_directories
     check_directory_permissions
     check_commands
     check_shell
-    check_brewfile
-    check_macos_extras
-    check_macos_security
+
+    if is_macos; then
+        check_brewfile
+        check_macos_tooling
+        check_macos_security
+    fi
 
     print_summary
 }

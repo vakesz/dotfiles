@@ -19,15 +19,19 @@ export BUNDLE_USER_CACHE="$XDG_CACHE_HOME/bundle"
 export BUNDLE_USER_PLUGIN="$XDG_DATA_HOME/bundle"
 export GNUPGHOME="$XDG_DATA_HOME/gnupg"
 export TEALDEER_CONFIG_DIR="$XDG_CONFIG_HOME/tealdeer"
-export ZSH_COMPDUMP="$XDG_CACHE_HOME/zsh/.zcompdump"
+export PSQLRC="$XDG_CONFIG_HOME/psql/psqlrc"
+export PSQL_HISTORY="$XDG_STATE_HOME/psql/history"
+export PGPASSFILE="$XDG_CONFIG_HOME/psql/pgpass"  # libpq ignores this file unless it is 0600
+export PGSERVICEFILE="$XDG_CONFIG_HOME/psql/pg_service.conf"
 
-# Toolchain locations (PATH appends still happen in rc.d/20-path.zsh).
+# Toolchain locations (PATH for interactive shells is set in rc.d/20-path.zsh).
 export GOPATH="$XDG_DATA_HOME/go"
 export GOMODCACHE="$XDG_CACHE_HOME/go/mod"
 export UV_CACHE_DIR="$XDG_CACHE_HOME/uv"
 export UV_TOOL_DIR="$XDG_DATA_HOME/uv/tools"
 export UV_TOOL_BIN_DIR="$XDG_DATA_HOME/uv/bin"
 export UV_PYTHON_INSTALL_DIR="$XDG_DATA_HOME/uv/python"
+export FNM_DIR="${FNM_DIR:-$XDG_DATA_HOME/fnm}"
 export PNPM_HOME="$XDG_DATA_HOME/pnpm"
 export DOCKER_CONFIG="$XDG_CONFIG_HOME/docker"
 export GRADLE_USER_HOME="$XDG_DATA_HOME/gradle"
@@ -35,9 +39,8 @@ export AZURE_CONFIG_DIR="$XDG_DATA_HOME/azure"
 export CP_HOME_DIR="$XDG_CACHE_HOME/cocoapods"
 export NPM_CONFIG_LOGS_DIR="$XDG_STATE_HOME/npm/logs"
 
-# JDK. Gradle and the Android command-line tools (sdkmanager, avdmanager) need
-# JAVA_HOME; the Android Gradle Plugin requires 17. java_home exits non-zero
-# when no matching JDK is installed, so only export on success.
+# Gradle and the Android command-line tools need JAVA_HOME; the Android Gradle
+# Plugin requires 17. java_home exits non-zero when no matching JDK is installed.
 if [[ "$OSTYPE" == darwin* && -z "${JAVA_HOME:-}" && -x /usr/libexec/java_home ]]; then
   if _java_home="$(/usr/libexec/java_home -v 17 2>/dev/null)"; then
     export JAVA_HOME="$_java_home"
@@ -45,9 +48,7 @@ if [[ "$OSTYPE" == darwin* && -z "${JAVA_HOME:-}" && -x /usr/libexec/java_home ]
   unset _java_home
 fi
 
-# Android SDK. React Native / Gradle read $ANDROID_HOME to locate the SDK and
-# adb; setting it here means non-interactive build shells (gradle, RN CLI) find
-# it too. The location is the default installed by Android Studio per platform.
+# Set here so non-interactive build shells (gradle, RN CLI) find the SDK and adb.
 if [[ "$OSTYPE" == darwin* ]]; then
   export ANDROID_HOME="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
 else
@@ -63,19 +64,19 @@ if [[ "$OSTYPE" == linux* ]]; then
   export GTK2_RC_FILES="$XDG_CONFIG_HOME/gtk-2.0/gtkrc"
 fi
 
-# Ensure PNPM_HOME/bin is on PATH for non-interactive subshells too (topgrade,
-# make rules, scripts). pnpm 11 uses $PNPM_HOME/bin as the global bin dir and
-# refuses to run if it's not in PATH. The Android SDK tools (adb, emulator,
-# sdkmanager) likewise need to be visible to build shells.
+# A function because .zprofile re-runs it after the system profile rebuilds PATH.
+_dotfiles_base_path() {
+  local dir
+  # pnpm 11 refuses to run unless its global bin dir is in PATH, even before it exists.
+  path=("$PNPM_HOME/bin" $path)
+  for dir in "$ANDROID_HOME"/{platform-tools,emulator,cmdline-tools/latest/bin}; do
+    [[ -d "$dir" ]] && path=("$dir" $path)
+  done
+  return 0
+}
+
 typeset -U path
-path=("$PNPM_HOME/bin" $path)
-for android_bin in \
-  "$ANDROID_HOME/platform-tools" \
-  "$ANDROID_HOME/emulator" \
-  "$ANDROID_HOME/cmdline-tools/latest/bin"; do
-  [[ -d "$android_bin" ]] && path=("$android_bin" $path)
-done
-unset android_bin
+_dotfiles_base_path
 export PATH
 
 # Prevent .zsh_sessions from cluttering $ZDOTDIR on macOS.

@@ -21,7 +21,9 @@ through with `bash -s --`:
 curl -fsSL https://raw.githubusercontent.com/vakesz/dotfiles/main/install.sh | bash -s -- --adopt
 ```
 
-Override the defaults with `DOTFILES_REPO`, `DOTFILES_DIR`, or `DOTFILES_BRANCH`.
+`DOTFILES_REPO`, `DOTFILES_DIR`, and `DOTFILES_BRANCH` override `install.sh`'s
+own defaults (repo URL, clone target, branch); they have no effect once
+`bootstrap.sh` takes over.
 
 With the repo already cloned, `./bootstrap.sh` does the same work. Its macOS
 preflight installs the Command Line Tools, Homebrew, and the Brewfile packages
@@ -67,6 +69,13 @@ non-zero on any failure and never changes anything.
 Interactive only. It uses `stow --adopt`, which overwrites repo files with the
 existing local copies; review the result with `git diff`.
 
+### Updating an existing machine
+
+After pulling a change that touches `scripts/lib/paths.sh` or adds a new state
+directory, re-run `./bootstrap.sh` once so `ensure_xdg_runtime_directories`
+creates it — most recently `$XDG_STATE_HOME/less` and `$XDG_STATE_HOME/psql`.
+`make doctor` reports any directory that is still missing.
+
 ## Layout
 
 ```text
@@ -85,16 +94,24 @@ dotfiles/
 │   ├── tealdeer/
 │   ├── topgrade.toml
 │   └── zsh/
+│       ├── .zprofile
+│       ├── .zshrc
+│       └── rc.d/         # 00-lib, 10-env, 20-path, 30-options, 40-tools,
+│                          # 50-completion, 60-commands, 70-python-venv,
+│                          # 80-keybindings, 90-plugins
 ├── home/                 # Stowed into ~
 │   └── .zshenv
 ├── scripts/
+│   ├── check.sh          # Bash lint/format, zsh syntax, config checks
+│   ├── check-apps.sh     # Ask installed applications to validate their config
 │   ├── doctor.sh         # Verify a bootstrapped machine
 │   ├── lib/
-│   │   ├── javascript.sh      # fnm-managed Node.js and Corepack setup
 │   │   ├── macos-preflight.sh # Command Line Tools, Homebrew, Brewfile
 │   │   ├── macos-state.sh     # Read-only macOS state checks
-│   │   ├── setup.sh           # Prompts, status output, platform guards
-│   │   └── xdg.sh             # XDG defaults and runtime directories
+│   │   ├── node.sh            # fnm-managed Node.js and Corepack setup
+│   │   ├── paths.sh           # Repo paths, XDG defaults, runtime directories
+│   │   ├── platform.sh        # OS detection
+│   │   └── ui.sh              # Prompts, status output, the check vocabulary
 │   └── platform/         # Optional platform setup scripts
 │       ├── linux.sh
 │       ├── macos.sh
@@ -105,31 +122,22 @@ dotfiles/
 └── Makefile
 ```
 
-## Make targets
-
-| Target | Purpose |
-| --- | --- |
-| `make bootstrap` | Full bootstrap: preflight, stow, platform setup |
-| `make adopt` | Bootstrap and import existing dotfiles into the repo |
-| `make macos` / `make linux` | Run one platform setup script on its own |
-| `make doctor` | Verify the machine matches what bootstrap produces |
-| `make check` | Run all source and configuration checks |
-| `make app-check` | Ask installed applications to load and validate their config |
-| `make lint` | Shellcheck every bash script |
-| `make brew-check` | Report Brewfile entries that are not installed |
-| `make brew-install` | Install everything declared in the Brewfile |
+Run `make help` for the full list of targets; there is no separate table here.
 
 ## What is configured
 
 - `home/.zshenv`: XDG directories, `ZDOTDIR`, and tool cache/config
   redirects that must apply to non-interactive shells too (Go, uv, pnpm,
-  Gradle, Android SDK, JDK 17 via `java_home`)
-- `config/zsh`: `.zshrc` sources `rc.d/*.zsh` in order: environment, cached
-  initialization, PATH, shell behavior, tool integration, completion, commands,
-  Python venv helpers, keybindings, then plugins. Tool init output is cached
-  under `$XDG_CACHE_HOME/zsh` and recompiled only when the tool or its config
-  changes. `25-shell.zsh` selects the **vi** keymap before fzf initializes,
-  because fzf binds Tab into whichever keymap is current
+  PostgreSQL, Gradle, Android SDK, JDK 17 via `java_home`)
+- `config/zsh`: `.zshrc` sources `rc.d/*.zsh` in order: shared helpers and
+  platform detection, environment, PATH, shell options, tool integration,
+  completion, commands, Python venv helpers, keybindings, then plugins. Tool
+  init output is cached under `$XDG_CACHE_HOME/zsh` and recompiled only when
+  the tool or its config changes. `30-options.zsh` selects the **vi** keymap
+  before fzf initializes in `40-tools.zsh`, because fzf binds Tab into
+  whichever keymap is current. Naming rule: a bare name is a command meant to
+  be typed (`venv`, `rgf`, `zsh-profile`); everything else is a helper
+  prefixed `_dotfiles_*`
 - `config/starship.toml`: prompt. `git_status` shells out to `git` so the
   `fsmonitor` and `untrackedcache` settings in `config/git/config` apply
 - `config/git`: config and global ignore rules. HTTPS credentials go through
@@ -140,7 +148,7 @@ dotfiles/
   *category*, so any mouse gets acceleration disabled and reversed scrolling,
   and any trackpad keeps system acceleration
 - `config/fd`, `config/ripgrep`, `config/tealdeer`, `config/topgrade.toml`:
-  CLI tool config. `make config-check` verifies that the `fd` and `ripgrep`
+  CLI tool config. `make check-config` verifies that the `fd` and `ripgrep`
   exclusion lists match
 
 Stow symlinks tracked files, so after adding or moving files under `home/` or
@@ -186,17 +194,22 @@ applies the same rules, so these stay untracked while living in the repo tree:
   install the latest LTS, make it the `fnm` default, and enable `pnpm` via
   `corepack`. JavaScript formatter/linter CLIs are project-local; no global
   `prettier` or similar is installed, and topgrade's npm/pnpm steps are off.
-- **Bun**, **.NET 10 LTS**, and **JDK 17** are Homebrew-managed runtimes.
-  Topgrade does not run their standalone updaters.
+- **Bun** and **JDK 17** are Homebrew-managed runtimes. Topgrade does not run
+  their standalone updaters.
 - **Python** runtimes and project environments go through `uv`;
   `UV_TOOL_BIN_DIR` is on `PATH`. Homebrew supplies the `uv` binary and the
   standalone `ruff` CLI.
 - **Ruby** is Homebrew's, preferred over the system Ruby. Gems install under
   `$GEM_HOME`, whose `bin` is on `PATH`.
+- **PostgreSQL 18** is Homebrew-managed and keg-only; its `bin` is added to
+  `PATH` by `rc.d/20-path.zsh`. `PSQLRC`, `PSQL_HISTORY`, `PGPASSFILE`, and
+  `PGSERVICEFILE` redirect its config and history under `$XDG_CONFIG_HOME`
+  and `$XDG_STATE_HOME`.
 - **Homebrew keg-only tools** that need explicit prefix paths are wired in
-  `rc.d/20-path.zsh`: `curl`, `sqlite`, GNU `coreutils`, GNU `make`, Homebrew
-  Ruby, `flex`, and `bison`. Homebrew LLVM stays keg-only so `clang` remains
-  Apple's; `macos.sh` only symlinks `dlltool` into `~/.local/bin`.
+  `rc.d/20-path.zsh`: `curl`, `sqlite`, `postgresql@18`, GNU `coreutils`, GNU
+  `make`, Homebrew Ruby, `flex`, and `bison`. Homebrew LLVM stays keg-only so
+  `clang` remains Apple's; `macos.sh` only symlinks `dlltool` into
+  `$XDG_BIN_HOME`.
 - **Updates** run through `topgrade`. Homebrew owns installed application and
   runtime binaries; Topgrade owns TLDR cache, editor extension, GitHub CLI
   extension, global skill, repository, operating-system, and firmware updates.
@@ -211,26 +224,18 @@ applies the same rules, so these stay untracked while living in the repo tree:
 own. Every step prompts, and prompts default to **No** after
 `DOTFILES_CONFIRM_TIMEOUT` seconds (default `30`).
 
-- `scripts/platform/macos.sh`: Touch ID for sudo (written to
-  `/etc/pam.d/sudo_local`, which macOS 14+ preserves across updates, and
-  offered first so every later sudo prompt is a fingerprint), Rosetta, computer
-  name, macOS defaults, power settings, Dock layout (needs `dockutil`),
-  Finder visibility for `~/Library`, Spotlight exclusions, the custom Hungarian
-  keyboard layout, the LLVM `dlltool` symlink, Xcode first-launch setup, GitHub
-  CLI auth, Node/pnpm, then the two scripts below. Separate Spaces per display
-  only takes effect after a log out, which the script says when it applies the
-  defaults
-- `scripts/platform/macos-hardening.sh`: optionally configures FileVault, the
-  application firewall, automatic security responses, remote access, privacy
-  defaults, and Homebrew analytics. It reports SIP and MDM state but does not
-  try to override either one
+- `scripts/platform/macos.sh`: Touch ID for sudo, Rosetta, computer name,
+  macOS defaults, power settings, Dock layout, Finder visibility for
+  `~/Library`, Spotlight exclusions, the custom Hungarian keyboard layout, the
+  LLVM `dlltool` symlink, Xcode first-launch setup, GitHub CLI auth, and
+  Node/pnpm, then runs the two scripts below
+- `scripts/platform/macos-hardening.sh`: optionally configures the application
+  firewall, FileVault, remote login/services, privacy defaults, automatic
+  security responses, and Homebrew analytics
 - `scripts/platform/macos-office-tweaks.sh`: disables Microsoft EdgeUpdater and
-  Microsoft AutoUpdate (MAU) so updates flow through `topgrade` only. App
-  updates can reinstall the updater artifacts, so it is safe to rerun
+  Microsoft AutoUpdate (MAU) so updates flow through `topgrade` only
 - `scripts/platform/linux.sh`: `en_US.UTF-8` locale, zsh as the default shell,
   Node/pnpm
-- `scripts/lib/macos-preflight.sh`: Command Line Tools, Homebrew, and Brewfile
-  install, shared by `bootstrap.sh` and `macos.sh`
 
 ## Resources
 

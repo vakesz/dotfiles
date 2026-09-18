@@ -26,7 +26,7 @@ notify-on-command-finish = unfocused
 notify-on-command-finish-action = bell,notify
 notify-on-command-finish-after = 10s
 
-# Shell integration. zsh (rc.d/70-keybindings.zsh) owns the cursor shape,
+# Shell integration. zsh (rc.d/80-keybindings.zsh) owns the cursor shape,
 # so Ghostty must not force a bar at every prompt.
 shell-integration-features = no-cursor
 

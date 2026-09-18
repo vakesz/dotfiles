@@ -1,21 +1,12 @@
 #!/usr/bin/env bash
-#
 # Install and expose the fnm-managed Node.js and Corepack toolchain.
-#
 
-if [[ -n "${_DOTFILES_JAVASCRIPT_LOADED:-}" ]]; then
-    return 0
-fi
-_DOTFILES_JAVASCRIPT_LOADED=1
+# shellcheck source=scripts/lib/ui.sh
+source "${BASH_SOURCE[0]%/*}/ui.sh"
+# shellcheck source=scripts/lib/paths.sh
+source "${BASH_SOURCE[0]%/*}/paths.sh"
 
-_dotfiles_javascript_lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=scripts/lib/setup.sh
-source "$_dotfiles_javascript_lib_dir/setup.sh"
-# shellcheck source=scripts/lib/xdg.sh
-source "$_dotfiles_javascript_lib_dir/xdg.sh"
-unset _dotfiles_javascript_lib_dir
-
-ensure_javascript_environment() {
+load_fnm_environment() {
     set_xdg_environment_defaults
 
     export FNM_DIR="${FNM_DIR:-$XDG_DATA_HOME/fnm}"
@@ -25,10 +16,7 @@ ensure_javascript_environment() {
         *":$PNPM_HOME/bin:"*) ;;
         *) export PATH="$PNPM_HOME/bin:$PATH" ;;
     esac
-}
 
-load_fnm_environment() {
-    ensure_javascript_environment
     command -v fnm >/dev/null 2>&1 || return 1
     eval "$(fnm env --shell bash --corepack-enabled)"
 }
@@ -60,8 +48,9 @@ install_node_with_fnm() {
     success "Node.js $node_version installed and selected with fnm"
 }
 
-pnpm_available() {
-    # Sets up the JavaScript environment even when fnm itself is missing.
+pnpm_enabled() {
+    # Puts PNPM_HOME on PATH even when fnm itself is missing, which is how a
+    # corepack-enabled pnpm is found.
     load_fnm_environment >/dev/null 2>&1 || true
     command -v pnpm >/dev/null 2>&1
 }
@@ -77,21 +66,14 @@ enable_pnpm_with_corepack() {
     success "pnpm enabled"
 }
 
-offer_javascript_toolchain_setup() {
-    if ! command -v fnm >/dev/null 2>&1; then
-        info "fnm not available; skipping Node.js and pnpm setup"
-        return 0
-    fi
+offer_node_toolchain_setup() {
+    require_command fnm "Node.js and pnpm setup" || return 0
 
-    prompt_if_missing \
-        fnm_managed_node_available \
-        install_node_with_fnm \
-        "Install latest Node.js LTS with fnm?" \
+    offer_if_missing "Install latest Node.js LTS with fnm?" \
+        fnm_managed_node_available install_node_with_fnm \
         "fnm-managed Node.js already available"
 
-    prompt_if_missing \
-        pnpm_available \
-        enable_pnpm_with_corepack \
-        "Enable pnpm via corepack?" \
+    offer_if_missing "Enable pnpm via corepack?" \
+        pnpm_enabled enable_pnpm_with_corepack \
         "pnpm already available"
 }

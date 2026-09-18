@@ -5,7 +5,7 @@
 --hidden
 
 # Don't search these directories
-# make config-check keeps this aligned with config/fd/ignore.
+# make check-config keeps this aligned with config/fd/ignore.
 --glob=!.git/
 --glob=!node_modules/
 --glob=!.venv/

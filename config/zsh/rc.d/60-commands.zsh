@@ -1,7 +1,27 @@
 # Interactive commands and aliases
 
-# Search file contents with ripgrep, pick a match with fzf, and open it at the
-# selected line in the configured editor.
+# Measure interactive startup time over N login shells, defaulting to ten.
+zsh-profile() {
+  local runs="${1:-10}" i
+  for (( i = 1; i <= runs; i++ )); do
+    /usr/bin/time zsh -lic exit
+  done
+}
+
+# Navigation
+alias dots='cd ~/.dotfiles'
+alias c='cd ~/Code'
+
+# Git
+alias gs='git status'
+alias gd='git diff'
+alias gc='git commit'
+alias ga='git add'
+alias gp='git push'
+
+# Everything below depends on an optional tool being installed.
+
+# Search file contents with ripgrep, pick a match with fzf, open it at that line.
 if (( $+commands[rg] && $+commands[fzf] )); then
   rgf() {
     local selection file line
@@ -31,15 +51,10 @@ if (( $+commands[rg] && $+commands[fzf] )); then
   }
 fi
 
-# Measure interactive startup time over N login shells, defaulting to ten.
-zsh-profile() {
-  local runs="${1:-10}" i
-  for (( i = 1; i <= runs; i++ )); do
-    /usr/bin/time zsh -lic exit
-  done
-}
-
+# fd and bat are packaged as fdfind and batcat on Debian/Ubuntu.
 (( $+commands[fdfind] )) && alias fd=fdfind
+(( $+commands[batcat] )) && alias bat='batcat'
+(( $+commands[bat] || $+commands[batcat] )) && alias cat='bat --paging=never'
 
 if (( $+commands[uv] )); then
   alias uv-tools='uv tool list'
@@ -50,9 +65,11 @@ if (( $+commands[eza] )); then
   alias ls='eza --group-directories-first'
   alias ll='eza -la --group-directories-first --git'
   alias la='eza -a --group-directories-first'
+  alias l='eza --oneline --group-directories-first'
   alias lt='eza --tree --level=2'
 else
-  if ls --color=auto &>/dev/null; then
+  # --version rather than --color=auto: BSD ls rejects it and neither lists $PWD.
+  if ls --version >/dev/null 2>&1; then
     alias ls='ls --color=auto'
   else
     alias ls='ls -G'
@@ -62,27 +79,11 @@ else
   alias l='ls -CF'
 fi
 
-# bat is packaged as `batcat` on Debian/Ubuntu.
-(( $+commands[batcat] )) && alias bat='batcat'
-(( $+commands[bat] || $+commands[batcat] )) && alias cat='bat --paging=never'
-
-# Navigation
-alias dots='cd ~/.dotfiles'
-alias c='cd ~/Code'
-
-# Git
-alias gs='git status'
-alias gd='git diff'
-alias gc='git commit'
-alias ga='git add'
-alias gp='git push'
-
 (( $+commands[docker] )) && {
   alias dcu='docker compose up'
   alias dcd='docker compose down'
 }
 
-# AI tools
 (( $+commands[claude] )) && alias cc='claude'
 (( $+commands[codex] )) && alias cx='codex'
 (( $+commands[opencode] )) && alias oc='opencode'

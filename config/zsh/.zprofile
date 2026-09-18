@@ -1,6 +1,7 @@
 # Login shell setup
 
-# Ensures GUI apps launched from Finder have the Homebrew-aware PATH.
-if [[ "$OSTYPE" == darwin* && -f /usr/libexec/path_helper ]]; then
-  eval "$(/usr/libexec/path_helper -s)"
-fi
+# /etc/zprofile (path_helper) and Debian's /etc/zsh/zprofile rebuild PATH and push
+# our entries behind the system ones. Guarded because a nested login shell inherits
+# ZDOTDIR, so zsh reads $ZDOTDIR/.zshenv and never sees ~/.zshenv.
+(( $+functions[_dotfiles_base_path] )) && _dotfiles_base_path
+export PATH

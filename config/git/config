@@ -39,7 +39,6 @@
 [diff]
 	algorithm = histogram
 	colorMoved = default
-	renames = true
 
 [merge]
 	conflictstyle = zdiff3

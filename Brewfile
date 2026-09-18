@@ -16,6 +16,7 @@ brew "fd"
 brew "fzf"
 brew "ripgrep"
 brew "tealdeer"
+brew "tree"
 brew "zoxide"
 
 # CLI tools: utilities
@@ -44,7 +45,6 @@ cask "git-credential-manager"
 
 # Languages and runtimes
 brew "bun"
-brew "dotnet"
 brew "fnm"
 brew "go"
 brew "protobuf"
@@ -55,6 +55,7 @@ cask "temurin@17"
 brew "cocoapods"
 brew "swiftlint"
 brew "xcbeautify"
+brew "xcinfo"
 brew "xcode-build-server"
 brew "xcodegen"
 cask "sf-symbols"
@@ -81,7 +82,6 @@ brew "molten-vk"
 brew "ninja"
 brew "pkgconf"
 brew "raylib"
-brew "tree"
 
 # Linters and formatters
 brew "actionlint"
@@ -111,16 +111,20 @@ cask "steipete/tap/codexbar"
 brew "azure-cli"
 brew "pngquant"
 brew "ruff"
-brew "sqlite"
 brew "watchman"
-cask "dbeaver-community"
 cask "visual-studio-code"
+
+# Databases
+brew "postgresql@18"
+brew "sqlite"
+cask "tablepro"
 
 # Desktop apps: system and maintenance
 cask "linearmouse"
-cask "thaw"
 cask "puremac"
 cask "shottr"
+cask "tailscale-app"
+cask "thaw"
 
 # Desktop apps: productivity
 cask "affinity"

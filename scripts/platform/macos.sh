@@ -1,16 +1,20 @@
 #!/usr/bin/env bash
-#
 # Optional macOS setup for this dotfiles repo.
-#
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-ASSETS_DIR="$REPO_ROOT/assets/macos"
+# shellcheck source-path=SCRIPTDIR
+source "$(dirname "${BASH_SOURCE[0]}")/../lib/paths.sh"
+source "$DOTFILES_ROOT/scripts/lib/ui.sh"
+source "$DOTFILES_ROOT/scripts/lib/platform.sh"
+source "$DOTFILES_ROOT/scripts/lib/node.sh"
+source "$DOTFILES_ROOT/scripts/lib/macos-state.sh"
+source "$DOTFILES_ROOT/scripts/lib/macos-preflight.sh"
 
-XCODE_APP="${XCODE_APP:-/Applications/Xcode.app}"
+set_xdg_environment_defaults
 
-# Dock contents, in order, applied by configure_dock. Missing apps are skipped.
+ASSETS_DIR="$DOTFILES_ROOT/assets/macos"
+
 DOCK_APPS=(
     "/System/Applications/Apps.app"
     "/Applications/Safari.app"
@@ -25,30 +29,20 @@ DOCK_APPS=(
     "/System/Applications/Music.app"
     "/Applications/Ghostty.app"
     "/Applications/Visual Studio Code.app"
-    "/Applications/Xcode.app"
+    "$XCODE_APP"
 )
 
-# High-churn build output that Spotlight gains nothing from indexing. These are
-# created if missing so a fresh machine is covered before the tools that fill
-# them ever run.
 SPOTLIGHT_EXCLUDED_PATHS=(
     "$HOME/Library/Developer/Xcode/DerivedData"
-    "${XDG_CACHE_HOME:-$HOME/.cache}"
+    "$XDG_CACHE_HOME"
 )
 
-# Same idea, but owned by tools that create them on first use. Marked only when
-# already present, so this script never pre-creates another program's directory.
+# Owned by other tools: marked only when present, never pre-created here.
 SPOTLIGHT_OPTIONAL_PATHS=(
     "$HOME/Library/Developer/CoreSimulator"
-    "${XDG_DATA_HOME:-$HOME/.local/share}/gradle"
+    "$XDG_DATA_HOME/gradle"
     "${ANDROID_HOME:-$HOME/Library/Android/sdk}"
 )
-
-source "$REPO_ROOT/scripts/lib/setup.sh"
-source "$REPO_ROOT/scripts/lib/javascript.sh"
-source "$REPO_ROOT/scripts/lib/macos-state.sh"
-# Provides ensure_xcode_cli_tools, shared with the bootstrap preflight.
-source "$REPO_ROOT/scripts/lib/macos-preflight.sh"
 
 rosetta_installed() {
     pkgutil --pkg-info=com.apple.pkg.RosettaUpdateAuto >/dev/null 2>&1
@@ -56,12 +50,8 @@ rosetta_installed() {
 
 install_rosetta() {
     info "Installing Rosetta..."
-    if softwareupdate --install-rosetta --agree-to-license; then
-        success "Rosetta installed"
-    else
-        warn "Rosetta installation did not complete"
-        return 1
-    fi
+    softwareupdate --install-rosetta --agree-to-license || return 1
+    success "Rosetta installed"
 }
 
 apply_macos_defaults() {
@@ -78,9 +68,8 @@ apply_macos_defaults() {
     defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
     defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
     defaults write com.apple.finder FXEnableExtensionChangeWarning -bool false
-    # Search the folder you are standing in, not the whole Mac.
+    # SCcf = search the current folder; PfHm = new windows open at $HOME.
     defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
-    # New windows open in the home folder ("PfHm") rather than Recents.
     defaults write com.apple.finder NewWindowTarget -string "PfHm"
     defaults write com.apple.finder NewWindowTargetPath -string "file://${HOME}/"
 
@@ -97,12 +86,9 @@ apply_macos_defaults() {
     # Panels
     defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
     defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
-    # Hold Control-Command and drag a window from anywhere in its body.
     defaults write NSGlobalDomain NSWindowShouldDragOnGesture -bool true
 
-    # Trackpad. The two domains are separate devices: AppleMultitouchTrackpad is
-    # the built-in one, AppleBluetoothMultitouch.trackpad an external Magic
-    # Trackpad. Setting only the Bluetooth domain leaves a laptop untouched.
+    # Trackpad: the built-in device and an external Magic Trackpad are separate domains.
     defaults write com.apple.AppleMultitouchTrackpad Clicking -bool true
     defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
     defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
@@ -122,12 +108,10 @@ apply_macos_defaults() {
     defaults write com.apple.dock mru-spaces -bool false
     defaults write com.apple.dock expose-group-apps -bool true
     defaults write NSGlobalDomain AppleSpacesSwitchOnActivate -bool true
-    # false = "Displays have separate Spaces" stays on. The key is named for the
-    # opposite behaviour, and unlike the rest of this block it only takes effect
-    # after a log out; killall Dock is not enough.
+    # false keeps "Displays have separate Spaces" ON; needs a log out.
     defaults write com.apple.spaces spans-displays -bool false
 
-    # Hot corners: all disabled (0 = no action)
+    # Hot corners: 0 = no action.
     local corner
     for corner in tl tr bl br; do
         defaults write com.apple.dock "wvous-${corner}-corner" -int 0
@@ -137,15 +121,9 @@ apply_macos_defaults() {
     # Screenshots
     defaults write com.apple.screencapture location -string "${HOME}/Desktop"
     defaults write com.apple.screencapture type -string "png"
-    # Drop the wide translucent drop shadow around window captures.
     defaults write com.apple.screencapture disable-shadow -bool true
 
-    # Enables the Web Inspector in the WebKit views other apps embed (Xcode
-    # documentation, Mail). Safari itself is NOT configured here: it is
-    # sandboxed, so `defaults write com.apple.Safari` lands in
-    # ~/Library/Preferences and Safari reads its container plist instead. Those
-    # writes look like they work and change nothing. Turn on the Develop menu in
-    # Safari > Settings > Advanced.
+    # Safari is sandboxed and ignores this domain; use Safari > Settings > Advanced.
     defaults write NSGlobalDomain WebKitDeveloperExtras -bool true
 
     # Xcode
@@ -156,13 +134,12 @@ apply_macos_defaults() {
     defaults write com.apple.tips CloudKitSyncingEnabled -bool false
     defaults write com.apple.tips NotificationsEnabled -bool false
 
-    # Siri (Apple Intelligence features in Xcode remain available)
+    # Siri
     defaults write com.apple.assistant.support "Assistant Enabled" -bool false
     defaults write com.apple.Siri StatusMenuVisible -bool false
     defaults write com.apple.Siri VoiceTriggerUserEnabled -bool false
 
-    # Animation. NSWindowResizeTime is deliberately absent: it only ever applied
-    # to the pre-Cocoa-Autolayout resize path and does nothing on current macOS.
+    # Animation
     defaults write com.apple.universalaccess reduceMotion -bool false
     defaults write com.apple.dock launchanim -bool true
     defaults write com.apple.dock expose-animation-duration -float 0.1
@@ -173,7 +150,6 @@ apply_macos_defaults() {
 
     killall Finder 2>/dev/null || true
     killall Dock 2>/dev/null || true
-    # Picks up the menu bar and Control Center side of the changes above.
     killall SystemUIServer 2>/dev/null || true
 
     success "macOS defaults applied"
@@ -192,7 +168,7 @@ configure_power_management() {
 }
 
 library_folder_visible() {
-    # BSD find matches file flags directly, so there is no ls output to parse.
+    # BSD find matches file flags directly.
     [[ -z "$(find "$HOME/Library" -maxdepth 0 -flags +hidden 2>/dev/null)" ]]
 }
 
@@ -202,7 +178,7 @@ unhide_library_folder() {
     success "$HOME/Library is visible in Finder"
 }
 
-keyboard_layout_already_installed() {
+keyboard_layout_installed() {
     local target="$HOME/Library/Keyboard Layouts/Hungarian_Win.keylayout"
     [[ -f "$target" ]] && cmp -s "$ASSETS_DIR/hungarian-win.keylayout" "$target"
 }
@@ -214,12 +190,10 @@ install_keyboard_layout() {
     success "Keyboard layout installed"
 }
 
-spotlight_exclusions_already_applied() {
+spotlight_exclusions_applied() {
     local path
 
-    # Required paths are checked unconditionally. Skipping absent ones (as this
-    # used to) reported "already applied" on a fresh machine, where none of them
-    # exist yet, so the exclusions were never written at all.
+    # Check required paths unconditionally: a fresh machine has none of them.
     for path in "${SPOTLIGHT_EXCLUDED_PATHS[@]}"; do
         [[ -f "$path/.metadata_never_index" ]] || return 1
     done
@@ -228,16 +202,11 @@ spotlight_exclusions_already_applied() {
         [[ -d "$path" ]] || continue
         [[ -f "$path/.metadata_never_index" ]] || return 1
     done
-
-    return 0
 }
 
 configure_spotlight_exclusions() {
     info "Excluding high-churn dev paths from Spotlight..."
 
-    # .metadata_never_index stops future indexing of a directory tree; anything
-    # already in the index stays until the volume is reindexed. Marking the
-    # paths before the build tools fill them is the point of creating them here.
     local path
     for path in "${SPOTLIGHT_EXCLUDED_PATHS[@]}"; do
         mkdir -p "$path"
@@ -252,9 +221,8 @@ configure_spotlight_exclusions() {
     success "Spotlight exclusions applied"
 }
 
-enable_touchid_sudo() {
-    # macOS 14+ ships sudo_local.template and preserves sudo_local across system
-    # updates, so this survives OS upgrades unlike editing /etc/pam.d/sudo.
+enable_touch_id_sudo() {
+    # sudo_local survives OS updates; edits to /etc/pam.d/sudo do not.
     if [[ ! -f /etc/pam.d/sudo_local.template ]]; then
         warn "/etc/pam.d/sudo_local.template not found; needs macOS 14 or newer"
         return 1
@@ -274,9 +242,7 @@ enable_touchid_sudo() {
 }
 
 computer_name_configured() {
-    # There is no "correct" name to compare against, so only treat Apple's
-    # generated default ("Gabor's MacBook Pro") as unconfigured and leave any
-    # deliberate name alone. macOS uses a curly apostrophe in that default.
+    # Only Apple's generated "X's Mac" counts as unconfigured (curly apostrophe).
     local current=""
     current="$(scutil --get ComputerName 2>/dev/null)" || return 1
     [[ -n "$current" && "$current" != *"'s "* && "$current" != *"’s "* ]]
@@ -285,7 +251,7 @@ computer_name_configured() {
 configure_computer_name() {
     local current="" new="" local_name=""
 
-    if [[ ! -t 0 || ! -t 1 ]]; then
+    if ! is_interactive; then
         info "Non-interactive shell; skipping computer name"
         return 0
     fi
@@ -299,8 +265,7 @@ configure_computer_name() {
         return 0
     fi
 
-    # LocalHostName is a DNS label. Collapse unsupported characters into one
-    # hyphen and strip hyphens from both ends.
+    # LocalHostName is a DNS label: collapse the rest into single hyphens.
     local_name="$(printf '%s' "$new" | sed -E 's/[^a-zA-Z0-9]+/-/g; s/^-+//; s/-+$//')"
     if [[ -z "$local_name" ]]; then
         warn "Computer name must contain at least one ASCII letter or number"
@@ -318,12 +283,6 @@ configure_computer_name() {
 }
 
 configure_dock() {
-    if ! command -v dockutil >/dev/null 2>&1; then
-        warn "dockutil not installed; skipping Dock layout"
-        info "Install it with: brew install dockutil"
-        return 1
-    fi
-
     info "Applying Dock layout..."
 
     local app
@@ -337,25 +296,19 @@ configure_dock() {
         dockutil --no-restart --add "$app" >/dev/null
     done
 
-    # Re-add the Downloads folder, wiped out by --remove all above.
+    # Downloads has to be re-added: --remove all wiped it out.
     dockutil --no-restart --add "$HOME/Downloads" --view auto --display folder --section others >/dev/null
 
     killall Dock 2>/dev/null || true
     success "Dock layout applied"
 }
 
-xcode_ready() {
-    [[ -d "$XCODE_APP" ]] || return 1
+xcode_first_launch_done() {
     [[ "$(xcode-select -p 2>/dev/null)" == "$XCODE_APP"/* ]] || return 1
     xcodebuild -checkFirstLaunchStatus >/dev/null 2>&1
 }
 
-configure_xcode_first_launch() {
-    if [[ ! -d "$XCODE_APP" ]]; then
-        warn "$XCODE_APP not found; install the desired Xcode build first"
-        return 1
-    fi
-
+run_xcode_first_launch() {
     info "Running Xcode first-launch setup..."
     sudo -v
     sudo xcode-select -s "$XCODE_APP/Contents/Developer"
@@ -365,24 +318,21 @@ configure_xcode_first_launch() {
     success "Xcode first-launch setup complete"
 }
 
-# mas 7 removed the `account` subcommand, so a signed-in App Store account
-# cannot be probed directly. Report which declared apps are actually missing
-# instead, which is the symptom that matters.
+# mas 7 removed the `account` subcommand, so report missing apps instead.
 report_missing_app_store_apps() {
     local installed="" id="" name="" missing=()
 
     command -v mas >/dev/null 2>&1 || return 0
-    [[ -f "$REPO_ROOT/Brewfile" ]] || return 0
+    [[ -f "$DOTFILES_BREWFILE" ]] || return 0
 
     installed="$(mas list 2>/dev/null | awk '{print $1}')" || return 0
 
     while read -r id name; do
         grep -qx "$id" <<<"$installed" && continue
-        # An app can be present without an App Store receipt (Xcode from a
-        # direct download), which mas does not list.
+        # An app installed outside the App Store has no receipt for mas to list.
         [[ -d "/Applications/$name.app" ]] && continue
         missing+=("$name ($id)")
-    done < <(sed -n 's/^mas "\([^"]*\)", id: \([0-9]*\).*/\2 \1/p' "$REPO_ROOT/Brewfile")
+    done < <(sed -n 's/^mas "\([^"]*\)", id: \([0-9]*\).*/\2 \1/p' "$DOTFILES_BREWFILE")
 
     if ((${#missing[@]} == 0)); then
         info "All Mac App Store apps installed"
@@ -390,45 +340,45 @@ report_missing_app_store_apps() {
     fi
 
     warn "Mac App Store apps not installed: ${missing[*]}"
-    info "Sign in to the App Store, then: brew bundle install --file $REPO_ROOT/Brewfile"
+    info "Sign in to the App Store, then: brew bundle install --file $DOTFILES_BREWFILE"
 }
 
 gh_authenticated() {
     gh auth status >/dev/null 2>&1
 }
 
-setup_gh_auth() {
-    if ! command -v gh >/dev/null 2>&1; then
-        warn "gh not installed; skipping GitHub authentication"
-        return 1
-    fi
-
-    # Only the gh CLI itself. Git's HTTPS credentials go through Git
-    # Credential Manager (config/git/config); `gh auth setup-git` would write
-    # a second helper into that stowed file and dirty the repo.
+authenticate_gh() {
+    # Not `gh auth setup-git`: it would write a second credential helper into
+    # the stowed git config.
     info "Authenticating with GitHub..."
     gh auth login
 
     success "GitHub authentication configured"
 }
 
-llvm_dlltool_symlinked() {
-    local llvm_prefix="" target=""
-    llvm_prefix="$(brew --prefix llvm 2>/dev/null)" || return 1
-    target="$HOME/.local/bin/dlltool"
-    [[ -L "$target" ]] && [[ "$(readlink "$target")" == "$llvm_prefix/bin/dlltool" ]]
+# Homebrew llvm ships the binary as llvm-dlltool; Wine's build looks for `dlltool`.
+# `brew --prefix <formula>` exits 0 even when uninstalled, so callers test -x.
+llvm_dlltool_path() {
+    printf '%s/bin/llvm-dlltool\n' "$(brew --prefix llvm 2>/dev/null)"
 }
 
-setup_llvm_dlltool_symlink() {
-    local llvm_prefix="" target=""
-    llvm_prefix="$(brew --prefix llvm 2>/dev/null)" || {
-        warn "LLVM not installed via Homebrew; skipping dlltool symlink"
+llvm_dlltool_linked() {
+    local src=""
+    src="$(llvm_dlltool_path)"
+    [[ -x "$src" && "$(readlink "$XDG_BIN_HOME/dlltool" 2>/dev/null)" == "$src" ]]
+}
+
+link_llvm_dlltool() {
+    local src=""
+    src="$(llvm_dlltool_path)"
+    [[ -x "$src" ]] || {
+        warn "Homebrew llvm not installed; skipping dlltool symlink"
         return 1
     }
-    target="$HOME/.local/bin/dlltool"
-    mkdir -p "$(dirname "$target")"
-    ln -sf "$llvm_prefix/bin/dlltool" "$target"
-    success "Symlinked ~/.local/bin/dlltool -> $llvm_prefix/bin/dlltool"
+
+    mkdir -p "$XDG_BIN_HOME"
+    ln -sf "$src" "$XDG_BIN_HOME/dlltool"
+    success "Symlinked $XDG_BIN_HOME/dlltool -> $src"
 }
 
 main() {
@@ -438,83 +388,41 @@ main() {
 
     ensure_xcode_cli_tools
 
-    # First, so every later sudo prompt in this run (and in the two scripts at
-    # the end) is a fingerprint instead of a typed password.
-    prompt_if_missing \
-        macos_touch_id_sudo_enabled \
-        enable_touchid_sudo \
-        "Enable Touch ID for sudo?" \
-        "Touch ID for sudo already enabled"
+    # First, so every later sudo prompt in this run is a fingerprint.
+    offer_if_missing "Enable Touch ID for sudo?" macos_touch_id_sudo_enabled enable_touch_id_sudo "Touch ID for sudo already enabled"
 
     if [[ "$(uname -m)" == "arm64" ]]; then
-        prompt_if_missing \
-            rosetta_installed \
-            install_rosetta \
-            "Install Rosetta?" \
-            "Rosetta already installed"
+        offer_if_missing "Install Rosetta?" rosetta_installed install_rosetta "Rosetta already installed"
     else
         info "Not Apple Silicon; skipping Rosetta"
     fi
 
-    prompt_if_missing \
-        computer_name_configured \
-        configure_computer_name \
-        "Set the computer name?" \
-        "Computer name already set"
+    offer_if_missing "Set the computer name?" computer_name_configured configure_computer_name "Computer name already set"
 
-    confirm_and_run "Apply macOS defaults?" apply_macos_defaults
-    confirm_and_run "Configure power management?" configure_power_management
-    confirm_and_run "Apply the Dock layout?" configure_dock
-    prompt_if_missing \
-        library_folder_visible \
-        unhide_library_folder \
-        "Unhide the user Library folder in Finder?" \
-        "User Library folder already visible"
+    offer "Apply macOS defaults?" apply_macos_defaults
+    offer "Configure power management?" configure_power_management
+    require_command dockutil "the Dock layout" && offer "Apply the Dock layout?" configure_dock
 
-    prompt_if_missing \
-        spotlight_exclusions_already_applied \
-        configure_spotlight_exclusions \
-        "Exclude high-churn dev paths from Spotlight?" \
-        "Spotlight exclusions already applied"
-    prompt_if_missing \
-        keyboard_layout_already_installed \
-        install_keyboard_layout \
-        "Install the custom Hungarian keyboard layout?" \
-        "Custom Hungarian keyboard layout already installed"
-
-    prompt_if_missing \
-        llvm_dlltool_symlinked \
-        setup_llvm_dlltool_symlink \
-        "Symlink LLVM dlltool into ~/.local/bin for Wine builds?" \
-        "LLVM dlltool symlink already in place"
+    offer_if_missing "Unhide the user Library folder in Finder?" library_folder_visible unhide_library_folder "User Library folder already visible"
+    offer_if_missing "Exclude high-churn dev paths from Spotlight?" spotlight_exclusions_applied configure_spotlight_exclusions "Spotlight exclusions already applied"
+    offer_if_missing "Install the custom Hungarian keyboard layout?" keyboard_layout_installed install_keyboard_layout "Custom Hungarian keyboard layout already installed"
+    offer_if_missing "Symlink LLVM dlltool into $XDG_BIN_HOME for Wine builds?" llvm_dlltool_linked link_llvm_dlltool "LLVM dlltool symlink already in place"
 
     report_missing_app_store_apps
 
-    if [[ ! -d "$XCODE_APP" ]]; then
+    if [[ -d "$XCODE_APP" ]]; then
+        offer_if_missing "Run Xcode first-launch setup (license, components, xcode-select)?" xcode_first_launch_done run_xcode_first_launch "No pending Xcode first-launch setup"
+    else
         info "Xcode not installed; skipping first-launch setup"
-    else
-        prompt_if_missing \
-            xcode_ready \
-            configure_xcode_first_launch \
-            "Run Xcode first-launch setup (license, components, xcode-select)?" \
-            "No pending Xcode first-launch setup"
     fi
 
-    if ! command -v gh >/dev/null 2>&1; then
-        info "gh not installed; skipping GitHub authentication"
-    else
-        prompt_if_missing \
-            gh_authenticated \
-            setup_gh_auth \
-            "Authenticate the GitHub CLI?" \
-            "GitHub CLI already authenticated"
-    fi
+    require_command gh "GitHub authentication" && offer_if_missing "Authenticate the GitHub CLI?" gh_authenticated authenticate_gh "GitHub CLI already authenticated"
 
-    offer_javascript_toolchain_setup
+    offer_node_toolchain_setup
 
     # Both scripts self-gate with their own confirm prompt.
-    "$REPO_ROOT/scripts/platform/macos-hardening.sh"
-    "$REPO_ROOT/scripts/platform/macos-office-tweaks.sh"
+    "$DOTFILES_ROOT/scripts/platform/macos-hardening.sh" || warn "macOS hardening did not complete"
+    "$DOTFILES_ROOT/scripts/platform/macos-office-tweaks.sh" || warn "Microsoft updater tweaks did not complete"
 
     success "macOS setup complete"
 }

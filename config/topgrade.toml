@@ -7,7 +7,6 @@ disable = [
     "claude_code",
     "codex",
     "containers",
-    "dotnet",
     "microsoft_office",
     "node",
     "opencode",
@@ -16,7 +15,6 @@ disable = [
     "yarn",
 ]
 assume_yes = true
-display_time = true
 cleanup = true
 notify_end = "never"
 

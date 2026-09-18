@@ -1,6 +1,8 @@
-# Completion configuration
+# Completion
 
-# Homebrew completions
+export ZSH_COMPDUMP="$XDG_CACHE_HOME/zsh/.zcompdump"
+
+# The only source of site-functions on Linuxbrew, where brew shellenv never runs.
 if (( $+commands[brew] )) && [[ -n ${HOMEBREW_PREFIX:-} ]]; then
   fpath=("$HOMEBREW_PREFIX/share/zsh/site-functions" $fpath)
 fi
@@ -16,20 +18,17 @@ if ! (( ${+_comps} )); then
     compinit -d "$ZSH_COMPDUMP"
   fi
 
-  compile_zsh_file_if_stale "$ZSH_COMPDUMP"
+  _dotfiles_zcompile "$ZSH_COMPDUMP"
 fi
 
-# Completion options
-setopt ALWAYS_TO_END          # Move cursor to end of word after completion
-setopt AUTO_PARAM_SLASH       # Add trailing slash to directory completions
-setopt COMPLETE_IN_WORD       # Complete from both ends of a word
-setopt LIST_PACKED            # Make completion list smaller
-setopt MENU_COMPLETE          # Auto-select first completion entry
+setopt ALWAYS_TO_END
+setopt AUTO_PARAM_SLASH
+setopt COMPLETE_IN_WORD
+setopt LIST_PACKED
+setopt MENU_COMPLETE
 
-# Completion styling
 zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
-# Unquoted so an empty LS_COLORS yields no arguments rather than one empty one.
-# 30-tools.zsh populates LS_COLORS from dircolors before this runs.
+# Unquoted so an empty LS_COLORS yields no arguments; 40-tools.zsh must set it first.
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 # Offer . and .. where they are valid, which cd and the git subcommands need.
 zstyle ':completion:*' special-dirs true

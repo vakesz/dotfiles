@@ -1,24 +1,12 @@
 #!/usr/bin/env bash
-#
-# Repeatably disable Microsoft auto-updaters on macOS so updates flow through
-# topgrade only. Rerun after an application update restores updater artifacts.
-#
-# Targets:
-#   - Microsoft EdgeUpdater  (LaunchAgents + bundle + UpdateDefault policy)
-#   - Microsoft AutoUpdate   (MAU; Teams / Office / OneNote / etc.)
-#
-# Strategy:
-#   1. Apply user-domain disable preferences first, so even an interrupted run
-#      leaves updaters disabled.
-#   2. Bootout + delete existing LaunchAgents and the EdgeUpdater bundle.
-#
-# Idempotent: safe to re-run after Edge or an Office app reinstalls anything.
-# No immutable flags or file ownership changes are applied.
-#
+# Disable the Microsoft auto-updaters (Edge, Office, Teams) so topgrade owns updates.
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+# shellcheck source-path=SCRIPTDIR
+source "$(dirname "${BASH_SOURCE[0]}")/../lib/paths.sh"
+source "$DOTFILES_ROOT/scripts/lib/ui.sh"
+source "$DOTFILES_ROOT/scripts/lib/platform.sh"
 
 EDGE_UPDATER_AGENTS=(
     com.microsoft.EdgeUpdater.wake.plist
@@ -33,8 +21,6 @@ MAU_AGENTS=(
     com.microsoft.autoupdate.helpertool.plist
 )
 
-source "$REPO_ROOT/scripts/lib/setup.sh"
-
 remove_launchd_plist() {
     local domain="$1" plist="$2"
     [[ -e "$plist" ]] || return 0
@@ -48,6 +34,17 @@ remove_launchd_plist() {
         chflags nouchg "$plist" 2>/dev/null || true
         rm -f "$plist"
     fi
+}
+
+remove_launchd_agents() {
+    local uid="" name=""
+    uid="$(id -u)"
+
+    for name in "$@"; do
+        remove_launchd_plist "gui/$uid" "$HOME/Library/LaunchAgents/$name"
+        remove_launchd_plist "system" "/Library/LaunchAgents/$name"
+        remove_launchd_plist "system" "/Library/LaunchDaemons/$name"
+    done
 }
 
 apply_edge_prefs() {
@@ -76,15 +73,7 @@ apply_mau_prefs() {
 remove_edge_updater() {
     info "Removing Microsoft EdgeUpdater LaunchAgents and bundles..."
 
-    local uid
-    uid="$(id -u)"
-
-    for name in "${EDGE_UPDATER_AGENTS[@]}"; do
-        remove_launchd_plist "gui/$uid" "$HOME/Library/LaunchAgents/$name"
-        remove_launchd_plist "system" "/Library/LaunchAgents/$name"
-        remove_launchd_plist "system" "/Library/LaunchDaemons/$name"
-    done
-
+    remove_launchd_agents "${EDGE_UPDATER_AGENTS[@]}"
     rm -rf "$HOME/Library/Application Support/Microsoft/EdgeUpdater"
     sudo rm -rf "/Library/Application Support/Microsoft/EdgeUpdater"
 
@@ -94,14 +83,7 @@ remove_edge_updater() {
 remove_microsoft_autoupdate() {
     info "Removing Microsoft AutoUpdate (MAU) LaunchAgents..."
 
-    local uid
-    uid="$(id -u)"
-
-    for name in "${MAU_AGENTS[@]}"; do
-        remove_launchd_plist "gui/$uid" "$HOME/Library/LaunchAgents/$name"
-        remove_launchd_plist "system" "/Library/LaunchAgents/$name"
-        remove_launchd_plist "system" "/Library/LaunchDaemons/$name"
-    done
+    remove_launchd_agents "${MAU_AGENTS[@]}"
 
     success "MAU LaunchAgents removed"
 }
@@ -116,6 +98,7 @@ main() {
         return 0
     }
 
+    # Preferences first, so even an interrupted run leaves the updaters disabled.
     apply_edge_prefs
     apply_mau_prefs
     remove_edge_updater

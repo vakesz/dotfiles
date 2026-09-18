@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-#
 # Optional Linux / WSL setup for this dotfiles repo.
-#
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+# shellcheck source-path=SCRIPTDIR
+source "$(dirname "${BASH_SOURCE[0]}")/../lib/paths.sh"
+source "$DOTFILES_ROOT/scripts/lib/ui.sh"
+source "$DOTFILES_ROOT/scripts/lib/platform.sh"
+source "$DOTFILES_ROOT/scripts/lib/node.sh"
+
 DISTRO_ID=""
 DISTRO_LIKE=""
-
-source "$REPO_ROOT/scripts/lib/setup.sh"
-source "$REPO_ROOT/scripts/lib/javascript.sh"
 
 persist_locale_with_systemd() {
     if command -v localectl >/dev/null 2>&1; then
@@ -102,6 +102,7 @@ persist_locale_for_family() {
     fi
 }
 
+# Hybrid on purpose: the locale is persisted even when it is already generated.
 ensure_locale() {
     load_linux_release_info
 
@@ -150,10 +151,10 @@ main() {
 
     info "Linux / WSL setup"
 
-    confirm "Configure en_US.UTF-8 locale?" && ensure_locale
-    confirm "Set zsh as the default shell?" && ensure_zsh_shell
+    offer "Configure en_US.UTF-8 locale?" ensure_locale
+    offer "Set zsh as the default shell?" ensure_zsh_shell
 
-    offer_javascript_toolchain_setup
+    offer_node_toolchain_setup
 
     success "Linux / WSL setup complete"
 }

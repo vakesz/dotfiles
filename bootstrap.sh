@@ -5,14 +5,17 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib/paths.sh
+source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/paths.sh"
+# shellcheck source=scripts/lib/ui.sh
+source "$DOTFILES_ROOT/scripts/lib/ui.sh"
+# shellcheck source=scripts/lib/platform.sh
+source "$DOTFILES_ROOT/scripts/lib/platform.sh"
+
 SCRIPT_NAME="$(basename "$0")"
 CONFIG_TARGET="${XDG_CONFIG_HOME:-$HOME/.config}"
 ADOPT=0
 SKIP_PREFLIGHT=0
-
-source "$REPO_ROOT/scripts/lib/setup.sh"
-source "$REPO_ROOT/scripts/lib/xdg.sh"
 
 usage() {
     cat <<EOF
@@ -63,10 +66,11 @@ maybe_run_preflight() {
         return 0
     fi
 
-    [[ "$(detect_platform 2>/dev/null)" == "macos" ]] || return 0
+    is_macos || return 0
 
-    source "$REPO_ROOT/scripts/lib/macos-preflight.sh"
-    run_macos_preflight "$REPO_ROOT/Brewfile"
+    # shellcheck source=scripts/lib/macos-preflight.sh
+    source "$DOTFILES_ROOT/scripts/lib/macos-preflight.sh"
+    run_macos_preflight "$DOTFILES_BREWFILE"
 }
 
 require_stow() {
@@ -83,7 +87,7 @@ confirm_adopt() {
         return 0
     fi
 
-    if [[ ! -t 0 || ! -t 1 ]]; then
+    if ! is_interactive; then
         error "--adopt requires an interactive terminal"
         info "Rerun interactively: ./$SCRIPT_NAME --adopt"
         exit 1
@@ -104,7 +108,7 @@ assert_stow_targets_clean() {
         target="$HOME"
         [[ "$package" == "config" ]] && target="$CONFIG_TARGET"
 
-        stow_output="$(stow -n --restow -d "$REPO_ROOT" -t "$target" "$package" 2>&1)" || {
+        stow_output="$(stow -n --restow -d "$DOTFILES_ROOT" -t "$target" "$package" 2>&1)" || {
             error "stow found existing files or directories that would conflict with linking"
             if [[ -n "$stow_output" ]]; then
                 printf '%s\n' "$stow_output"
@@ -116,7 +120,7 @@ assert_stow_targets_clean() {
 }
 
 stow_selected_packages() {
-    local stow_args=(--restow -d "$REPO_ROOT")
+    local stow_args=(--restow -d "$DOTFILES_ROOT")
 
     mkdir -p "$CONFIG_TARGET"
     info "Stowing home/ into $HOME and config/ into $CONFIG_TARGET"
@@ -132,31 +136,30 @@ stow_selected_packages() {
 
     success "Dotfiles linked"
 
-    if ((ADOPT)) && command -v git >/dev/null 2>&1 && git -C "$REPO_ROOT" rev-parse --git-dir >/dev/null 2>&1 && ! git -C "$REPO_ROOT" diff --quiet 2>/dev/null; then
+    if ((ADOPT)) && command -v git >/dev/null 2>&1 && git -C "$DOTFILES_ROOT" rev-parse --git-dir >/dev/null 2>&1 && ! git -C "$DOTFILES_ROOT" diff --quiet 2>/dev/null; then
         warn "Existing files were adopted into the repo. Review with: git diff"
     fi
 }
 
 maybe_run_platform_setup() {
-    local platform=""
-    local setup_path=""
+    local platform="" setup_path=""
 
     platform="$(detect_platform 2>/dev/null)" || return 0
-    setup_path="$REPO_ROOT/scripts/platform/${platform}.sh"
+    setup_path="$DOTFILES_ROOT/scripts/platform/${platform}.sh"
 
     if [[ ! -x "$setup_path" ]]; then
         warn "Platform setup script is missing or not executable: $setup_path"
         return 0
     fi
 
-    if [[ ! -t 0 || ! -t 1 ]]; then
+    if ! is_interactive; then
         info "Non-interactive shell; skipping optional platform setup prompt"
-        info "Run it later with: ./${setup_path#"$REPO_ROOT/"}"
+        info "Run it later with: ./${setup_path#"$DOTFILES_ROOT/"}"
         return 0
     fi
 
     if confirm "Run optional $(basename "$setup_path") setup now?"; then
-        "$setup_path"
+        "$setup_path" || warn "Platform setup did not complete"
     else
         info "Skipping platform setup for now"
     fi
