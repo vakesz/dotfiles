@@ -138,6 +138,7 @@ cask "discord"
 cask "iina"
 cask "steam"
 cask "whatsapp"
+cask "obs"
 
 # Desktop apps: browsers
 cask "firefox"
