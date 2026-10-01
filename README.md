@@ -134,7 +134,7 @@ Git ignores every `*.local` file plus `config/zsh/rc.d/*.local.zsh`, and stow ap
 - Bun and JDK 17 are Homebrew-managed runtimes. Topgrade does not run their standalone updaters
 - Python runtimes and project environments go through `uv`; `UV_TOOL_BIN_DIR` is on `PATH`. Homebrew supplies the `uv` binary and the standalone `ruff` CLI
 - Ruby is Homebrew's, preferred over the system Ruby. Gems install under `$GEM_HOME`, whose `bin` is on `PATH`
-- Homebrew keg-only tools that need explicit prefix paths are wired in `rc.d/20-path.zsh`: `curl`, GNU `coreutils`, GNU `make`, Homebrew Ruby, `flex`, and `bison`. Homebrew LLVM stays keg-only so `clang` remains Apple's; `macos.sh` only symlinks `dlltool` into `$XDG_BIN_HOME`
+- Homebrew keg-only tools that need explicit prefix paths are wired in `rc.d/20-path.zsh`: `curl`, GNU `make`, Homebrew Ruby, `flex`, and `bison`. GNU coreutils remains available through its prefixed commands; its unprefixed `gnubin` directory stays off `PATH` because it can interfere with GMP builds. Homebrew LLVM stays keg-only so `clang` remains Apple's; `macos.sh` only symlinks `dlltool` into `$XDG_BIN_HOME`
 - Updates run through `topgrade`. Homebrew owns installed application and runtime binaries; Topgrade owns TLDR cache, editor extension, GitHub CLI extension, global skill, repository, operating-system, and firmware updates. Greedy cask mode keeps self-updating apps under Homebrew's control
 - Xcode is installed separately so stable, beta, and direct-download builds remain interchangeable. The macOS setup handles first-launch configuration, and `make doctor` reports whether a full Xcode installation is available
 

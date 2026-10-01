@@ -12,10 +12,10 @@ if [[ $OS_TYPE == macos ]]; then
 
   if [[ -n ${HOMEBREW_PREFIX:-} ]]; then
     # Keg-only formulae only. LLVM stays out: llvm/bin would shadow Apple clang.
+    # coreutils' unprefixed commands stay out because they can interfere with GMP builds.
     _dotfiles_path_prepend \
       "$HOMEBREW_PREFIX/opt/curl/bin" \
       "$HOMEBREW_PREFIX/opt/ruby/bin" \
-      "$HOMEBREW_PREFIX/opt/coreutils/libexec/gnubin" \
       "$HOMEBREW_PREFIX/opt/make/libexec/gnubin" \
       "$HOMEBREW_PREFIX/opt/flex/bin" \
       "$HOMEBREW_PREFIX/opt/bison/bin"

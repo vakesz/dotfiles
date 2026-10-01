@@ -107,8 +107,8 @@ check_directory_permissions() {
             continue
         fi
 
-        # GNU coreutils stat is ahead of BSD stat on PATH here, and the two use
-        # incompatible flags. Try the GNU form first, then fall back to BSD.
+        # GNU and BSD stat use incompatible flags; support GNU first and BSD as
+        # the macOS fallback when GNU coreutils' unprefixed commands are absent.
         mode="$(stat -c '%a' "$dir" 2>/dev/null)" || mode="$(stat -f '%Lp' "$dir" 2>/dev/null)"
         verify "0700: $dir" "expected 0700, found 0$mode: $dir" fail test "$mode" = "700"
     done
