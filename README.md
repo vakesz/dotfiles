@@ -38,7 +38,7 @@ Then run `./bootstrap.sh`. It creates the XDG directories, prepares `$GNUPGHOME`
 make doctor
 ```
 
-`scripts/doctor.sh` checks that every managed file in the current working tree resolves into this repo, that the XDG and private directories have the right modes, that expected commands are on `PATH`, and that the Brewfile is satisfied. On macOS it also reports Touch ID for sudo, GitHub CLI auth, FileVault, SIP, Gatekeeper, automatic security responses, and the application firewall. On Linux, Brewfile workstation CLIs are warnings rather than failures. It exits non-zero on any failure and never changes anything.
+`scripts/doctor.sh` checks that every managed file in the current working tree resolves into this repo, that the XDG and private directories have the right modes, that expected commands are on `PATH`, and that the Brewfile is satisfied. On macOS it also reports Touch ID for sudo, GitHub CLI auth, FileVault, SIP, Gatekeeper, automatic security responses, the application firewall, and Firewall Stealth Mode. On Linux, Brewfile workstation CLIs are warnings rather than failures. It exits non-zero on any failure and never changes anything.
 
 ### Adopt an existing setup
 
@@ -143,7 +143,7 @@ Git ignores every `*.local` file plus `config/zsh/rc.d/*.local.zsh`, and stow ap
 `bootstrap.sh` offers the matching script; each can also be run later on its own. Every step prompts, and prompts default to **No** after `DOTFILES_CONFIRM_TIMEOUT` seconds (default `30`).
 
 - `scripts/platform/macos.sh`: Touch ID for sudo, Rosetta, computer name, macOS defaults, power settings, Dock layout, Finder visibility for `~/Library`, Spotlight exclusions, the custom Hungarian keyboard layout, the LLVM `dlltool` symlink, Xcode first-launch setup, GitHub CLI auth, and Node/pnpm, then runs the two scripts below
-- `scripts/platform/macos-hardening.sh`: optionally configures the application firewall, FileVault, remote login/services, privacy defaults, automatic security responses, and Homebrew analytics
+- `scripts/platform/macos-hardening.sh`: optionally configures the application firewall and Firewall Stealth Mode, FileVault, remote login/services, privacy defaults, automatic security responses, and Homebrew analytics
 - `scripts/platform/macos-office-tweaks.sh`: disables Microsoft AutoUpdate (MAU) for Office and Teams so updates flow through `topgrade` only
 - `scripts/platform/linux.sh`: `en_US.UTF-8` locale, zsh as the default shell, Node/pnpm
 

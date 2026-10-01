@@ -18,6 +18,11 @@ macos_firewall_enabled() {
     "$MACOS_FIREWALL" --getglobalstate 2>/dev/null | grep -q "enabled"
 }
 
+macos_firewall_stealth_mode_enabled() {
+    macos_firewall_available || return 1
+    "$MACOS_FIREWALL" --getstealthmode 2>/dev/null | grep -qi "stealth mode is on"
+}
+
 macos_gatekeeper_enabled() {
     spctl --status 2>/dev/null | grep -q "assessments enabled"
 }

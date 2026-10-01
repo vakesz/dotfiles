@@ -176,7 +176,7 @@ check_macos_tooling() {
 }
 
 # Report-only. The hardening script can configure FileVault, security updates,
-# and the firewall. SIP still requires Recovery.
+# firewall, and Firewall Stealth Mode. SIP still requires Recovery.
 check_macos_security() {
     section "macOS security"
 
@@ -200,6 +200,14 @@ check_macos_security() {
         soft_warn "Application firewall is off and this Mac is MDM-managed; ask IT"
     else
         fail "Application firewall is off (run scripts/platform/macos-hardening.sh)"
+    fi
+
+    if macos_firewall_stealth_mode_enabled; then
+        pass "Firewall Stealth Mode enabled"
+    elif macos_mdm_managed; then
+        soft_warn "Firewall Stealth Mode is off or managed by a profile; check System Settings or ask IT"
+    else
+        soft_warn "Firewall Stealth Mode is off (run scripts/platform/macos-hardening.sh)"
     fi
 }
 

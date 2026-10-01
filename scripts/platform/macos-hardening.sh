@@ -22,8 +22,6 @@ enable_firewall() {
     sudo "$MACOS_FIREWALL" --setglobalstate on >/dev/null
     sudo "$MACOS_FIREWALL" --setloggingmode on >/dev/null
 
-    # Not --setallowsigned off / stealth mode: both break local development.
-
     sudo pkill -HUP socketfilterfw 2>/dev/null || true
 
     # socketfilterfw exits 0 even when it declined to do anything.
@@ -33,6 +31,32 @@ enable_firewall() {
     fi
 
     success "Firewall enabled"
+}
+
+enable_firewall_stealth_mode() {
+    if macos_mdm_managed; then
+        warn "This Mac is MDM-managed; socketfilterfw refuses command-line changes"
+        info "Set Firewall Stealth Mode in System Settings or through the management profile"
+        return 1
+    fi
+
+    if ! macos_firewall_enabled; then
+        error "Enable the application firewall before enabling Stealth Mode"
+        return 1
+    fi
+
+    info "Enabling Firewall Stealth Mode..."
+    sudo -v
+    sudo "$MACOS_FIREWALL" --setstealthmode on >/dev/null
+    sudo pkill -HUP socketfilterfw 2>/dev/null || true
+
+    # socketfilterfw exits 0 even when it declined to do anything.
+    if ! macos_firewall_stealth_mode_enabled; then
+        error "Firewall Stealth Mode still reports disabled after the change"
+        return 1
+    fi
+
+    success "Firewall Stealth Mode enabled"
 }
 
 disable_remote_login() {
@@ -183,6 +207,7 @@ main() {
 
     if macos_firewall_available; then
         offer_if_missing "Enable the application firewall?" macos_firewall_enabled enable_firewall "Firewall already enabled"
+        offer_if_missing "Enable Firewall Stealth Mode?" macos_firewall_stealth_mode_enabled enable_firewall_stealth_mode "Firewall Stealth Mode already enabled"
     else
         warn "socketfilterfw not found; skipping firewall"
     fi
