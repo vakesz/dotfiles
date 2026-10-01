@@ -1,4 +1,4 @@
-continuation_prompt = "[❯❯ ](subtle)"
+continuation_prompt = "[❯❯ ](bright-black)"
 format = """
 $directory\
 $git_status\
@@ -11,19 +11,9 @@ $python \
 $character"""
 
 right_format = "$cmd_duration"
-palette = "tokyo_night"
 # git_status in large repos can exceed the 500ms default on a cold cache.
 command_timeout = 5000
 scan_timeout = 1000
-
-[palettes.tokyo_night]
-comment = "#565f89"
-subtle = "#737aa2"
-fg = "#c0caf5"
-red = "#f7768e"
-yellow = "#e0af68"
-cyan = "#7dcfff"
-pink = "#ffafd7"
 
 [directory]
 format = "[$path]($style)"
@@ -33,17 +23,17 @@ truncate_to_repo = false
 
 [git_branch]
 format = " [$branch]($style)"
-style = "fg"
+style = "white"
 
 [git_state]
 format = ' \([$state( $progress_current/$progress_total)]($style)\)'
-style = "comment"
+style = "bright-black"
 
 [git_status]
 # Shell out to git so core.fsmonitor and core.untrackedcache from
 # config/git/config apply; the built-in library ignores both.
 use_git_executable = true
-format = " [](fg)[($all_status)](pink)[($ahead_behind)]($style)"
+format = " [](white)[($all_status)](magenta)[($ahead_behind)]($style)"
 style = "cyan"
 conflicted = "!"
 deleted = "-"
@@ -69,7 +59,7 @@ symbol = ""
 detect_extensions = ["swift"]
 detect_files = ["Package.swift", "project.yml"]
 format = " [$symbol]($style)"
-style = "pink"
+style = "magenta"
 
 [nodejs]
 symbol = ""
@@ -94,4 +84,4 @@ style = "yellow"
 
 [character]
 error_symbol = "[❯](red)"
-success_symbol = "[❯](subtle)"
+success_symbol = "[❯](bright-black)"
