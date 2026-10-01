@@ -60,6 +60,18 @@ check_zsh() {
     printf 'zsh syntax: clean\n'
 }
 
+check_untracked_whitespace() {
+    local file output
+
+    while IFS= read -r file; do
+        output="$(git diff --no-index --check /dev/null "$file" 2>&1 || true)"
+        if [[ -n "$output" ]]; then
+            printf '%s\n' "$output" >&2
+            return 1
+        fi
+    done < <(git ls-files --others --exclude-standard)
+}
+
 check_config() {
     local duplicates=""
 
@@ -87,10 +99,11 @@ check_config() {
         exit 1
     fi
 
-    # The empty tree makes every committed line an added line; HEAD then covers
-    # uncommitted work, which a clean CI checkout does not have.
+    # The empty tree checks every committed line. The second check includes
+    # tracked local edits, and the helper covers untracked additions.
     git diff --check "$(git hash-object -t tree /dev/null)" HEAD
     git diff --check HEAD
+    check_untracked_whitespace
 
     printf 'config syntax and whitespace: clean\n'
 }

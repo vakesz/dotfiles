@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Disable the Microsoft auto-updaters (Edge, Office, Teams) so topgrade owns updates.
+# Disable the Microsoft auto-updater for Office and Teams so topgrade owns updates.
 
 set -euo pipefail
 
@@ -7,13 +7,6 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/paths.sh"
 source "$DOTFILES_ROOT/scripts/lib/ui.sh"
 source "$DOTFILES_ROOT/scripts/lib/platform.sh"
-
-EDGE_UPDATER_AGENTS=(
-    com.microsoft.EdgeUpdater.wake.plist
-    com.microsoft.EdgeUpdater.wake-system.plist
-    com.microsoft.EdgeUpdater.update.plist
-    com.microsoft.EdgeUpdater.update-system.plist
-)
 
 MAU_AGENTS=(
     com.microsoft.update.agent.plist
@@ -47,17 +40,6 @@ remove_launchd_agents() {
     done
 }
 
-apply_edge_prefs() {
-    info "Applying Edge no-auto-update user-domain preferences..."
-
-    defaults write com.microsoft.EdgeUpdater updateDefault -int 0
-    defaults write com.microsoft.EdgeUpdater installDefault -int 0
-    defaults write com.microsoft.Edge UpdateDefault -int 0
-    defaults write com.microsoft.Edge InstallDefault -int 0
-
-    success "Edge preferences applied"
-}
-
 apply_mau_prefs() {
     info "Applying MAU no-auto-update user-domain preferences..."
 
@@ -68,16 +50,6 @@ apply_mau_prefs() {
     defaults write com.microsoft.autoupdate2 ChannelName -string Current
 
     success "MAU preferences applied"
-}
-
-remove_edge_updater() {
-    info "Removing Microsoft EdgeUpdater LaunchAgents and bundles..."
-
-    remove_launchd_agents "${EDGE_UPDATER_AGENTS[@]}"
-    rm -rf "$HOME/Library/Application Support/Microsoft/EdgeUpdater"
-    sudo rm -rf "/Library/Application Support/Microsoft/EdgeUpdater"
-
-    success "EdgeUpdater removed"
 }
 
 remove_microsoft_autoupdate() {
@@ -91,7 +63,7 @@ remove_microsoft_autoupdate() {
 main() {
     require_platform macos
 
-    info "Microsoft updater tweaks (Edge / Office / Teams)"
+    info "Microsoft updater tweaks (Office / Teams)"
 
     confirm "Apply Microsoft updater tweaks now?" || {
         info "Skipping Microsoft updater tweaks"
@@ -99,9 +71,7 @@ main() {
     }
 
     # Preferences first, so even an interrupted run leaves the updaters disabled.
-    apply_edge_prefs
     apply_mau_prefs
-    remove_edge_updater
     remove_microsoft_autoupdate
 
     success "Microsoft updater tweaks complete"

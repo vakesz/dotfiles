@@ -23,7 +23,7 @@ linux: ## Run the Linux / WSL platform setup on its own
 doctor: ## Verify the machine matches what bootstrap should have produced
 	@./scripts/doctor.sh
 
-check: check-shell check-fmt check-zsh check-config ## Run every repository validation
+check: check-shell check-fmt check-zsh check-config check-apps ## Run every repository validation
 
 check-shell: ## Shellcheck every bash script in the repo
 	@./scripts/check.sh shell

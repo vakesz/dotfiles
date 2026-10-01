@@ -31,7 +31,6 @@ brew "gnupg"
 brew "graphviz"
 brew "jq"
 brew "mas"
-brew "midnight-commander"
 brew "nmap"
 brew "stow"
 brew "telnet"
@@ -64,7 +63,6 @@ cask "sf-symbols"
 brew "autoconf"
 brew "automake"
 brew "bison"
-brew "ccache"
 brew "cmake"
 brew "cppcheck"
 brew "flex"
@@ -115,16 +113,13 @@ brew "watchman"
 cask "visual-studio-code"
 
 # Databases
-brew "postgresql@18"
-brew "sqlite"
 cask "tablepro"
 
 # Desktop apps: system and maintenance
+brew "mole"
 cask "linearmouse"
-cask "puremac"
 cask "shottr"
 cask "tailscale-app"
-cask "thaw"
 
 # Desktop apps: productivity
 cask "affinity"
@@ -142,7 +137,6 @@ cask "obs"
 
 # Desktop apps: browsers
 cask "firefox"
-cask "microsoft-edge"
 
 # Desktop apps: Office
 cask "intune-company-portal"

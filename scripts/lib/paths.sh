@@ -17,7 +17,6 @@ set_xdg_environment_defaults() {
         "$XDG_STATE_HOME/zsh"
         "$XDG_CACHE_HOME/zsh"
         "$XDG_STATE_HOME/less"
-        "$XDG_STATE_HOME/psql"
         "$GNUPGHOME"
     )
 }

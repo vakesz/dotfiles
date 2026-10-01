@@ -14,8 +14,6 @@ if [[ $OS_TYPE == macos ]]; then
     # Keg-only formulae only. LLVM stays out: llvm/bin would shadow Apple clang.
     _dotfiles_path_prepend \
       "$HOMEBREW_PREFIX/opt/curl/bin" \
-      "$HOMEBREW_PREFIX/opt/sqlite/bin" \
-      "$HOMEBREW_PREFIX/opt/postgresql@18/bin" \
       "$HOMEBREW_PREFIX/opt/ruby/bin" \
       "$HOMEBREW_PREFIX/opt/coreutils/libexec/gnubin" \
       "$HOMEBREW_PREFIX/opt/make/libexec/gnubin" \

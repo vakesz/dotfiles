@@ -19,10 +19,6 @@ export BUNDLE_USER_CACHE="$XDG_CACHE_HOME/bundle"
 export BUNDLE_USER_PLUGIN="$XDG_DATA_HOME/bundle"
 export GNUPGHOME="$XDG_DATA_HOME/gnupg"
 export TEALDEER_CONFIG_DIR="$XDG_CONFIG_HOME/tealdeer"
-export PSQLRC="$XDG_CONFIG_HOME/psql/psqlrc"
-export PSQL_HISTORY="$XDG_STATE_HOME/psql/history"
-export PGPASSFILE="$XDG_CONFIG_HOME/psql/pgpass"  # libpq ignores this file unless it is 0600
-export PGSERVICEFILE="$XDG_CONFIG_HOME/psql/pg_service.conf"
 
 # Toolchain locations (PATH for interactive shells is set in rc.d/20-path.zsh).
 export GOPATH="$XDG_DATA_HOME/go"
