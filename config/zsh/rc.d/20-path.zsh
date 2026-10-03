@@ -11,19 +11,22 @@ if [[ $OS_TYPE == macos ]]; then
   unset brew_path
 
   if [[ -n ${HOMEBREW_PREFIX:-} ]]; then
-    # Keg-only formulae only. LLVM stays out: llvm/bin would shadow Apple clang.
+    # Keg-only formulae and ccache's compiler wrappers. LLVM stays out: llvm/bin
+    # would shadow Apple clang.
     # coreutils' unprefixed commands stay out because they can interfere with GMP builds.
     _dotfiles_path_prepend \
       "$HOMEBREW_PREFIX/opt/curl/bin" \
       "$HOMEBREW_PREFIX/opt/ruby/bin" \
       "$HOMEBREW_PREFIX/opt/make/libexec/gnubin" \
       "$HOMEBREW_PREFIX/opt/flex/bin" \
-      "$HOMEBREW_PREFIX/opt/bison/bin"
+      "$HOMEBREW_PREFIX/opt/bison/bin" \
+      "$HOMEBREW_PREFIX/opt/rustup/bin" \
+      "$HOMEBREW_PREFIX/opt/ccache/libexec"
   fi
 elif [[ $OS_TYPE == linux || $OS_TYPE == wsl ]]; then
   _dotfiles_path_prepend /snap/bin
 fi
 
-_dotfiles_path_prepend "$GOPATH/bin" "$UV_TOOL_BIN_DIR" "$GEM_HOME/bin"
+_dotfiles_path_prepend "$GOPATH/bin" "$UV_TOOL_BIN_DIR" "$GEM_HOME/bin" "$CARGO_HOME/bin"
 
 export PATH

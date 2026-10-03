@@ -2,6 +2,7 @@
 # Install with: brew bundle install
 
 # Terminal and shell
+brew "direnv"
 brew "starship"
 brew "zsh-autosuggestions"
 brew "zsh-syntax-highlighting"
@@ -33,18 +34,22 @@ brew "stow"
 brew "telnet"
 brew "topgrade"
 brew "uv"
+brew "yq"
 
 # Git
 brew "gh"
 brew "git"
+brew "git-lfs"
 cask "git-credential-manager"
 
 # Languages and runtimes
 brew "bun"
-brew "fnm"
 brew "go"
+brew "node"
+brew "pnpm"
 brew "protobuf"
 brew "ruby"
+brew "rustup"
 cask "temurin@17"
 
 # Apple and iOS development
@@ -59,6 +64,7 @@ cask "sf-symbols"
 brew "autoconf"
 brew "automake"
 brew "bison"
+brew "ccache"
 brew "cmake"
 brew "cppcheck"
 brew "flex"
@@ -75,7 +81,7 @@ brew "mingw-w64"
 brew "molten-vk"
 brew "ninja"
 brew "pkgconf"
-brew "raylib"
+# Axmol is installed in each project with its own setup script; Homebrew has no formula.
 
 # Linters and formatters
 brew "actionlint"
@@ -103,6 +109,8 @@ cask "steipete/tap/codexbar"
 # General development tools
 brew "azure-cli"
 brew "pngquant"
+brew "imagemagick"
+brew "webp"
 brew "ruff"
 brew "watchman"
 cask "visual-studio-code"

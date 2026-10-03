@@ -4,6 +4,10 @@ export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 export XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
 
+# Do not carry obsolete version-manager state into child shells.
+unset FNM_DIR FNM_MULTISHELL_PATH COREPACK_HOME
+path=("${(@)path:#${XDG_STATE_HOME}/fnm_multishells/*/bin}")
+
 export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 
 # Tool config/cache redirects (apply to non-interactive shells too).
@@ -27,8 +31,10 @@ export UV_CACHE_DIR="$XDG_CACHE_HOME/uv"
 export UV_TOOL_DIR="$XDG_DATA_HOME/uv/tools"
 export UV_TOOL_BIN_DIR="$XDG_DATA_HOME/uv/bin"
 export UV_PYTHON_INSTALL_DIR="$XDG_DATA_HOME/uv/python"
-export FNM_DIR="${FNM_DIR:-$XDG_DATA_HOME/fnm}"
 export PNPM_HOME="$XDG_DATA_HOME/pnpm"
+export CCACHE_DIR="$XDG_CACHE_HOME/ccache"
+export CARGO_HOME="$XDG_DATA_HOME/cargo"
+export RUSTUP_HOME="$XDG_DATA_HOME/rustup"
 export DOCKER_CONFIG="$XDG_CONFIG_HOME/docker"
 export GRADLE_USER_HOME="$XDG_DATA_HOME/gradle"
 export AZURE_CONFIG_DIR="$XDG_DATA_HOME/azure"
@@ -64,7 +70,7 @@ fi
 _dotfiles_base_path() {
   local dir
   # pnpm 11 refuses to run unless its global bin dir is in PATH, even before it exists.
-  path=("$PNPM_HOME/bin" $path)
+  path=("$PNPM_HOME/bin" "$CARGO_HOME/bin" $path)
   for dir in "$ANDROID_HOME"/{platform-tools,emulator,cmdline-tools/latest/bin}; do
     [[ -d "$dir" ]] && path=("$dir" $path)
   done

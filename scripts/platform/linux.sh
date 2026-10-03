@@ -7,7 +7,6 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/paths.sh"
 source "$DOTFILES_ROOT/scripts/lib/ui.sh"
 source "$DOTFILES_ROOT/scripts/lib/platform.sh"
-source "$DOTFILES_ROOT/scripts/lib/node.sh"
 
 DISTRO_ID=""
 DISTRO_LIKE=""
@@ -153,8 +152,6 @@ main() {
 
     offer "Configure en_US.UTF-8 locale?" ensure_locale
     offer "Set zsh as the default shell?" ensure_zsh_shell
-
-    offer_node_toolchain_setup
 
     success "Linux / WSL setup complete"
 }

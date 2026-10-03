@@ -7,7 +7,6 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/../lib/paths.sh"
 source "$DOTFILES_ROOT/scripts/lib/ui.sh"
 source "$DOTFILES_ROOT/scripts/lib/platform.sh"
-source "$DOTFILES_ROOT/scripts/lib/node.sh"
 source "$DOTFILES_ROOT/scripts/lib/macos-state.sh"
 source "$DOTFILES_ROOT/scripts/lib/macos-preflight.sh"
 
@@ -355,6 +354,42 @@ authenticate_gh() {
     success "GitHub authentication configured"
 }
 
+git_lfs_configured() {
+    [[ "$(git config --global --get filter.lfs.process 2>/dev/null)" == "git-lfs filter-process" ]]
+}
+
+configure_git_lfs() {
+    info "Configuring Git LFS..."
+    git lfs install
+    success "Git LFS configured"
+}
+
+rustup_path() {
+    printf '%s/bin/rustup\n' "$(brew --prefix rustup 2>/dev/null)"
+}
+
+rustup_stable_toolchain_installed() {
+    local rustup_bin=""
+
+    rustup_bin="$(rustup_path)"
+    [[ -x "$rustup_bin" ]] || return 1
+    "$rustup_bin" toolchain list | grep -q '^stable'
+}
+
+install_rustup_stable_toolchain() {
+    local rustup_bin=""
+
+    rustup_bin="$(rustup_path)"
+    [[ -x "$rustup_bin" ]] || {
+        warn "Homebrew rustup not installed; skipping Rust setup"
+        return 1
+    }
+
+    info "Installing the stable Rust toolchain..."
+    "$rustup_bin" default stable
+    success "Stable Rust toolchain installed"
+}
+
 # Homebrew llvm ships the binary as llvm-dlltool; Wine's build looks for `dlltool`.
 # `brew --prefix <formula>` exits 0 even when uninstalled, so callers test -x.
 llvm_dlltool_path() {
@@ -417,7 +452,8 @@ main() {
 
     require_command gh "GitHub authentication" && offer_if_missing "Authenticate the GitHub CLI?" gh_authenticated authenticate_gh "GitHub CLI already authenticated"
 
-    offer_node_toolchain_setup
+    require_command git-lfs "Git LFS" && offer_if_missing "Configure Git LFS globally?" git_lfs_configured configure_git_lfs "Git LFS already configured"
+    offer_if_missing "Install the stable Rust toolchain?" rustup_stable_toolchain_installed install_rustup_stable_toolchain "Stable Rust toolchain already installed"
 
     # Both scripts self-gate with their own confirm prompt.
     "$DOTFILES_ROOT/scripts/platform/macos-hardening.sh" || warn "macOS hardening did not complete"

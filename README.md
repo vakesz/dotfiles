@@ -30,7 +30,7 @@ sudo dnf install -y git stow zsh      # Fedora
 sudo pacman -S --needed git stow zsh  # Arch Linux
 ```
 
-Then run `./bootstrap.sh`. It creates the XDG directories, prepares `$GNUPGHOME` with private permissions, stows `home/` into `$HOME` and `config/` into `$XDG_CONFIG_HOME`, and offers to run `scripts/platform/linux.sh` (locale, default shell, Node.js, pnpm). The broader workstation toolset in the `Brewfile` is macOS-only; install `bat`, `fd`, `fzf`, `ripgrep`, `starship`, `uv`, and `zoxide` through the distribution package manager.
+Then run `./bootstrap.sh`. It creates the XDG directories, prepares `$GNUPGHOME` with private permissions, stows `home/` into `$HOME` and `config/` into `$XDG_CONFIG_HOME`, and offers to run `scripts/platform/linux.sh` for locale and shell setup. The broader workstation toolset in the `Brewfile` is macOS-only; install `bat`, `bun`, `direnv`, `fd`, `fzf`, `node`, `pnpm`, `ripgrep`, `starship`, `uv`, and `zoxide` through the distribution package manager.
 
 ### Verify the result
 
@@ -70,6 +70,7 @@ dotfiles/
 │   ├── tealdeer/
 │   ├── topgrade.toml
 │   └── zsh/
+│       ├── .zshenv          # Bridge for nested shells that inherit ZDOTDIR
 │       ├── .zprofile
 │       ├── .zshrc
 │       └── rc.d/         # 00-lib, 10-env, 20-path, 30-options, 40-tools, 50-completion, 60-commands, 70-python-venv, 80-keybindings, 90-plugins
@@ -82,7 +83,6 @@ dotfiles/
 │   ├── lib/
 │   │   ├── macos-preflight.sh # Command Line Tools, Homebrew, Brewfile
 │   │   ├── macos-state.sh     # Read-only macOS state checks
-│   │   ├── node.sh            # fnm-managed Node.js and Corepack setup
 │   │   ├── paths.sh           # Repo paths, XDG defaults, runtime directories
 │   │   ├── platform.sh        # OS detection
 │   │   └── ui.sh              # Prompts, status output, the check vocabulary
@@ -100,7 +100,7 @@ Run `make help` for the full list of targets; there is no separate table here.
 
 ## What is configured
 
-- `home/.zshenv`: XDG directories, `ZDOTDIR`, and tool cache/config redirects that must apply to non-interactive shells too (Go, uv, pnpm, PostgreSQL, Gradle, Android SDK, JDK 17 via `java_home`)
+- `home/.zshenv`: XDG directories, `ZDOTDIR`, and tool cache/config redirects that must apply to non-interactive shells too (Go, Rust, uv, pnpm, ccache, PostgreSQL, Gradle, Android SDK, JDK 17 via `java_home`)
 - `config/zsh`: `.zshrc` sources `rc.d/*.zsh` in order: shared helpers and platform detection, environment, PATH, shell options, tool integration, completion, commands, Python venv helpers, keybindings, then plugins. Tool init output is cached under `$XDG_CACHE_HOME/zsh` and recompiled only when the tool or its config changes. `30-options.zsh` selects the vi keymap before fzf initializes in `40-tools.zsh`, because fzf binds Tab into whichever keymap is current. Naming rule: a bare name is a command meant to be typed (`venv`, `rgf`, `zsh-profile`); everything else is a helper prefixed `_dotfiles_*`
 - `config/starship.toml`: prompt. `git_status` shells out to `git` so the `fsmonitor` and `untrackedcache` settings in `config/git/config` apply
 - `config/git`: config and global ignore rules. HTTPS credentials go through Git Credential Manager (`credential.helper = manager`); `macos.sh` only signs in the `gh` CLI itself
@@ -130,11 +130,11 @@ Git ignores every `*.local` file plus `config/zsh/rc.d/*.local.zsh`, and stow ap
 ## Toolchains
 
 - Homebrew Bundle provides the workstation CLIs, apps, and Mac App Store apps declared in the `Brewfile`. Mac App Store entries need a signed-in account. Shell plugins (`zsh-autosuggestions`, `zsh-syntax-highlighting`) come from the Brewfile too; there is no plugin manager. The login shell is macOS's own `/bin/zsh`
-- Node is managed by `fnm`, not Homebrew. The platform scripts offer to install the latest LTS, make it the `fnm` default, and enable `pnpm` via `corepack`. JavaScript formatter/linter CLIs are project-local; no global `prettier` or similar is installed, and topgrade's npm/pnpm steps are off
-- Bun and JDK 17 are Homebrew-managed runtimes. Topgrade does not run their standalone updaters
+- Node, pnpm, and Bun are Homebrew-managed. pnpm's global executables use `$PNPM_HOME/bin`, while JavaScript formatter and linter CLIs stay project-local. Topgrade leaves their standalone update steps off because Homebrew updates the installed binaries
+- Rustup is Homebrew-managed and keeps its toolchains under the XDG data directory. `macos.sh` offers to install the stable toolchain. Ccache uses `$CCACHE_DIR`, and its compiler wrappers are on the interactive-shell `PATH`
 - Python runtimes and project environments go through `uv`; `UV_TOOL_BIN_DIR` is on `PATH`. Homebrew supplies the `uv` binary and the standalone `ruff` CLI
 - Ruby is Homebrew's, preferred over the system Ruby. Gems install under `$GEM_HOME`, whose `bin` is on `PATH`
-- Homebrew keg-only tools that need explicit prefix paths are wired in `rc.d/20-path.zsh`: `curl`, GNU `make`, Homebrew Ruby, `flex`, and `bison`. GNU coreutils remains available through its prefixed commands; its unprefixed `gnubin` directory stays off `PATH` because it can interfere with GMP builds. Homebrew LLVM stays keg-only so `clang` remains Apple's; `macos.sh` only symlinks `dlltool` into `$XDG_BIN_HOME`
+- Homebrew keg-only tools that need explicit prefix paths are wired in `rc.d/20-path.zsh`: `curl`, GNU `make`, Homebrew Ruby, `flex`, `bison`, and rustup. GNU coreutils remains available through its prefixed commands; its unprefixed `gnubin` directory stays off `PATH` because it can interfere with GMP builds. Homebrew LLVM stays keg-only so `clang` remains Apple's; `macos.sh` only symlinks `dlltool` into `$XDG_BIN_HOME`
 - Updates run through `topgrade`. Homebrew owns installed application and runtime binaries; Topgrade owns TLDR cache, editor extension, GitHub CLI extension, global skill, repository, operating-system, and firmware updates. Greedy cask mode keeps self-updating apps under Homebrew's control
 - Xcode is installed separately so stable, beta, and direct-download builds remain interchangeable. The macOS setup handles first-launch configuration, and `make doctor` reports whether a full Xcode installation is available
 
@@ -142,10 +142,10 @@ Git ignores every `*.local` file plus `config/zsh/rc.d/*.local.zsh`, and stow ap
 
 `bootstrap.sh` offers the matching script; each can also be run later on its own. Every step prompts, and prompts default to **No** after `DOTFILES_CONFIRM_TIMEOUT` seconds (default `30`).
 
-- `scripts/platform/macos.sh`: Touch ID for sudo, Rosetta, computer name, macOS defaults, power settings, Dock layout, Finder visibility for `~/Library`, Spotlight exclusions, the custom Hungarian keyboard layout, the LLVM `dlltool` symlink, Xcode first-launch setup, GitHub CLI auth, and Node/pnpm, then runs the two scripts below
+- `scripts/platform/macos.sh`: Touch ID for sudo, Rosetta, computer name, macOS defaults, power settings, Dock layout, Finder visibility for `~/Library`, Spotlight exclusions, the custom Hungarian keyboard layout, the LLVM `dlltool` symlink, Xcode first-launch setup, GitHub CLI auth, Git LFS, and the stable Rust toolchain, then runs the two scripts below
 - `scripts/platform/macos-hardening.sh`: optionally configures the application firewall and Firewall Stealth Mode, FileVault, remote login/services, privacy defaults, automatic security responses, and Homebrew analytics
 - `scripts/platform/macos-office-tweaks.sh`: disables Microsoft AutoUpdate (MAU) for Office and Teams so updates flow through `topgrade` only
-- `scripts/platform/linux.sh`: `en_US.UTF-8` locale, zsh as the default shell, Node/pnpm
+- `scripts/platform/linux.sh`: `en_US.UTF-8` locale and zsh as the default shell
 
 ## Resources
 
@@ -154,8 +154,9 @@ Git ignores every `*.local` file plus `config/zsh/rc.d/*.local.zsh`, and stow ap
 - [Starship](https://starship.rs/)
 - [zoxide](https://github.com/ajeetdsouza/zoxide)
 - [fzf](https://github.com/junegunn/fzf)
-- [fnm](https://github.com/Schniz/fnm)
+- [Node.js](https://nodejs.org/)
 - [pnpm](https://pnpm.io/)
+- [Bun](https://bun.com/)
 - [uv](https://docs.astral.sh/uv/)
 - [ripgrep](https://ripgrep.dev/docs/guide/)
 - [fd](https://github.com/sharkdp/fd)

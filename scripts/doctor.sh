@@ -22,7 +22,7 @@ CONFIG_TARGET="${XDG_CONFIG_HOME:-$HOME/.config}"
 # Commands bootstrap itself requires on every platform.
 CORE_COMMANDS=(git stow zsh)
 # Workstation tools the Brewfile installs on macOS. On Linux they are optional.
-WORKSTATION_COMMANDS=(starship fzf rg fd bat eza zoxide jq uv tldr)
+WORKSTATION_COMMANDS=(starship fzf rg fd bat eza zoxide jq uv tldr yq direnv ccache git-lfs node pnpm bun rustup)
 MACOS_COMMANDS=(brew dockutil gh mas topgrade)
 
 has_command() {

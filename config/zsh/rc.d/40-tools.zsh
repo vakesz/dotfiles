@@ -4,16 +4,10 @@
 # feeds it to the completion list-colors zstyle.
 _dotfiles_cache_tool dircolors "dircolors -b" "${(%):-%N}"
 
-if (( $+commands[fnm] )); then
-  # Drop the previous shell's multishell dir, which fnm leaves in an inherited PATH.
-  path=("${(@)path:#${XDG_STATE_HOME}/fnm_multishells/*/bin}")
-  _fnm_env="$(fnm env --shell zsh --use-on-cd --corepack-enabled)" && eval "$_fnm_env"
-  unset _fnm_env
-fi
-
 [[ -t 1 && ${TERM:-} != dumb ]] \
   && _dotfiles_cache_tool starship "starship init zsh" "$XDG_CONFIG_HOME/starship.toml" "${(%):-%N}"
 _dotfiles_cache_tool zoxide "zoxide init zsh --cmd cd" "${(%):-%N}"
+[[ -t 0 && -t 1 ]] && _dotfiles_cache_tool direnv "direnv hook zsh" "${(%):-%N}"
 
 # fzf runs FZF_DEFAULT_COMMAND through sh, so the `fd=fdfind` alias never applies.
 if (( $+commands[fd] || $+commands[fdfind] )); then
