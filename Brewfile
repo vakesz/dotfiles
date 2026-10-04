@@ -81,12 +81,12 @@ brew "mingw-w64"
 brew "molten-vk"
 brew "ninja"
 brew "pkgconf"
-# Axmol is installed in each project with its own setup script; Homebrew has no formula.
 
 # Linters and formatters
 brew "actionlint"
 brew "clang-format"
 brew "shellcheck"
+brew "ruff"
 brew "shfmt"
 brew "swift-format"
 
@@ -99,7 +99,6 @@ cask "orbstack"
 cask "android-commandlinetools"
 
 # AI tools
-brew "anomalyco/tap/opencode"
 cask "codex"
 cask "claude-code@latest"
 cask "chatgpt"
@@ -111,7 +110,6 @@ brew "azure-cli"
 brew "pngquant"
 brew "imagemagick"
 brew "webp"
-brew "ruff"
 brew "watchman"
 cask "visual-studio-code"
 
@@ -132,9 +130,7 @@ cask "mountain-duck"
 cask "tiled"
 
 # Desktop apps: media and communication
-cask "discord"
 cask "iina"
-cask "steam"
 cask "whatsapp"
 cask "obs"
 

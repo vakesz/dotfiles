@@ -17,17 +17,17 @@ ASSETS_DIR="$DOTFILES_ROOT/assets/macos"
 DOCK_APPS=(
     "/System/Applications/Apps.app"
     "/Applications/Safari.app"
+    "/Applications/Firefox.app"
     "/System/Applications/Messages.app"
     "/System/Applications/Mail.app"
     "/System/Applications/Calendar.app"
     "/Applications/WhatsApp.app"
     "/Applications/Microsoft Teams.app"
     "/Applications/Microsoft Outlook.app"
-    "/Applications/Discord.app"
     "/System/Applications/Music.app"
-    "/Applications/Ghostty.app"
     "/Applications/Visual Studio Code.app"
     "$XCODE_APP"
+    "/Applications/Ghostty.app"
 )
 
 SPOTLIGHT_EXCLUDED_PATHS=(
