@@ -5,13 +5,7 @@ typeset -U path fpath
 typeset -g OS_TYPE="unknown"
 case "$OSTYPE" in
   darwin*) OS_TYPE="macos" ;;
-  linux*)
-    if grep -qi microsoft /proc/version 2>/dev/null; then
-      OS_TYPE="wsl"
-    else
-      OS_TYPE="linux"
-    fi
-    ;;
+  linux*)  OS_TYPE="linux" ;;
 esac
 
 _dotfiles_path_prepend() {

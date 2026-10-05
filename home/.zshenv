@@ -4,13 +4,11 @@ export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 export XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
 
-# Do not carry obsolete version-manager state into child shells.
-unset FNM_DIR FNM_MULTISHELL_PATH COREPACK_HOME
-path=("${(@)path:#${XDG_STATE_HOME}/fnm_multishells/*/bin}")
+unset COREPACK_HOME
 
 export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 
-# Tool config/cache redirects (apply to non-interactive shells too).
+# Tool config and cache locations, needed by non-interactive shells too.
 export LESS='-R -i -M -W -x4 -F -X'
 export LESSHISTFILE="$XDG_STATE_HOME/less/history"
 export RIPGREP_CONFIG_PATH="$XDG_CONFIG_HOME/ripgrep/config"
@@ -24,7 +22,7 @@ export BUNDLE_USER_PLUGIN="$XDG_DATA_HOME/bundle"
 export GNUPGHOME="$XDG_DATA_HOME/gnupg"
 export TEALDEER_CONFIG_DIR="$XDG_CONFIG_HOME/tealdeer"
 
-# Toolchain locations (PATH for interactive shells is set in rc.d/20-path.zsh).
+# Toolchain locations. Interactive PATH additions live in rc.d/20-path.zsh.
 export GOPATH="$XDG_DATA_HOME/go"
 export GOMODCACHE="$XDG_CACHE_HOME/go/mod"
 export UV_CACHE_DIR="$XDG_CACHE_HOME/uv"
@@ -41,8 +39,8 @@ export AZURE_CONFIG_DIR="$XDG_DATA_HOME/azure"
 export CP_HOME_DIR="$XDG_CACHE_HOME/cocoapods"
 export NPM_CONFIG_LOGS_DIR="$XDG_STATE_HOME/npm/logs"
 
-# Gradle and the Android command-line tools need JAVA_HOME; the Android Gradle
-# Plugin requires 17. java_home exits non-zero when no matching JDK is installed.
+# Gradle and the Android tools need JAVA_HOME, and the Android Gradle Plugin
+# needs JDK 17. java_home fails if no matching JDK is installed.
 if [[ "$OSTYPE" == darwin* && -z "${JAVA_HOME:-}" && -x /usr/libexec/java_home ]]; then
   if _java_home="$(/usr/libexec/java_home -v 17 2>/dev/null)"; then
     export JAVA_HOME="$_java_home"
@@ -50,7 +48,7 @@ if [[ "$OSTYPE" == darwin* && -z "${JAVA_HOME:-}" && -x /usr/libexec/java_home ]
   unset _java_home
 fi
 
-# Set here so non-interactive build shells (gradle, RN CLI) find the SDK and adb.
+# Set here so non-interactive builds (Gradle, React Native CLI) find the SDK.
 if [[ "$OSTYPE" == darwin* ]]; then
   export ANDROID_HOME="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
 else
@@ -66,10 +64,10 @@ if [[ "$OSTYPE" == linux* ]]; then
   export GTK2_RC_FILES="$XDG_CONFIG_HOME/gtk-2.0/gtkrc"
 fi
 
-# A function because .zprofile re-runs it after the system profile rebuilds PATH.
+# A function so .zprofile can re-apply it after the system profile resets PATH.
 _dotfiles_base_path() {
   local dir
-  # pnpm 11 refuses to run unless its global bin dir is in PATH, even before it exists.
+  # pnpm 11 won't run unless its global bin dir is on PATH, even before it exists.
   path=("$PNPM_HOME/bin" "$CARGO_HOME/bin" $path)
   for dir in "$ANDROID_HOME"/{platform-tools,emulator,cmdline-tools/latest/bin}; do
     [[ -d "$dir" ]] && path=("$dir" $path)
@@ -81,5 +79,5 @@ typeset -U path
 _dotfiles_base_path
 export PATH
 
-# Prevent .zsh_sessions from cluttering $ZDOTDIR on macOS.
+# Stop macOS from writing .zsh_sessions into $ZDOTDIR.
 [[ "$OSTYPE" == darwin* ]] && export SHELL_SESSIONS_DISABLE=1

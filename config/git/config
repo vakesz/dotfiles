@@ -24,7 +24,7 @@
 	autosetupmerge = simple
 
 [alias]
-	# Sync current branch from upstream to your fork (origin)
+	# Fast-forward the current branch from upstream, then push it to origin
 	sync-fork = !branch=$(git symbolic-ref --short HEAD) && git fetch upstream && git merge --ff-only upstream/$branch && git push origin $branch
 	sf = sync-fork
 	lol = log --graph --oneline --decorate --all
@@ -33,7 +33,7 @@
 	difftool = true
 
 [credential]
-	# Git Credential Manager (cross-platform): brew install git-credential-manager
+	# Git Credential Manager, installed from the Brewfile
 	helper = manager
 
 [diff]
@@ -63,12 +63,12 @@
 	changed = yellow bold
 	untracked = red bold
 
-# Machine-local overrides
-# Missing file is silently skipped by git
-[include]
-	path = gitconfig.local
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
+
+# Machine-local overrides. Git skips the file if it doesn't exist.
+[include]
+	path = gitconfig.local

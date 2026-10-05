@@ -11,9 +11,8 @@ if [[ $OS_TYPE == macos ]]; then
   unset brew_path
 
   if [[ -n ${HOMEBREW_PREFIX:-} ]]; then
-    # Keg-only formulae and ccache's compiler wrappers. LLVM stays out: llvm/bin
-    # would shadow Apple clang.
-    # coreutils' unprefixed commands stay out because they can interfere with GMP builds.
+    # Keg-only formulae and ccache's compiler wrappers. Left out on purpose:
+    # llvm/bin would shadow Apple clang, and coreutils' gnubin breaks GMP builds.
     _dotfiles_path_prepend \
       "$HOMEBREW_PREFIX/opt/curl/bin" \
       "$HOMEBREW_PREFIX/opt/ruby/bin" \
@@ -23,7 +22,7 @@ if [[ $OS_TYPE == macos ]]; then
       "$HOMEBREW_PREFIX/opt/rustup/bin" \
       "$HOMEBREW_PREFIX/opt/ccache/libexec"
   fi
-elif [[ $OS_TYPE == linux || $OS_TYPE == wsl ]]; then
+elif [[ $OS_TYPE == linux ]]; then
   _dotfiles_path_prepend /snap/bin
 fi
 

@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
-#
-# One-line installer for a clean macOS machine:
+# One-line installer for a fresh Mac:
 #
 #   curl -fsSL https://raw.githubusercontent.com/vakesz/dotfiles/main/install.sh | bash
 #
-# Gets git, gets the repo, hands off to bootstrap.sh, which owns Homebrew, the
-# Brewfile and stow. Standalone by necessity: the repo is not on disk yet, so
-# nothing here may source scripts/lib.
-#
+# Installs git, clones the repo, then hands off to bootstrap.sh for Homebrew,
+# the Brewfile and stow. It must stay self-contained: the repo isn't on disk
+# yet, so nothing in scripts/lib is available.
 
 set -euo pipefail
 
@@ -34,7 +32,7 @@ ensure_git() {
     xcode-select --install 2>/dev/null || true
     say "Complete the installer dialog; waiting for it to finish..."
 
-    # Poll xcode-select, not git: the git shim re-opens the installer dialog.
+    # Poll xcode-select, not git: running the git shim reopens the installer.
     while ! xcode-select -p >/dev/null 2>&1; do
         ((waited >= XCODE_CLI_TOOLS_WAIT_TIMEOUT)) && die "Timed out after ${XCODE_CLI_TOOLS_WAIT_TIMEOUT}s waiting for Command Line Tools"
         sleep 5
@@ -70,8 +68,8 @@ ensure_repo() {
 main() {
     [[ "$OSTYPE" == darwin* ]] || die "This installer is macOS only; on Linux install git, stow and zsh, clone the repo, then run ./bootstrap.sh"
 
-    # Under curl|bash, bash reads this script from fd 0, so stdin may only be
-    # repointed here in main -- the last statement, once the file is parsed.
+    # Under curl | bash, bash reads this script from stdin, so stdin can only be
+    # switched to the terminal here, once the whole file has been read.
     [[ ! -t 0 && -r /dev/tty ]] && exec </dev/tty
 
     say "Dotfiles installer"

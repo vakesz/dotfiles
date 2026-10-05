@@ -24,7 +24,7 @@ enable_firewall() {
 
     sudo pkill -HUP socketfilterfw 2>/dev/null || true
 
-    # socketfilterfw exits 0 even when it declined to do anything.
+    # socketfilterfw exits 0 even when it changed nothing, so verify.
     if ! macos_firewall_enabled; then
         error "Firewall still reports disabled after the change"
         return 1
@@ -50,7 +50,7 @@ enable_firewall_stealth_mode() {
     sudo "$MACOS_FIREWALL" --setstealthmode on >/dev/null
     sudo pkill -HUP socketfilterfw 2>/dev/null || true
 
-    # socketfilterfw exits 0 even when it declined to do anything.
+    # socketfilterfw exits 0 even when it changed nothing, so verify.
     if ! macos_firewall_stealth_mode_enabled; then
         error "Firewall Stealth Mode still reports disabled after the change"
         return 1
@@ -116,7 +116,7 @@ apply_privacy_defaults() {
         "/Library/Application Support/CrashReporter/DiagnosticMessagesHistory.plist" \
         ThirdPartyDataSubmit -bool false
 
-    # macOS 13+ drives screen lock from Lock Screen settings and may ignore these.
+    # macOS 13+ may ignore these in favor of the Lock Screen settings.
     defaults write com.apple.screensaver askForPassword -int 1 2>/dev/null || true
     defaults write com.apple.screensaver askForPasswordDelay -int 0 2>/dev/null || true
 
@@ -124,7 +124,7 @@ apply_privacy_defaults() {
 }
 
 enable_security_updates() {
-    # Only XProtect data and RSRs; topgrade owns full OS updates.
+    # Only XProtect data and Rapid Security Responses; topgrade handles OS updates.
     info "Enabling automatic security responses and system data files..."
     sudo -v
 
@@ -147,7 +147,7 @@ enable_filevault() {
         return 0
     fi
 
-    # FileVault does not need Recovery; SIP does.
+    # Unlike SIP, FileVault doesn't need Recovery.
     warn "This prints a personal recovery key ONCE. Save it before continuing."
     info "Encryption then runs in the background; the Mac stays usable."
 
@@ -165,7 +165,7 @@ homebrew_analytics_disabled() {
 }
 
 disable_homebrew_analytics() {
-    # The shell exports HOMEBREW_NO_ANALYTICS; this covers every other context.
+    # The shell exports HOMEBREW_NO_ANALYTICS; this covers everywhere else.
     info "Opting out of Homebrew analytics..."
     brew analytics off
     success "Homebrew analytics disabled"

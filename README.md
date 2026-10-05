@@ -1,28 +1,32 @@
 # Dotfiles
 
-Dotfiles mainly for macOS, with Linux and WSL support. `home/` holds files that must live in `$HOME`; `config/` holds everything XDG-managed. Both are linked into place with GNU Stow.
+My dotfiles for macOS, with Linux and WSL support. GNU Stow links `home/` into `$HOME` and `config/` into `$XDG_CONFIG_HOME`.
 
-## Quick start
+## Install
 
-### macOS: one command on a clean machine
+### macOS
+
+On a fresh Mac, run:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/vakesz/dotfiles/main/install.sh | bash
 ```
 
-`install.sh` installs the Xcode Command Line Tools, clones the repo to `~/.dotfiles`, and hands off to `bootstrap.sh`. That script installs Homebrew and the Brewfile, stows the files, and offers the optional macOS setup. Pass flags through with `bash -s --`:
+This installs the Xcode Command Line Tools, clones the repo to `~/.dotfiles` and runs `bootstrap.sh`. That script installs Homebrew and the Brewfile, links the dotfiles, and offers to run the macOS setup.
+
+To pass flags to `bootstrap.sh`, use `bash -s --`:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/vakesz/dotfiles/main/install.sh | bash -s -- --adopt
 ```
 
-`DOTFILES_REPO`, `DOTFILES_DIR`, and `DOTFILES_BRANCH` override `install.sh`'s defaults (repo URL, clone target, branch). They have no effect once `bootstrap.sh` takes over.
+`DOTFILES_REPO`, `DOTFILES_DIR` and `DOTFILES_BRANCH` change the repo URL, clone location and branch that `install.sh` uses.
 
-With the repo already cloned, `./bootstrap.sh` does the same work. Its macOS preflight installs the Command Line Tools, Homebrew, and the Brewfile packages before it needs `stow`; skip that stage with `--skip-preflight`.
+If the repo is already cloned, run `./bootstrap.sh` directly. Add `--skip-preflight` to skip installing the Command Line Tools, Homebrew and the Brewfile.
 
 ### Linux / WSL
 
-No preflight exists for Linux. Install the prerequisites first:
+Install the prerequisites first:
 
 ```bash
 sudo apt install -y git stow zsh      # Debian / Ubuntu
@@ -30,34 +34,36 @@ sudo dnf install -y git stow zsh      # Fedora
 sudo pacman -S --needed git stow zsh  # Arch Linux
 ```
 
-Then run `./bootstrap.sh`. It creates the XDG directories, prepares `$GNUPGHOME` with private permissions, stows `home/` into `$HOME` and `config/` into `$XDG_CONFIG_HOME`, and offers to run `scripts/platform/linux.sh` for locale and shell setup. The broader workstation toolset in the `Brewfile` is macOS-only; install `bat`, `bun`, `direnv`, `fd`, `fzf`, `node`, `pnpm`, `ripgrep`, `starship`, `uv`, and `zoxide` through the distribution package manager.
+Then run `./bootstrap.sh`. It creates the XDG directories, links the dotfiles, and offers to run `scripts/platform/linux.sh` to set the locale and default shell.
 
-### Verify the result
+The Brewfile is macOS-only, so install the CLI tools with your package manager: `bat`, `bun`, `ccache`, `direnv`, `eza`, `fd`, `fzf`, `git-lfs`, `jq`, `node`, `pnpm`, `ripgrep`, `rustup`, `starship`, `tealdeer`, `uv`, `yq` and `zoxide`. `make doctor` lists any that are missing.
 
-```bash
-make doctor
-```
-
-`scripts/doctor.sh` checks that every managed file in the current working tree resolves into this repo, that the XDG and private directories have the right modes, that expected commands are on `PATH`, and that the Brewfile is satisfied. On macOS it also reports Touch ID for sudo, GitHub CLI auth, FileVault, SIP, Gatekeeper, automatic security responses, the application firewall, and Firewall Stealth Mode. On Linux, Brewfile workstation CLIs are warnings rather than failures. It exits non-zero on any failure and never changes anything.
-
-### Adopt an existing setup
+### Adopt existing files
 
 ```bash
 ./bootstrap.sh --adopt
 ```
 
-Interactive only. It uses `stow --adopt`, which overwrites repo files with the existing local copies; review the result with `git diff`.
+This moves your existing files into the repo with `stow --adopt`, replacing the repo's versions. It only runs interactively. Review the result with `git diff`.
 
-### Updating an existing machine
+### Check the result
 
-After pulling a change that touches `scripts/lib/paths.sh` or adds a new state directory, re-run `./bootstrap.sh` once so `ensure_xdg_runtime_directories` creates it. `make doctor` reports any directory that is still missing.
+```bash
+make doctor
+```
+
+This checks that every file in `home/` and `config/` is linked, the XDG directories exist, `$GNUPGHOME` and `~/.ssh` are private, the expected commands are installed, and the Brewfile is satisfied. On macOS it also checks Touch ID for sudo, GitHub CLI login, FileVault, SIP, Gatekeeper, automatic security responses, the firewall and Stealth Mode. Missing CLI tools are only warnings on Linux. It never changes anything and exits non-zero if a check fails.
+
+### Updating
+
+After pulling, rerun `./bootstrap.sh` if files were added or moved under `home/` or `config/`, or if `scripts/lib/paths.sh` gained a new directory. `make doctor` shows anything still missing.
 
 ## Layout
 
 ```
 dotfiles/
-├── .github/workflows/    # CI: source and configuration checks
-├── assets/macos/         # Non-stowed assets used by platform setup
+├── .github/workflows/    # CI checks
+├── assets/macos/         # Files used by the macOS setup (not stowed)
 ├── Brewfile
 ├── config/               # Stowed into ~/.config
 │   ├── .stow-local-ignore
@@ -70,49 +76,49 @@ dotfiles/
 │   ├── tealdeer/
 │   ├── topgrade.toml
 │   └── zsh/
-│       ├── .zshenv          # Bridge for nested shells that inherit ZDOTDIR
+│       ├── .zshenv       # For nested shells that inherit ZDOTDIR
 │       ├── .zprofile
 │       ├── .zshrc
-│       └── rc.d/         # 00-lib, 10-env, 20-path, 30-options, 40-tools, 50-completion, 60-commands, 70-python-venv, 80-keybindings, 90-plugins
+│       └── rc.d/         # Loaded in order by .zshrc
 ├── home/                 # Stowed into ~
 │   └── .zshenv
 ├── scripts/
-│   ├── check.sh          # Bash lint/format, zsh syntax, config checks
-│   ├── check-apps.sh     # Ask installed applications to validate their config
-│   ├── doctor.sh         # Verify a bootstrapped machine
+│   ├── check.sh          # Lint, formatting, zsh syntax and config checks
+│   ├── check-apps.sh     # Validate configs with the installed apps
+│   ├── doctor.sh         # Check a bootstrapped machine
 │   ├── lib/
 │   │   ├── macos-preflight.sh # Command Line Tools, Homebrew, Brewfile
 │   │   ├── macos-state.sh     # Read-only macOS state checks
 │   │   ├── paths.sh           # Repo paths, XDG defaults, runtime directories
 │   │   ├── platform.sh        # OS detection
-│   │   └── ui.sh              # Prompts, status output, the check vocabulary
-│   └── platform/         # Optional platform setup scripts
+│   │   └── ui.sh              # Messages, prompts, check results
+│   └── platform/         # Optional platform setup
 │       ├── linux.sh
 │       ├── macos.sh
 │       ├── macos-hardening.sh
 │       └── macos-office-tweaks.sh
-├── bootstrap.sh          # The only stow entrypoint
-├── install.sh            # Remote one-liner; self-contained by design
+├── bootstrap.sh          # Links everything with stow
+├── install.sh            # One-line installer (self-contained)
 └── Makefile
 ```
 
-Run `make help` for the full list of targets; there is no separate table here.
+`make help` lists all targets.
 
-## What is configured
+## What's configured
 
-- `home/.zshenv`: XDG directories, `ZDOTDIR`, and tool cache/config redirects that must apply to non-interactive shells too (Go, Rust, uv, pnpm, ccache, PostgreSQL, Gradle, Android SDK, JDK 17 via `java_home`)
-- `config/zsh`: `.zshrc` sources `rc.d/*.zsh` in order: shared helpers and platform detection, environment, PATH, shell options, tool integration, completion, commands, Python venv helpers, keybindings, then plugins. Tool init output is cached under `$XDG_CACHE_HOME/zsh` and recompiled only when the tool or its config changes. `30-options.zsh` selects the vi keymap before fzf initializes in `40-tools.zsh`, because fzf binds Tab into whichever keymap is current. Naming rule: a bare name is a command meant to be typed (`venv`, `rgf`, `zsh-profile`); everything else is a helper prefixed `_dotfiles_*`
-- `config/starship.toml`: prompt. `git_status` shells out to `git` so the `fsmonitor` and `untrackedcache` settings in `config/git/config` apply
-- `config/git`: config and global ignore rules. HTTPS credentials go through Git Credential Manager (`credential.helper = manager`); `macos.sh` only signs in the `gh` CLI itself
-- `config/ghostty`: terminal
-- `config/linearmouse`: pointer and scroll settings matched by device category, so any mouse gets acceleration disabled and reversed scrolling, and any trackpad keeps system acceleration
-- `config/fd`, `config/ripgrep`, `config/tealdeer`, `config/topgrade.toml`: CLI tool config. `make check-config` verifies that the `fd` and `ripgrep` exclusion lists match
+- `home/.zshenv`: XDG directories, `ZDOTDIR`, and tool locations that non-interactive shells need too (Go, Rust, uv, pnpm, ccache, Gradle, the Android SDK, and JDK 17 via `java_home`).
+- `config/zsh`: `.zshrc` loads `rc.d/*.zsh` in order: helpers, environment, PATH, options, tools, completion, commands, Python venvs, keybindings, then plugins. Tool init scripts are cached in `$XDG_CACHE_HOME/zsh` and only regenerated when the tool or its config changes. Commands you type have plain names (`venv`, `rgf`); internal helpers start with `_dotfiles_`.
+- `config/starship.toml`: the prompt. Git status runs the `git` binary so the fsmonitor and untracked-cache settings apply.
+- `config/git`: config and global ignores. HTTPS credentials go through Git Credential Manager. The Git LFS filter is part of the config, so `git lfs install` isn't needed.
+- `config/ghostty`: the terminal.
+- `config/linearmouse`: mice get no acceleration and reversed scrolling; trackpads keep the system settings.
+- `config/fd`, `config/ripgrep`, `config/tealdeer`, `config/topgrade.toml`: CLI tool settings. `make check-config` keeps the fd and ripgrep ignore lists in sync.
 
-Stow symlinks tracked files, so after adding or moving files under `home/` or `config/`, re-run `./bootstrap.sh`. Keep XDG-managed config under `config/` and only true home-level files in `home/`.
+Keep XDG config under `config/`, and only put files that must live directly in `$HOME` under `home/`.
 
 ### Machine-local overrides
 
-Git ignores every `*.local` file plus `config/zsh/rc.d/*.local.zsh`, and stow applies the same rules, so these stay untracked while living in the repo tree:
+Git and stow both ignore these, so they can live in the repo without being tracked:
 
 - `config/zsh/.zshrc.local`
 - `config/zsh/rc.d/*.local.zsh`
@@ -120,48 +126,48 @@ Git ignores every `*.local` file plus `config/zsh/rc.d/*.local.zsh`, and stow ap
 
 ### Shell helpers
 
-- `rgf <ripgrep arguments>`: search file contents with ripgrep, pick a match with fzf, and open it in `$EDITOR` at that line
-- Vi keymap, with the parts vi mode normally lacks filled in: backspace and `^W` work past the insert point, `^A`/`^E`/`^U`/`^K` behave as expected, `k` and `j` search history from normal mode, `v` opens the line in `$EDITOR`, `ci"`/`da(` text objects work, and the cursor is a block in normal mode and a bar in insert. `KEYTIMEOUT` is 1, so mode switches are immediate
-- `venv [path]`: create (with `uv`) or activate a virtualenv. `venv-off` deactivates
-- Entering a directory with `.venv/bin/activate` auto-activates it only after `venv-trust` has been run from the project root. Trust is bound to the project path and the activation script's SHA-256, so a modified script must be trusted again. `venv-untrust` removes it. Records are private files under `$XDG_STATE_HOME/zsh/trusted-venvs`
-- `zsh-profile [runs]`: time interactive shell startup
-- `dots` changes to `~/.dotfiles`; `c` changes to `~/Code`
+- `rgf <rg args>`: search with ripgrep, pick a match in fzf, and open it in `$EDITOR` at that line.
+- `venv [dir]`: activate a virtualenv, creating it with `uv` if needed. `venv-off` deactivates it.
+- `venv-trust` / `venv-untrust`: a project's `.venv` only auto-activates after you trust it. Trust is tied to the project path and the activation script's SHA-256, so a changed script must be trusted again.
+- `zsh-profile [runs]`: time shell startup.
+- `dots` and `c`: jump to `~/.dotfiles` and `~/Code`.
+- Vi mode with the usual gaps filled: backspace and `^W` work past the insert point, `^A`, `^E`, `^U` and `^K` work as expected, `k`/`j` search history in normal mode, `v` edits the line in `$EDITOR`, text objects like `ci"` and `da(` work, and the cursor is a block in normal mode and a bar in insert mode.
 
 ## Toolchains
 
-- Homebrew Bundle provides the workstation CLIs, apps, and Mac App Store apps declared in the `Brewfile`. Mac App Store entries need a signed-in account. Shell plugins (`zsh-autosuggestions`, `zsh-syntax-highlighting`) come from the Brewfile too; there is no plugin manager. The login shell is macOS's own `/bin/zsh`
-- Node, pnpm, and Bun are Homebrew-managed. pnpm's global executables use `$PNPM_HOME/bin`, while JavaScript formatter and linter CLIs stay project-local. Topgrade leaves their standalone update steps off because Homebrew updates the installed binaries
-- Rustup is Homebrew-managed and keeps its toolchains under the XDG data directory. `macos.sh` offers to install the stable toolchain. Ccache uses `$CCACHE_DIR`, and its compiler wrappers are on the interactive-shell `PATH`
-- Python runtimes and project environments go through `uv`; `UV_TOOL_BIN_DIR` is on `PATH`. Homebrew supplies the `uv` binary and the standalone `ruff` CLI
-- Ruby is Homebrew's, preferred over the system Ruby. Gems install under `$GEM_HOME`, whose `bin` is on `PATH`
-- Homebrew keg-only tools that need explicit prefix paths are wired in `rc.d/20-path.zsh`: `curl`, GNU `make`, Homebrew Ruby, `flex`, `bison`, and rustup. GNU coreutils remains available through its prefixed commands; its unprefixed `gnubin` directory stays off `PATH` because it can interfere with GMP builds. Homebrew LLVM stays keg-only so `clang` remains Apple's; `macos.sh` only symlinks `dlltool` into `$XDG_BIN_HOME`
-- Updates run through `topgrade`. Homebrew owns installed application and runtime binaries; Topgrade owns TLDR cache, editor extension, GitHub CLI extension, global skill, repository, operating-system, and firmware updates. Greedy cask mode keeps self-updating apps under Homebrew's control
-- Xcode is installed separately so stable, beta, and direct-download builds remain interchangeable. The macOS setup handles first-launch configuration, and `make doctor` reports whether a full Xcode installation is available
+- **Homebrew** installs the CLI tools, apps and Mac App Store apps in the Brewfile. App Store apps need a signed-in account. The zsh plugins come from Homebrew too, so there's no plugin manager. The login shell is the system `/bin/zsh`.
+- **JavaScript**: Node, pnpm and Bun come from Homebrew. pnpm's global binaries go in `$PNPM_HOME/bin`; formatters and linters stay project-local.
+- **Rust**: Homebrew's rustup, with toolchains in the XDG data directory. `macos.sh` offers to install the stable toolchain. ccache's compiler wrappers are on the interactive `PATH`.
+- **Python**: `uv` manages Python versions, environments and tools, and its tool bin directory is on `PATH`. Homebrew also provides `ruff`.
+- **Ruby**: Homebrew's Ruby comes before the system one. Gems install to `$GEM_HOME`, whose `bin` is on `PATH`.
+- **Keg-only formulae**: `rc.d/20-path.zsh` adds `curl`, GNU `make`, Ruby, `flex`, `bison` and rustup to `PATH`. GNU coreutils is only available with its `g` prefix, because the unprefixed commands break GMP builds. LLVM stays off `PATH` so `clang` is Apple's; `macos.sh` only links `dlltool` into `$XDG_BIN_HOME`.
+- **Updates** go through `topgrade`. Homebrew updates apps and runtimes, including self-updating apps (greedy casks). Topgrade handles the rest: tldr pages, editor and `gh` extensions, global skills, git repos, macOS and firmware.
+- **Xcode** is installed separately so any build works (stable, beta or a direct download). `macos.sh` runs its first-launch setup.
 
 ## Platform setup
 
-`bootstrap.sh` offers the matching script; each can also be run later on its own. Every step prompts, and prompts default to **No** after `DOTFILES_CONFIRM_TIMEOUT` seconds (default `30`).
+`bootstrap.sh` offers the script for the current platform, and each one can be run on its own later. Every step asks first, and prompts default to No after `DOTFILES_CONFIRM_TIMEOUT` seconds (30 by default).
 
-- `scripts/platform/macos.sh`: Touch ID for sudo, Rosetta, computer name, macOS defaults, power settings, Dock layout, Finder visibility for `~/Library`, Spotlight exclusions, the custom Hungarian keyboard layout, the LLVM `dlltool` symlink, Xcode first-launch setup, GitHub CLI auth, Git LFS, and the stable Rust toolchain, then runs the two scripts below
-- `scripts/platform/macos-hardening.sh`: optionally configures the application firewall and Firewall Stealth Mode, FileVault, remote login/services, privacy defaults, automatic security responses, and Homebrew analytics
-- `scripts/platform/macos-office-tweaks.sh`: disables Microsoft AutoUpdate (MAU) for Office and Teams so updates flow through `topgrade` only
-- `scripts/platform/linux.sh`: `en_US.UTF-8` locale and zsh as the default shell
+- `scripts/platform/macos.sh`: Touch ID for sudo, Rosetta, computer name, macOS defaults, power settings, Dock layout, showing `~/Library`, Spotlight exclusions, a custom Hungarian keyboard layout, the LLVM `dlltool` link, Xcode first-launch setup, GitHub CLI login and the stable Rust toolchain. It then runs the two scripts below.
+- `scripts/platform/macos-hardening.sh`: the firewall and Stealth Mode, FileVault, remote login and sharing, privacy defaults, automatic security responses, and Homebrew analytics.
+- `scripts/platform/macos-office-tweaks.sh`: turns off Microsoft AutoUpdate for Office and Teams so `topgrade` handles their updates.
+- `scripts/platform/linux.sh`: the `en_US.UTF-8` locale and zsh as the default shell.
 
 ## Resources
 
 - [GNU Stow](https://www.gnu.org/software/stow/)
 - [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html)
+- [Homebrew Bundle](https://docs.brew.sh/Brew-Bundle-and-Brewfile)
 - [Starship](https://starship.rs/)
-- [zoxide](https://github.com/ajeetdsouza/zoxide)
+- [Ghostty](https://ghostty.org/docs/config)
 - [fzf](https://github.com/junegunn/fzf)
-- [Node.js](https://nodejs.org/)
-- [pnpm](https://pnpm.io/)
-- [Bun](https://bun.com/)
-- [uv](https://docs.astral.sh/uv/)
+- [zoxide](https://github.com/ajeetdsouza/zoxide)
 - [ripgrep](https://ripgrep.dev/docs/guide/)
 - [fd](https://github.com/sharkdp/fd)
 - [tealdeer](https://tealdeer-rs.github.io/tealdeer/)
-- [Ghostty](https://ghostty.org/docs/config)
-- [Homebrew Bundle](https://docs.brew.sh/Brew-Bundle-and-Brewfile)
 - [topgrade](https://github.com/topgrade-rs/topgrade)
+- [uv](https://docs.astral.sh/uv/)
+- [Node.js](https://nodejs.org/)
+- [pnpm](https://pnpm.io/)
+- [Bun](https://bun.com/)
 - [GnuPG](https://gnupg.org/)

@@ -1,25 +1,18 @@
-# Tealdeer (tldr) configuration
-# https://github.com/dbrgn/tealdeer
+# tealdeer (tldr): https://github.com/tealdeer-rs/tealdeer
 
 [display]
 compact = false
-# Disable pager
 use_pager = false
 
-# Tokyo Night color theme
-[style.description]
-foreground = { rgb = { r = 192, g = 202, b = 245 } }  # #c0caf5
+# Use ANSI palette slots so Ghostty's Xcode Light/Dark themes choose readable colors.
 
 [style.command_name]
-foreground = { rgb = { r = 125, g = 207, b = 255 } }  # #7dcfff
+foreground = { ansi = 4 }
 bold = true
 
 [style.example_text]
-foreground = { rgb = { r = 158, g = 206, b = 106 } }  # #9ece6a
-
-[style.example_code]
-foreground = { rgb = { r = 122, g = 162, b = 247 } }  # #7aa2f7
+foreground = { ansi = 2 }
 
 [style.example_variable]
-foreground = { rgb = { r = 187, g = 154, b = 247 } }  # #bb9af7
+foreground = { ansi = 6 }
 underline = true

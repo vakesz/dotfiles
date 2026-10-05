@@ -30,8 +30,8 @@ check_starship() {
 
     STARSHIP_CONFIG="$config" starship print-config >/dev/null
 
-    # A match here means the repo's own dot-c-free tree reads as a C project,
-    # which would put a C version in the prompt of every directory like it.
+    # This repo has no C files. If Starship still detects C here, the prompt
+    # would show a C module in every similar directory.
     if [[ -n "$(STARSHIP_CONFIG="$config" starship module c --path "$DOTFILES_ROOT")" ]]; then
         printf 'error: Starship falsely detects the dotfiles repository as a C project\n' >&2
         exit 1
@@ -44,7 +44,7 @@ check_ghostty() {
     local bundle="/Applications/Ghostty.app/Contents/MacOS/ghostty"
     local config="--config-file=$DOTFILES_ROOT/config/ghostty/config"
 
-    # The cask installs no ghostty on PATH, so try the app bundle first.
+    # The cask doesn't put ghostty on PATH, so prefer the app bundle.
     if [[ -x "$bundle" ]]; then
         "$bundle" +validate-config "$config"
     elif command -v ghostty >/dev/null 2>&1; then

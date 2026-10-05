@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
-#
-# Verify that a bootstrapped machine actually ended up in the expected state.
-#
-# Reports what is missing rather than fixing anything. Exits non-zero when any
-# check fails, so it doubles as a smoke test after a fresh setup.
-#
+# Check that a bootstrapped machine is in the expected state. It only reports,
+# never fixes, and exits non-zero on any failure, so it works as a smoke test.
 
 set -uo pipefail
 
@@ -19,9 +15,9 @@ is_macos && source "$DOTFILES_ROOT/scripts/lib/macos-state.sh"
 
 CONFIG_TARGET="${XDG_CONFIG_HOME:-$HOME/.config}"
 
-# Commands bootstrap itself requires on every platform.
+# Required by bootstrap on every platform.
 CORE_COMMANDS=(git stow zsh)
-# Workstation tools the Brewfile installs on macOS. On Linux they are optional.
+# Installed by the Brewfile on macOS; optional on Linux.
 WORKSTATION_COMMANDS=(starship fzf rg fd bat eza zoxide jq uv tldr yq direnv ccache git-lfs node pnpm bun rustup)
 MACOS_COMMANDS=(brew dockutil gh mas topgrade)
 
@@ -50,11 +46,11 @@ check_stow_links() {
     section "Stow symlinks"
 
     while IFS= read -r repo_file; do
-        # Validate the effective working tree. This skips tracked files deleted
-        # by an uncommitted rename and includes their untracked replacements.
+        # Check the working tree as it is: skip tracked files removed by an
+        # uncommitted rename, and include their untracked replacements.
         [[ -e "$DOTFILES_ROOT/$repo_file" || -L "$DOTFILES_ROOT/$repo_file" ]] || continue
 
-        # The stow control file is never linked into the target tree.
+        # Stow's ignore file is never linked.
         [[ "$repo_file" == "config/.stow-local-ignore" ]] && continue
 
         package="${repo_file%%/*}"
@@ -72,8 +68,8 @@ check_stow_links() {
             continue
         fi
 
-        # Stow folds directories, so any path component may be the symlink.
-        # realpath resolves them all; macOS 13+ and Linux both ship it.
+        # Stow may link a parent directory instead of the file, so resolve the
+        # whole path. realpath ships with macOS 13+ and Linux.
         resolved="$(realpath "$target")"
         if [[ "$resolved" != "$DOTFILES_ROOT/$repo_file" ]]; then
             fail "does not resolve into this repo: $target -> $resolved"
@@ -107,8 +103,7 @@ check_directory_permissions() {
             continue
         fi
 
-        # GNU and BSD stat use incompatible flags; support GNU first and BSD as
-        # the macOS fallback when GNU coreutils' unprefixed commands are absent.
+        # GNU and BSD stat take different flags. Try GNU first, then BSD (macOS).
         mode="$(stat -c '%a' "$dir" 2>/dev/null)" || mode="$(stat -f '%Lp' "$dir" 2>/dev/null)"
         verify "0700: $dir" "expected 0700, found 0$mode: $dir" fail test "$mode" = "700"
     done
@@ -175,8 +170,8 @@ check_macos_tooling() {
         soft_warn quietly gh auth status
 }
 
-# Report-only. The hardening script can configure FileVault, security updates,
-# firewall, and Firewall Stealth Mode. SIP still requires Recovery.
+# Report only. macos-hardening.sh can fix FileVault, security updates and the
+# firewall; SIP can only be changed from Recovery.
 check_macos_security() {
     section "macOS security"
 
@@ -184,7 +179,7 @@ check_macos_security() {
         fail macos_filevault_enabled
     verify "System Integrity Protection enabled" "SIP is disabled (re-enable from Recovery: csrutil enable)" \
         fail macos_sip_enabled
-    # spctl only offers --global-disable now; re-enabling is a GUI-only step.
+    # spctl can no longer re-enable Gatekeeper; only System Settings can.
     verify "Gatekeeper assessments enabled" "Gatekeeper is off (re-enable in System Settings > Privacy & Security)" \
         fail macos_gatekeeper_enabled
     verify "Security responses install automatically" "Security responses are not automatic (run scripts/platform/macos-hardening.sh)" \
@@ -195,8 +190,8 @@ check_macos_security() {
     elif macos_firewall_enabled; then
         pass "Application firewall enabled"
     elif macos_mdm_managed; then
-        # The hardening script cannot fix this one: socketfilterfw refuses every
-        # command-line change on a managed Mac.
+        # socketfilterfw refuses command-line changes on a managed Mac, so the
+        # hardening script can't fix this.
         soft_warn "Application firewall is off and this Mac is MDM-managed; ask IT"
     else
         fail "Application firewall is off (run scripts/platform/macos-hardening.sh)"

@@ -85,8 +85,8 @@ brew "pkgconf"
 # Linters and formatters
 brew "actionlint"
 brew "clang-format"
-brew "shellcheck"
 brew "ruff"
+brew "shellcheck"
 brew "shfmt"
 brew "swift-format"
 
@@ -99,18 +99,18 @@ cask "orbstack"
 cask "android-commandlinetools"
 
 # AI tools
-cask "codex"
-cask "claude-code@latest"
 cask "chatgpt"
+cask "claude-code@latest"
+cask "codex"
 cask "github-copilot-app"
 cask "steipete/tap/codexbar"
 
 # General development tools
 brew "azure-cli"
-brew "pngquant"
 brew "imagemagick"
-brew "webp"
+brew "pngquant"
 brew "watchman"
+brew "webp"
 cask "visual-studio-code"
 
 # Databases
@@ -131,8 +131,8 @@ cask "tiled"
 
 # Desktop apps: media and communication
 cask "iina"
-cask "whatsapp"
 cask "obs"
+cask "whatsapp"
 
 # Desktop apps: browsers
 cask "firefox"

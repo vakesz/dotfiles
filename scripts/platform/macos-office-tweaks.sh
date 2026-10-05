@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Disable the Microsoft auto-updater for Office and Teams so topgrade owns updates.
+# Disable Microsoft AutoUpdate for Office and Teams so topgrade handles updates.
 
 set -euo pipefail
 
@@ -70,7 +70,7 @@ main() {
         return 0
     }
 
-    # Preferences first, so even an interrupted run leaves the updaters disabled.
+    # Preferences first, so an interrupted run still leaves the updater disabled.
     apply_mau_prefs
     remove_microsoft_autoupdate
 

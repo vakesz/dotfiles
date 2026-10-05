@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-#
-# Stow the core dotfiles into $HOME and $XDG_CONFIG_HOME.
-#
+# Link the dotfiles into $HOME and $XDG_CONFIG_HOME with stow.
 
 set -euo pipefail
 

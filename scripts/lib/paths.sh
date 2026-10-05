@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The repository's own paths, the XDG environment and the runtime directories this repo owns.
+# Repo paths, XDG defaults, and the runtime directories bootstrap creates.
 
 DOTFILES_ROOT="$(cd "${BASH_SOURCE[0]%/*}/../.." && pwd -P)"
 # shellcheck disable=SC2034 # read by the scripts that source this file

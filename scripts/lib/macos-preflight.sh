@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Everything a clean macOS install needs before bootstrap.sh can stow anything.
+# Everything a fresh Mac needs before bootstrap.sh can stow.
 
 # shellcheck source=scripts/lib/ui.sh
 source "${BASH_SOURCE[0]%/*}/ui.sh"
@@ -18,8 +18,8 @@ ensure_xcode_cli_tools() {
     fi
 
     info "Requesting Xcode Command Line Tools installation..."
-    # `--install` spawns a GUI installer, returns immediately and is non-zero
-    # when a dialog is already open, so poll `xcode-select -p` instead.
+    # --install opens a GUI installer and returns at once (non-zero if a dialog
+    # is already open), so wait on `xcode-select -p` instead.
     xcode-select --install 2>/dev/null || true
 
     info "Waiting for the Command Line Tools installer to finish..."
@@ -36,8 +36,8 @@ ensure_xcode_cli_tools() {
     success "Xcode Command Line Tools installed"
 }
 
-# A freshly installed Homebrew is not on PATH until a new shell picks up the
-# stowed zsh config, so put it there for the rest of this run.
+# A fresh Homebrew isn't on PATH until a new shell loads the stowed zsh config,
+# so add it for the rest of this run.
 load_homebrew_environment() {
     local brew_path
 
@@ -61,8 +61,7 @@ ensure_homebrew() {
 
     info "Installing Homebrew (this asks for your password)..."
 
-    # NONINTERACTIVE skips the installer's "press RETURN" prompt; it still uses
-    # sudo, so the password prompt remains.
+    # NONINTERACTIVE skips the "press RETURN" prompt; sudo still asks for a password.
     if ! NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL "$HOMEBREW_INSTALLER_URL")"; then
         error "Homebrew installation failed"
         return 1
@@ -94,8 +93,8 @@ ensure_brewfile() {
         return 0
     fi
 
-    # mas 7 dropped the `account` subcommand, so a signed-in App Store account
-    # cannot be probed for; say so up front instead.
+    # mas 7 removed `account`, so App Store sign-in can't be checked. Mention it
+    # up front instead.
     if grep -q '^mas ' "$brewfile"; then
         info "Mac App Store entries need a signed-in App Store account to install"
     fi
@@ -108,7 +107,7 @@ ensure_brewfile() {
     success "Brewfile packages installed"
 }
 
-# The Brewfile is not optional here: bootstrap needs `stow` from it.
+# The Brewfile is required here because bootstrap needs stow from it.
 run_macos_preflight() {
     local brewfile="$1"
 

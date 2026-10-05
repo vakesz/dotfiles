@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Read-only macOS state probes shared by the setup and doctor scripts.
+# Read-only macOS state checks shared by the setup and doctor scripts.
 
 MACOS_FIREWALL="/usr/libexec/ApplicationFirewall/socketfilterfw"
 XCODE_APP="${XCODE_APP:-/Applications/Xcode.app}"
 
-# A managed Mac may reject or later revert a setting the command reported as applied.
+# On a managed Mac, a profile can reject or later revert a setting that looked applied.
 macos_mdm_managed() {
     profiles status -type enrollment 2>/dev/null | grep -qi 'MDM enrollment: Yes'
 }

@@ -17,8 +17,8 @@ require() {
     command -v "$1" >/dev/null 2>&1 || die "$1 not installed${2:+: $2}"
 }
 
-# Tracked plus untracked-but-not-ignored, minus paths an uncommitted rename or
-# deletion left behind, so the lists never go stale and never break the run.
+# Tracked and untracked (but not ignored) files that still exist, so an
+# uncommitted rename or deletion never breaks a check.
 collect() {
     local file
 
@@ -87,7 +87,13 @@ check_config() {
 
     collect '*.yml' '*.yaml'
     ruby -e 'require "yaml"; ARGV.each { |path| YAML.safe_load_file(path, aliases: true) }' "${FILES[@]}"
-    command -v actionlint >/dev/null 2>&1 && actionlint
+    # Optional locally, but required in CI so the workflow lint can't be skipped.
+    if [[ -n "${CI:-}" ]]; then
+        require actionlint
+    fi
+    if command -v actionlint >/dev/null 2>&1; then
+        actionlint
+    fi
 
     git config --file config/git/config --list >/dev/null
     ruby -c Brewfile >/dev/null
@@ -99,8 +105,7 @@ check_config() {
         exit 1
     fi
 
-    # The empty tree checks every committed line. The second check includes
-    # tracked local edits, and the helper covers untracked additions.
+    # Check every committed line, then local edits, then untracked files.
     git diff --check "$(git hash-object -t tree /dev/null)" HEAD
     git diff --check HEAD
     check_untracked_whitespace

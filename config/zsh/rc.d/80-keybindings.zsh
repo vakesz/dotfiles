@@ -1,9 +1,9 @@
 # Keybindings layered on the vi keymap selected in 30-options.zsh
 
-# Bindings name their keymap: an unqualified bindkey only touches the current
-# keymap, which in a vi setup means insert mode alone.
+# Every binding names its keymap: plain bindkey only changes the current one,
+# which in vi mode is insert mode.
 
-# History search that respects the text already typed before the cursor.
+# Search history for lines starting with what's already typed.
 autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
 zle -N up-line-or-beginning-search
 zle -N down-line-or-beginning-search
@@ -11,8 +11,8 @@ zle -N down-line-or-beginning-search
 bindkey -M vicmd 'k' up-line-or-beginning-search
 bindkey -M vicmd 'j' down-line-or-beginning-search
 
-# viins leaves ^? on vi-backward-delete-char, which refuses to delete past the
-# point where insert mode began.
+# viins maps ^? to vi-backward-delete-char, which won't delete past the point
+# where insert mode started.
 bindkey -M viins '^?' backward-delete-char
 bindkey -M viins '^H' backward-delete-char
 bindkey -M viins '^W' backward-kill-word
@@ -21,8 +21,8 @@ bindkey -M viins '^A' beginning-of-line
 bindkey -M viins '^E' end-of-line
 bindkey -M viins '^K' kill-line
 
-# terminfo carries what this terminal sends; the literal sequences cover
-# terminals that report nothing and the application-cursor mode multiplexers use.
+# terminfo has the keys this terminal sends. The literal sequences cover
+# terminals without terminfo entries and multiplexers in application-cursor mode.
 for keymap in viins vicmd; do
   bindkey -M "$keymap" '^[[A' up-line-or-beginning-search
   bindkey -M "$keymap" '^[[B' down-line-or-beginning-search
@@ -45,7 +45,7 @@ autoload -Uz edit-command-line
 zle -N edit-command-line
 bindkey -M vicmd 'v' edit-command-line
 
-# Text objects, so ci" and da( work on the command line the way they do in vi.
+# vi text objects such as ci" and da( on the command line.
 autoload -Uz select-bracketed select-quoted
 zle -N select-bracketed
 zle -N select-quoted
@@ -68,12 +68,12 @@ _dotfiles_set_cursor_shape() {
 }
 
 _dotfiles_zle_line_init() {
-  # Start every prompt in insert mode, whatever mode the last line left.
+  # Start every prompt in insert mode.
   zle -K viins
   _dotfiles_set_cursor_shape
 }
 
-# Leave a normal block cursor behind for whatever command runs next.
+# Restore the block cursor for the command about to run.
 _dotfiles_zle_line_finish() { print -n '\e[2 q' }
 
 zle -N zle-keymap-select _dotfiles_set_cursor_shape

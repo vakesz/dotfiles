@@ -1,6 +1,7 @@
-# Claude Code configuration (user-specific)
+# AI coding agents (per user)
 .claude/
 .agents/
+skills-lock.json
 
 # macOS
 .DS_Store
@@ -10,8 +11,8 @@
 .Spotlight-V100
 .Trashes
 
-# Local overrides (not tracked in git). *.local is the catch-all;
-# rc.d/*.local.zsh is listed because that suffix does not match *.local.
+# Machine-local overrides. rc.d/*.local.zsh needs its own rule because it
+# doesn't end in .local.
 config/zsh/rc.d/*.local.zsh
 *.local
 
@@ -27,10 +28,9 @@ config/zsh/rc.d/*.local.zsh
 # Logs
 *.log
 
-# Common tooling detritus
+# Tooling leftovers
 node_modules/
 __pycache__/
 *.pyc
 *.pyo
 .vscode/
-skills-lock.json

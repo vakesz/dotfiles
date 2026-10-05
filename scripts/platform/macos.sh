@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Optional macOS setup for this dotfiles repo.
+# Optional macOS setup.
 
 set -euo pipefail
 
@@ -35,7 +35,7 @@ SPOTLIGHT_EXCLUDED_PATHS=(
     "$XDG_CACHE_HOME"
 )
 
-# Owned by other tools: marked only when present, never pre-created here.
+# Created by other tools: excluded only if they exist, never created here.
 SPOTLIGHT_OPTIONAL_PATHS=(
     "$HOME/Library/Developer/CoreSimulator"
     "$XDG_DATA_HOME/gradle"
@@ -66,7 +66,7 @@ apply_macos_defaults() {
     defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
     defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
     defaults write com.apple.finder FXEnableExtensionChangeWarning -bool false
-    # SCcf = search the current folder; PfHm = new windows open at $HOME.
+    # SCcf: search the current folder. PfHm: new windows open at $HOME.
     defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
     defaults write com.apple.finder NewWindowTarget -string "PfHm"
     defaults write com.apple.finder NewWindowTargetPath -string "file://${HOME}/"
@@ -86,7 +86,7 @@ apply_macos_defaults() {
     defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
     defaults write NSGlobalDomain NSWindowShouldDragOnGesture -bool true
 
-    # Trackpad: the built-in device and an external Magic Trackpad are separate domains.
+    # Trackpad. The built-in trackpad and a Magic Trackpad use separate domains.
     defaults write com.apple.AppleMultitouchTrackpad Clicking -bool true
     defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
     defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
@@ -106,10 +106,10 @@ apply_macos_defaults() {
     defaults write com.apple.dock mru-spaces -bool false
     defaults write com.apple.dock expose-group-apps -bool true
     defaults write NSGlobalDomain AppleSpacesSwitchOnActivate -bool true
-    # false keeps "Displays have separate Spaces" ON; needs a log out.
+    # false turns "Displays have separate Spaces" on. Applies after logging out.
     defaults write com.apple.spaces spans-displays -bool false
 
-    # Hot corners: 0 = no action.
+    # Hot corners: 0 means no action.
     local corner
     for corner in tl tr bl br; do
         defaults write com.apple.dock "wvous-${corner}-corner" -int 0
@@ -121,7 +121,7 @@ apply_macos_defaults() {
     defaults write com.apple.screencapture type -string "png"
     defaults write com.apple.screencapture disable-shadow -bool true
 
-    # Safari is sandboxed and ignores this domain; use Safari > Settings > Advanced.
+    # Sandboxed Safari ignores this; use Safari > Settings > Advanced instead.
     defaults write NSGlobalDomain WebKitDeveloperExtras -bool true
 
     # Xcode
@@ -166,7 +166,7 @@ configure_power_management() {
 }
 
 library_folder_visible() {
-    # BSD find matches file flags directly.
+    # BSD find can match file flags directly.
     [[ -z "$(find "$HOME/Library" -maxdepth 0 -flags +hidden 2>/dev/null)" ]]
 }
 
@@ -191,7 +191,7 @@ install_keyboard_layout() {
 spotlight_exclusions_applied() {
     local path
 
-    # Check required paths unconditionally: a fresh machine has none of them.
+    # Required paths are always checked; a fresh machine has none of them yet.
     for path in "${SPOTLIGHT_EXCLUDED_PATHS[@]}"; do
         [[ -f "$path/.metadata_never_index" ]] || return 1
     done
@@ -220,7 +220,7 @@ configure_spotlight_exclusions() {
 }
 
 enable_touch_id_sudo() {
-    # sudo_local survives OS updates; edits to /etc/pam.d/sudo do not.
+    # sudo_local survives macOS updates; edits to /etc/pam.d/sudo don't.
     if [[ ! -f /etc/pam.d/sudo_local.template ]]; then
         warn "/etc/pam.d/sudo_local.template not found; needs macOS 14 or newer"
         return 1
@@ -240,7 +240,7 @@ enable_touch_id_sudo() {
 }
 
 computer_name_configured() {
-    # Only Apple's generated "X's Mac" counts as unconfigured (curly apostrophe).
+    # Only Apple's default "Name's Mac" counts as unset (either apostrophe style).
     local current=""
     current="$(scutil --get ComputerName 2>/dev/null)" || return 1
     [[ -n "$current" && "$current" != *"'s "* && "$current" != *"’s "* ]]
@@ -263,7 +263,7 @@ configure_computer_name() {
         return 0
     fi
 
-    # LocalHostName is a DNS label: collapse the rest into single hyphens.
+    # LocalHostName must be a DNS label, so turn everything else into hyphens.
     local_name="$(printf '%s' "$new" | sed -E 's/[^a-zA-Z0-9]+/-/g; s/^-+//; s/-+$//')"
     if [[ -z "$local_name" ]]; then
         warn "Computer name must contain at least one ASCII letter or number"
@@ -294,7 +294,7 @@ configure_dock() {
         dockutil --no-restart --add "$app" >/dev/null
     done
 
-    # Downloads has to be re-added: --remove all wiped it out.
+    # --remove all also removed Downloads, so add it back.
     dockutil --no-restart --add "$HOME/Downloads" --view auto --display folder --section others >/dev/null
 
     killall Dock 2>/dev/null || true
@@ -316,7 +316,7 @@ run_xcode_first_launch() {
     success "Xcode first-launch setup complete"
 }
 
-# mas 7 removed the `account` subcommand, so report missing apps instead.
+# mas 7 removed `account`, so report missing apps instead of checking sign-in.
 report_missing_app_store_apps() {
     local installed="" id="" name="" missing=()
 
@@ -327,7 +327,7 @@ report_missing_app_store_apps() {
 
     while read -r id name; do
         grep -qx "$id" <<<"$installed" && continue
-        # An app installed outside the App Store has no receipt for mas to list.
+        # Apps installed outside the App Store have no receipt for mas to list.
         [[ -d "/Applications/$name.app" ]] && continue
         missing+=("$name ($id)")
     done < <(sed -n 's/^mas "\([^"]*\)", id: \([0-9]*\).*/\2 \1/p' "$DOTFILES_BREWFILE")
@@ -346,22 +346,12 @@ gh_authenticated() {
 }
 
 authenticate_gh() {
-    # Not `gh auth setup-git`: it would write a second credential helper into
-    # the stowed git config.
+    # Not `gh auth setup-git`: it would add a second credential helper to the
+    # stowed git config.
     info "Authenticating with GitHub..."
     gh auth login
 
     success "GitHub authentication configured"
-}
-
-git_lfs_configured() {
-    [[ "$(git config --global --get filter.lfs.process 2>/dev/null)" == "git-lfs filter-process" ]]
-}
-
-configure_git_lfs() {
-    info "Configuring Git LFS..."
-    git lfs install
-    success "Git LFS configured"
 }
 
 rustup_path() {
@@ -390,8 +380,8 @@ install_rustup_stable_toolchain() {
     success "Stable Rust toolchain installed"
 }
 
-# Homebrew llvm ships the binary as llvm-dlltool; Wine's build looks for `dlltool`.
-# `brew --prefix <formula>` exits 0 even when uninstalled, so callers test -x.
+# Homebrew llvm names it llvm-dlltool, but Wine's build looks for `dlltool`.
+# `brew --prefix` succeeds even if the formula isn't installed, so callers check -x.
 llvm_dlltool_path() {
     printf '%s/bin/llvm-dlltool\n' "$(brew --prefix llvm 2>/dev/null)"
 }
@@ -422,7 +412,7 @@ main() {
 
     ensure_xcode_cli_tools
 
-    # First, so every later sudo prompt in this run is a fingerprint.
+    # Do this first so every later sudo prompt can use Touch ID.
     offer_if_missing "Enable Touch ID for sudo?" macos_touch_id_sudo_enabled enable_touch_id_sudo "Touch ID for sudo already enabled"
 
     if [[ "$(uname -m)" == "arm64" ]]; then
@@ -452,10 +442,9 @@ main() {
 
     require_command gh "GitHub authentication" && offer_if_missing "Authenticate the GitHub CLI?" gh_authenticated authenticate_gh "GitHub CLI already authenticated"
 
-    require_command git-lfs "Git LFS" && offer_if_missing "Configure Git LFS globally?" git_lfs_configured configure_git_lfs "Git LFS already configured"
     offer_if_missing "Install the stable Rust toolchain?" rustup_stable_toolchain_installed install_rustup_stable_toolchain "Stable Rust toolchain already installed"
 
-    # Both scripts self-gate with their own confirm prompt.
+    # Both scripts ask for confirmation themselves.
     "$DOTFILES_ROOT/scripts/platform/macos-hardening.sh" || warn "macOS hardening did not complete"
     "$DOTFILES_ROOT/scripts/platform/macos-office-tweaks.sh" || warn "Microsoft updater tweaks did not complete"
 

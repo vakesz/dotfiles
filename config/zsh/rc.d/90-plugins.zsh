@@ -1,7 +1,7 @@
-# Shell plugins. Highlighting loads last so it wraps every widget defined above.
+# Shell plugins. Syntax highlighting loads last so it wraps every widget.
 
-# Read at load time, so both must be set before the plugin is sourced. Without
-# MANUAL_REBIND the plugin re-binds every widget on each prompt.
+# Both are read when the plugin loads. MANUAL_REBIND stops it from rebinding
+# every widget at each prompt.
 ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
 

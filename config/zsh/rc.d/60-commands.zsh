@@ -1,6 +1,6 @@
 # Interactive commands and aliases
 
-# Measure interactive startup time over N login shells, defaulting to ten.
+# Time interactive startup over N login shells (default 10).
 zsh-profile() {
   local runs="${1:-10}" i
   for (( i = 1; i <= runs; i++ )); do
@@ -19,9 +19,9 @@ alias gc='git commit'
 alias ga='git add'
 alias gp='git push'
 
-# Everything below depends on an optional tool being installed.
+# Everything below depends on optional tools.
 
-# Search file contents with ripgrep, pick a match with fzf, open it at that line.
+# Search with ripgrep, pick a match in fzf, and open it in $EDITOR at that line.
 if (( $+commands[rg] && $+commands[fzf] )); then
   rgf() {
     local selection file line
@@ -68,7 +68,7 @@ if (( $+commands[eza] )); then
   alias l='eza --oneline --group-directories-first'
   alias lt='eza --tree --level=2'
 else
-  # --version rather than --color=auto: BSD ls rejects it and neither lists $PWD.
+  # Only GNU ls accepts --version. Probing with --color=auto would print a listing.
   if ls --version >/dev/null 2>&1; then
     alias ls='ls --color=auto'
   else
@@ -86,4 +86,3 @@ fi
 
 (( $+commands[claude] )) && alias cc='claude'
 (( $+commands[codex] )) && alias cx='codex'
-(( $+commands[opencode] )) && alias oc='opencode'

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Optional Linux / WSL setup for this dotfiles repo.
+# Optional Linux / WSL setup.
 
 set -euo pipefail
 
@@ -13,13 +13,10 @@ DISTRO_LIKE=""
 
 persist_locale_with_systemd() {
     if command -v localectl >/dev/null 2>&1; then
-        sudo localectl set-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+        sudo localectl set-locale LANG=en_US.UTF-8
     else
         warn "localectl not found; writing /etc/locale.conf directly"
-        {
-            echo "LANG=en_US.UTF-8"
-            echo "LC_ALL=en_US.UTF-8"
-        } | sudo tee /etc/locale.conf >/dev/null
+        echo "LANG=en_US.UTF-8" | sudo tee /etc/locale.conf >/dev/null
     fi
 }
 
@@ -93,15 +90,17 @@ install_locale_for_family() {
     esac
 }
 
+# Persist LANG only. LC_ALL overrides every locale category and is meant for
+# one-off commands. --reset and localectl also clear an old LC_ALL.
 persist_locale_for_family() {
     if [[ "$1" == "debian" ]] && command -v update-locale >/dev/null 2>&1; then
-        sudo update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+        sudo update-locale --reset LANG=en_US.UTF-8
     else
         persist_locale_with_systemd
     fi
 }
 
-# Hybrid on purpose: the locale is persisted even when it is already generated.
+# Persist the locale even if it was already generated.
 ensure_locale() {
     load_linux_release_info
 

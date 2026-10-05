@@ -1,6 +1,6 @@
 [misc]
-# Homebrew owns the installed Bun, Claude Code, Codex, OpenCode, and uv
-# binaries. Project-local managers own the JavaScript package-manager steps.
+# Homebrew updates Bun, Claude Code, Codex and uv. JavaScript packages are
+# managed per project, so skip the global package-manager steps too.
 disable = [
     "bun",
     "bun_packages",
@@ -9,7 +9,6 @@ disable = [
     "containers",
     "microsoft_office",
     "node",
-    "opencode",
     "pnpm",
     "uv",
     "yarn",
@@ -20,12 +19,12 @@ notify_end = "never"
 
 [brew]
 greedy_cask = true
-greedy_latest = true
-greedy_auto_updates = true
 autoremove = true
 
 [git]
 repos = ["~/Code/*/", "~/Work/*/"]
+pull_predefined = false
+fallback_to_fetch_default = true
 
 [firmware]
 upgrade = true

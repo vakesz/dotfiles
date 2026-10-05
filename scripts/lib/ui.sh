@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Status output, confirmation prompts and the check vocabulary; the only file under scripts/ that emits ANSI escapes.
+# Status messages, prompts and check results. The only file in scripts/ that
+# prints ANSI colors.
 
 info() {
     printf '\033[34m[INFO]\033[0m %s\n' "$1"
@@ -30,8 +31,8 @@ confirm() {
 
     printf '\n%s (y/N) ' "$1"
 
-    # Read a full line so Enter is consumed here; `read -n 1` would leave a
-    # newline for the next prompt and skip it as No.
+    # Read a whole line so Enter is consumed. `read -n 1` would leave the newline
+    # behind, and the next prompt would read it as No.
     if ! IFS= read -r -t "$timeout" answer; then
         printf '\n'
         warn "No confirmation input received; defaulting to No"
@@ -44,7 +45,7 @@ confirm() {
     esac
 }
 
-# Always returns 0, so a declined or failed step never aborts a `set -e` run.
+# Always returns 0, so a declined or failed step doesn't abort a `set -e` script.
 offer() {
     local prompt="$1"
     shift
@@ -79,7 +80,8 @@ section() {
     printf '\n\033[1m%s\033[0m\n' "$1"
 }
 
-# `((X += 1))` rather than `X++`, which returns 1 when X was 0 and aborts `set -e` callers.
+# `((X += 1))`, not `((X++))`: the latter returns 1 when X is 0, which aborts
+# `set -e` callers.
 pass() {
     printf '\033[32m  ok  \033[0m %s\n' "$1"
     ((PASS_COUNT += 1))

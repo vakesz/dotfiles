@@ -1,4 +1,4 @@
-# GNU Stow defaults (must include since custom file overrides built-ins)
+# Stow's built-in defaults. A custom ignore file replaces them, so repeat them.
 RCS
 .+,v
 CVS
@@ -20,12 +20,12 @@ _darcs
 \.LSOverride
 \._.*
 
-# Editor temp/swap files
+# Editor temp and swap files
 .*\.swp
 .*\.swo
 .+~
 \#.*\#
 
-# Local-only config
+# Machine-local overrides
 .*\.local$
 ^/zsh/rc\.d/.*\.local\.zsh$

@@ -1,11 +1,10 @@
-# Smart case: case-insensitive unless uppercase used
+# Case-insensitive unless the pattern has uppercase letters
 --smart-case
 
-# Include hidden files
+# Search hidden files
 --hidden
 
-# Don't search these directories
-# make check-config keeps this aligned with config/fd/ignore.
+# Skip these. make check-config keeps the list in sync with config/fd/ignore.
 --glob=!.git/
 --glob=!node_modules/
 --glob=!.venv/

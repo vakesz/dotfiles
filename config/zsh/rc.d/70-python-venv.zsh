@@ -1,5 +1,5 @@
-# Python virtualenv helpers. Auto-activation is gated on trust because
-# .venv/bin/activate is arbitrary project-supplied shell code.
+# Python virtualenv helpers. .venv/bin/activate is arbitrary shell code from the
+# project, so a venv only auto-activates after venv-trust.
 
 _dotfiles_sha256() {
   local digest
@@ -30,7 +30,7 @@ _dotfiles_venv_trusted() {
 
   want="$(<"$record")"
   have="$(_dotfiles_sha256 < "${1:A}/.venv/bin/activate")" || return 1
-  # Without -n an empty record would match an empty hash and auto-activate.
+  # Require a non-empty record so an empty hash can never match.
   [[ -n "$want" && "$want" == "$have" ]]
 }
 
@@ -53,7 +53,7 @@ venv-trust() {
     return 1
   }
 
-  # chmod because mkdir -m does not tighten an existing 0755 directory.
+  # mkdir -m doesn't change an existing directory, so chmod it explicitly.
   command mkdir -p -- "${record:h}" && command chmod 700 -- "${record:h}" || return 1
   (umask 077; print -r -- "$hash" >| "$record") || return 1
 
@@ -106,7 +106,7 @@ venv-off() {
 alias venv-deactivate='venv-off'
 
 _dotfiles_venv_auto() {
-  # Recover from a venv whose directory was deleted while still "active".
+  # Clean up after a venv whose directory was deleted while active.
   if [[ -n "$VIRTUAL_ENV" && ! -f "$VIRTUAL_ENV/bin/activate" ]]; then
     if (( $+functions[deactivate] )); then
       deactivate

@@ -1,7 +1,5 @@
-# Global gitignore file
-# Managed via dotfiles repository
-# Keep this limited to universal machine/editor artifacts. Repositories own
-# ignores for project files, build output, logs, and IDE configuration.
+# Global gitignore: only OS and editor artifacts. Project files, build output,
+# logs and IDE settings belong in each repository's own .gitignore.
 
 # macOS
 .DS_Store
