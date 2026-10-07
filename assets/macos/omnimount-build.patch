@@ -1,0 +1,247 @@
+diff --git a/Makefile b/Makefile
+index 0bdf1d5..7e21bd8 100644
+--- a/Makefile
++++ b/Makefile
+@@ -5,0 +6,2 @@ SCRATCH ?= $(HOME)/.omnimount-build
++OMNIMOUNT_ARCH ?= $(shell uname -m)
++export OMNIMOUNT_ARCH
+@@ -27,2 +29,2 @@ install-cli:
+-	swift build -c release --scratch-path $(SCRATCH)
+-	install -m 755 $(SCRATCH)/release/omnimount $(PREFIX)/bin/omnimount
++	swift build -c release --arch $(OMNIMOUNT_ARCH) --scratch-path "$(SCRATCH)" --cache-path "$(SCRATCH)/cache"
++	install -m 755 "$$(swift build -c release --arch $(OMNIMOUNT_ARCH) --scratch-path "$(SCRATCH)" --cache-path "$(SCRATCH)/cache" --show-bin-path)/omnimount" "$(PREFIX)/bin/omnimount"
+@@ -30 +32 @@ install-cli:
+-	@echo "CLI instalado en $(PREFIX)/bin/omnimount (firmado: $(SIGN_ID))"
++	@echo "CLI installed in $(PREFIX)/bin/omnimount (signed: $(SIGN_ID))"
+@@ -35,2 +37,2 @@ install: install-cli app
+-	@echo "App instalada en /Applications/Omnimount.app"
+-	@echo "Recuerda: si el helper estaba activo, reinícialo:"
++	@echo "App installed in /Applications/Omnimount.app"
++	@echo "If the helper was already active, restart it:"
+@@ -44 +46,3 @@ fuse2fs:
+-	@if [ -f vendor/bin/fuse2fs ]; then install -m 755 vendor/bin/fuse2fs $(PREFIX)/sbin/fuse2fs 2>/dev/null && echo "fuse2fs instalado en $(PREFIX)/sbin/fuse2fs" || true; fi
++	install -d "$(PREFIX)/sbin"
++	install -m 755 vendor/bin/fuse2fs "$(PREFIX)/sbin/fuse2fs"
++	@echo "fuse2fs installed in $(PREFIX)/sbin/fuse2fs"
+diff --git a/Sources/OmnimountApp/DiskMonitor.swift b/Sources/OmnimountApp/DiskMonitor.swift
+index c5101fa..ad6d1c8 100644
+--- a/Sources/OmnimountApp/DiskMonitor.swift
++++ b/Sources/OmnimountApp/DiskMonitor.swift
+@@ -59 +59,2 @@ final class DiskMonitor: ObservableObject {
+-        Task { @MainActor in
++        Task { @MainActor [weak self] in
++            guard let self else { return }
+@@ -88,0 +90 @@ final class DiskMonitor: ObservableObject {
++                let readOnlySnapshot = readOnly
+@@ -92 +94 @@ final class DiskMonitor: ObservableObject {
+-                    self.readOnlyByMacOS = readOnly
++                    self.readOnlyByMacOS = readOnlySnapshot
+diff --git a/Sources/OmnimountApp/OmnimountApp.swift b/Sources/OmnimountApp/OmnimountApp.swift
+index 1e6a701..a370213 100644
+--- a/Sources/OmnimountApp/OmnimountApp.swift
++++ b/Sources/OmnimountApp/OmnimountApp.swift
+@@ -54,0 +55 @@ struct OmnimountApp: App {
++@MainActor
+diff --git a/Sources/OmnimountCLI/Omnimount.swift b/Sources/OmnimountCLI/Omnimount.swift
+index c9c336e..8b19cb2 100644
+--- a/Sources/OmnimountCLI/Omnimount.swift
++++ b/Sources/OmnimountCLI/Omnimount.swift
+@@ -487 +487 @@ struct Doctor: ParsableCommand {
+-        abstract: "Comprueba el estado de las dependencias (macFUSE, fuse2fs, ntfs-3g).")
++        abstract: "Check filesystem tool dependencies (FUSE-T, fuse2fs, ntfs-3g).")
+@@ -495 +495 @@ struct Doctor: ParsableCommand {
+-                print("✗ \(name): no encontrado — \(hint)")
++                print("Missing \(name): \(hint)")
+@@ -499 +499 @@ struct Doctor: ParsableCommand {
+-            print("✓ Capa FUSE: FUSE-T (sin kext)")
++            print("FUSE backend: FUSE-T (no kernel extension)")
+@@ -501 +501 @@ struct Doctor: ParsableCommand {
+-            print("✓ Capa FUSE: macFUSE (kext)")
++            print("FUSE backend: macFUSE (kernel extension)")
+@@ -503 +503 @@ struct Doctor: ParsableCommand {
+-            print("✗ Capa FUSE: ninguna — recomendado: brew install --cask macos-fuse-t/cask/fuse-t")
++            print("Missing FUSE backend: install FUSE-T with brew install --cask fuse-t")
+@@ -505,4 +505,4 @@ struct Doctor: ParsableCommand {
+-        line("fuse2fs (ext2/3/4)", d.fuse2fs, hint: "compílalo con scripts/build-fuse2fs.sh (ver README)")
+-        line("ntfs-3g (NTFS)", d.ntfs3g, hint: "brew install gromgit/fuse/ntfs-3g-mac")
+-        line("e2fsck (verificación ext)", d.e2fsck, hint: "brew install e2fsprogs")
+-        line("ntfsfix (verificación NTFS)", d.ntfsfix, hint: "brew install gromgit/fuse/ntfs-3g-mac")
++        line("fuse2fs (ext2/3/4)", d.fuse2fs, hint: "rebuild Omnimount with make fuse2fs")
++        line("ntfs-3g (NTFS)", d.ntfs3g, hint: "rebuild against FUSE-T with make ntfs3g")
++        line("e2fsck (ext check)", d.e2fsck, hint: "rebuild Omnimount with make fuse2fs")
++        line("ntfsfix (NTFS check)", d.ntfsfix, hint: "rebuild against FUSE-T with make ntfs3g")
+@@ -512 +512 @@ struct Doctor: ParsableCommand {
+-            print("Todo listo: Omnimount puede montar ext2/3/4 y NTFS.")
++            print("Filesystem tools are available for ext2/3/4 and NTFS. Helper approval and Full Disk Access must be checked separately.")
+@@ -514,2 +514,2 @@ struct Doctor: ParsableCommand {
+-            if !d.canMountExt { print("Aún no se puede montar ext2/3/4.") }
+-            if !d.canMountNTFS { print("Aún no se puede montar NTFS.") }
++            if !d.canMountExt { print("Tools for ext2/3/4 are missing.") }
++            if !d.canMountNTFS { print("Tools for NTFS are missing.") }
+diff --git a/scripts/build-fuse2fs.sh b/scripts/build-fuse2fs.sh
+index 32ab0db..677700c 100755
+--- a/scripts/build-fuse2fs.sh
++++ b/scripts/build-fuse2fs.sh
+@@ -25 +25 @@ fuse-t)
+-        echo "ERROR: FUSE-T no está instalado." >&2
++        echo "ERROR: FUSE-T is not installed." >&2
+@@ -32,2 +32,2 @@ macfuse)
+-        echo "ERROR: macFUSE no está instalado." >&2
+-        echo "  brew install --cask macfuse (y aprueba la extensión en Ajustes del Sistema)" >&2
++        echo "ERROR: macFUSE is not installed." >&2
++        echo "  brew install --cask macfuse (approve its extension in System Settings)" >&2
+@@ -37 +37 @@ macfuse)
+-        echo "ERROR: no se encuentra fuse3.pc (¿instalación de macFUSE incompleta?)" >&2
++        echo "ERROR: fuse3.pc not found; check the macFUSE installation." >&2
+@@ -42 +42 @@ macfuse)
+-    echo "BACKEND desconocido: $BACKEND (usa fuse-t o macfuse)" >&2
++    echo "Unknown BACKEND: $BACKEND (use fuse-t or macfuse)" >&2
+@@ -48 +48 @@ echo "==> Backend: $BACKEND"
+-echo "==> Descargando e2fsprogs $E2FSPROGS_VERSION"
++echo "==> Downloading e2fsprogs $E2FSPROGS_VERSION"
+@@ -60 +60 @@ cd "e2fsprogs-$E2FSPROGS_VERSION"
+-echo "==> Aplicando parche Darwin (la API xattr de macOS lleva un parámetro 'position')"
++echo "==> Applying the Darwin xattr compatibility patch"
+@@ -67 +67 @@ if "op_setxattr_darwin" in src:
+-    print("   (ya aplicado)")
++    print("   (already applied)")
+@@ -95 +95 @@ anchor = "static struct fuse_operations fs_ops = {"
+-assert anchor in src, "no se encontró fs_ops en fuse2fs.c"
++assert anchor in src, "fs_ops not found in fuse2fs.c"
+@@ -108 +108,10 @@ open(path, "w").write(src)
+-print("   parche aplicado")
++print("   patch applied")
++path = "configure"
++src = open(path).read()
++broken = (
++        "\t  fuse3_CFLAGS\n"
++        "              C compiler flags for fuse3, overriding pkg-config\n"
++        "  fuse3_LIBS  linker flags for fuse3, overriding pkg-config\n"
++)
++assert src.count(broken) == 1, "Expected e2fsprogs 1.47.3 configure defect not found"
++open(path, "w").write(src.replace(broken, ""))
+@@ -124 +132,0 @@ build_one() {
+-        make -j"$(sysctl -n hw.ncpu)" >/dev/null
+@@ -126,2 +134,2 @@ build_one() {
+-        # FUSE-T (fuse2): anular pkg-config y enlazar libfuse-t explícita.
+-        PKG_CONFIG=/usr/bin/false \
++        # FUSE-T provides the FUSE3 pkg-config metadata used by e2fsprogs.
++        PKG_CONFIG_PATH="/usr/local/lib/pkgconfig" \
+@@ -129,2 +137,2 @@ build_one() {
+-        CPPFLAGS="-I/usr/local/include -D_FILE_OFFSET_BITS=64" \
+-        LDFLAGS="-L/usr/local/lib" \
++        CPPFLAGS="-D_FILE_OFFSET_BITS=64" \
++        LDFLAGS="-L/usr/local/lib -Wl,-rpath,/usr/local/lib" \
+@@ -132,3 +139,0 @@ build_one() {
+-        make -j"$(sysctl -n hw.ncpu)" libs >/dev/null
+-        make -C misc fuse2fs \
+-            LIBFUSE="/usr/local/lib/libfuse-t.dylib -Wl,-rpath,/usr/local/lib" >/dev/null
+@@ -135,0 +141,2 @@ build_one() {
++    make -j"$(sysctl -n hw.ncpu)" libs >/dev/null
++    make -C misc fuse2fs mke2fs tune2fs >/dev/null
+@@ -137 +143,0 @@ build_one() {
+-    make -C misc mke2fs tune2fs >/dev/null
+@@ -141,4 +147,3 @@ build_one() {
+-echo "==> Compilando arm64"
+-build_one arm64
+-echo "==> Compilando x86_64 (configure corre sus tests bajo Rosetta)"
+-build_one x86_64
++ARCH="${OMNIMOUNT_ARCH:-$(uname -m)}"
++echo "==> Building $ARCH"
++build_one "$ARCH"
+@@ -149 +154 @@ for pair in fuse2fs:misc/fuse2fs e2fsck:e2fsck/e2fsck mke2fs:misc/mke2fs tune2fs
+-    lipo -create "build-arm64/$rel" "build-x86_64/$rel" -output "$VENDOR_BIN/$name"
++    cp "build-$ARCH/$rel" "$VENDOR_BIN/$name"
+@@ -153 +158 @@ echo ""
+-echo "==> Binarios universales en $VENDOR_BIN:"
++echo "==> Native $ARCH binaries in $VENDOR_BIN:"
+diff --git a/scripts/build-ntfs3g.sh b/scripts/build-ntfs3g.sh
+index 72f1369..b83aabd 100755
+--- a/scripts/build-ntfs3g.sh
++++ b/scripts/build-ntfs3g.sh
+@@ -16,0 +17 @@ BUILD_DIR="${TMPDIR:-/tmp}/omnimount-ntfs3g-build"
++FUSE_T_PKGCONFIG_DIR="$BUILD_DIR/pkgconfig"
+@@ -19 +20 @@ if [ ! -f /usr/local/lib/libfuse-t.dylib ]; then
+-    echo "ERROR: FUSE-T no está instalado." >&2
++    echo "ERROR: FUSE-T is not installed." >&2
+@@ -24 +25 @@ fi
+-echo "==> Descargando ntfs-3g $NTFS3G_VERSION"
++echo "==> Downloading ntfs-3g $NTFS3G_VERSION"
+@@ -27,0 +29,18 @@ TARBALL="ntfs-3g_ntfsprogs-$NTFS3G_VERSION.tgz"
++
++# ntfs-3g's configure requires a FUSE 2 pkg-config entry. FUSE-T exposes
++# the compatible library as fuse-t.pc, so provide a build-local alias rather
++# than changing the system-wide FUSE-T installation.
++mkdir -p "$FUSE_T_PKGCONFIG_DIR"
++cat > "$FUSE_T_PKGCONFIG_DIR/fuse.pc" <<'EOF'
++prefix=/usr/local
++exec_prefix=${prefix}
++libdir=${exec_prefix}/lib
++includedir=${prefix}/include/fuse
++
++Name: fuse
++Description: FUSE-T FUSE 2 compatibility
++Version: 2.9.9
++Libs: -L${libdir} -Wl,-rpath,${libdir} -lfuse-t
++Cflags: -I${includedir}
++EOF
++
+@@ -36,2 +55,3 @@ SRC="ntfs-3g-$NTFS3G_VERSION"
+-for ARCH in arm64 x86_64; do
+-    echo "==> Compilando $ARCH"
++ARCH="${OMNIMOUNT_ARCH:-$(uname -m)}"
++for ARCH in "$ARCH"; do
++    echo "==> Building $ARCH"
+@@ -43 +63 @@ for ARCH in arm64 x86_64; do
+-    PKG_CONFIG_PATH="/usr/local/lib/pkgconfig" \
++    PKG_CONFIG_PATH="$FUSE_T_PKGCONFIG_DIR:/usr/local/lib/pkgconfig" \
+@@ -45 +65 @@ for ARCH in arm64 x86_64; do
+-    CPPFLAGS="-I/usr/local/include -D_FILE_OFFSET_BITS=64" \
++    CPPFLAGS="-D_FILE_OFFSET_BITS=64" \
+@@ -48 +68 @@ for ARCH in arm64 x86_64; do
+-                --disable-nls --disable-ldconfig $HOSTFLAG >/dev/null
++                --disable-ldconfig $HOSTFLAG >/dev/null
+@@ -56 +76 @@ for pair in ntfs-3g:src/ntfs-3g mkntfs:ntfsprogs/mkntfs ntfsfix:ntfsprogs/ntfsfi
+-    lipo -create "$SRC-arm64/$rel" "$SRC-x86_64/$rel" -output "$VENDOR_BIN/$name"
++    cp "$SRC-$ARCH/$rel" "$VENDOR_BIN/$name"
+@@ -60 +80 @@ echo ""
+-echo "==> Binarios universales en $VENDOR_BIN:"
++echo "==> Native $ARCH binaries in $VENDOR_BIN:"
+diff --git a/scripts/make-app.sh b/scripts/make-app.sh
+index 39b2d83..8e996c0 100755
+--- a/scripts/make-app.sh
++++ b/scripts/make-app.sh
+@@ -12,4 +12,12 @@ SCRATCH="${OMNIMOUNT_SCRATCH:-$HOME/.omnimount-build}"
+-echo "==> Compilando en modo release"
+-swift build -c release --arch arm64 --arch x86_64 --scratch-path "$SCRATCH"
+-# Con --arch múltiple, SPM deja los productos universales en apple/Products/Release.
+-RELEASE_DIR="$SCRATCH/apple/Products/Release"
++ARCH="${OMNIMOUNT_ARCH:-$(uname -m)}"
++echo "==> Building release for $ARCH"
++swift build -c release --arch "$ARCH" --scratch-path "$SCRATCH" --cache-path "$SCRATCH/cache"
++# Ask SwiftPM for its product directory instead of relying on a version-specific layout.
++RELEASE_DIR="$(swift build -c release --arch "$ARCH" \
++    --scratch-path "$SCRATCH" --cache-path "$SCRATCH/cache" --show-bin-path)"
++for product in OmnimountApp OmnimountHelper omnimount; do
++    if [[ ! -x "$RELEASE_DIR/$product" ]]; then
++        echo "ERROR: $product not found in $RELEASE_DIR" >&2
++        exit 1
++    fi
++done
+@@ -79 +87 @@ else
+-    echo "AVISO: vendor/bin/fuse2fs no existe (ejecuta 'make fuse2fs'); el bundle no incluirá fuse2fs."
++    echo "WARNING: vendor/bin/fuse2fs not found; run 'make fuse2fs' before packaging."
+@@ -89 +97 @@ for tool in ntfs-3g mkntfs ntfsfix e2fsck mke2fs tune2fs; do
+-        echo "AVISO: vendor/bin/$tool no existe (scripts/build-ntfs3g.sh / build-fuse2fs.sh)"
++        echo "WARNING: vendor/bin/$tool not found; build the filesystem tools before packaging."
+@@ -112 +120 @@ if [ -n "$DEVID" ]; then
+-    echo "==> Firmando para distribución: $SIGN_ID"
++    echo "==> Signing for distribution: $SIGN_ID"
+@@ -116 +124 @@ else
+-    echo "==> Firma de desarrollo: ${SIGN_ID:-ad-hoc}"
++    echo "==> Development signing: ${SIGN_ID:-ad-hoc}"
+@@ -139,2 +147,2 @@ echo ""
+-echo "==> Creado $APP"
+-echo "Ábrela con: open \"$APP\""
++echo "==> Created $APP"
++echo "Open with: open \"$APP\""

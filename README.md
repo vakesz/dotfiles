@@ -14,6 +14,31 @@ curl -fsSL https://raw.githubusercontent.com/vakesz/dotfiles/main/install.sh | b
 
 This installs the Xcode Command Line Tools, clones the repo to `~/.dotfiles` and runs `bootstrap.sh`. That script installs Homebrew and the Brewfile, links the dotfiles, and offers to run the macOS setup.
 
+The optional macOS setup can build and install Omnimount for ext2/3/4 and NTFS disks. FUSE-T comes from the Brewfile. The installer uses a pinned upstream revision with a local compatibility patch and builds only the Mac's hardware architecture (`arm64` on Apple Silicon, `x86_64` on Intel), even when the installer runs under Rosetta. FUSE-T's libraries live under `/usr/local` on both architectures; that path does not imply an Intel build. Build messages and the dependency check are patched to English; the app already supports English and Spanish according to macOS language preferences. Other upstream CLI messages and source comments may still be Spanish.
+
+Omnimount's source checkout, downloads, Swift build output, and Swift dependency cache stay in one temporary directory and are removed after either a successful or failed installation. The installed app is `/Applications/Omnimount.app`, the CLI is under `$(brew --prefix)/bin`, and `fuse2fs` is under `$(brew --prefix)/sbin`. The patch fixes malformed e2fsprogs configure code, an unsupported NTFS configure option, and Swift concurrency warnings; remaining upstream C deprecation, packed-member, and linker warnings are not hidden.
+
+#### Omnimount Permissions And Drives
+
+The setup prints this manual checklist at completion, including when Omnimount is already installed. macOS does not let the installer grant these permissions automatically:
+
+1. Open Omnimount, click its menu bar icon, open **Setup**, and activate the helper.
+2. In **System Settings > General > Login Items & Extensions** (**Login Items** on older macOS), allow Omnimount to run in the background.
+3. In **System Settings > Privacy & Security > Full Disk Access**, click **+**, press **Cmd+Shift+G**, and add `/Applications/Omnimount.app/Contents/MacOS/OmnimountHelper`. Turn its switch on.
+4. If the helper was already running, restart it after granting access or rebuilding: `sudo launchctl kickstart -k system/org.omnimount.helper`. Recheck helper approval and Full Disk Access after updates, especially if the signing identity changed.
+
+FUSE-T uses local NFS mounts, not a kernel extension. It does **not** require Recovery mode, Reduced Security, or macFUSE extension approval. Do not install macFUSE alongside FUSE-T because their compatibility libraries conflict. Mounted volumes may appear as network volumes; use Omnimount's reveal-in-Finder action if they are absent from Finder's sidebar.
+
+Connect a drive and dismiss any macOS **Initialize** prompt without initializing it. Select the ext2/3/4 or NTFS partition in Omnimount and mount it; always unmount/eject before unplugging. If NTFS remains read-only, disable Windows Fast Startup/hibernation, check the filesystem in Windows, and fully shut Windows down before reconnecting. Do not force removal of a hibernation file unless you accept losing that suspended Windows session. Some ext4 features, such as internal quotas, are unsupported by fuse2fs; do not change filesystem features or run repairs without a backup.
+
+`omnimount doctor` checks tools, **not** helper approval or Full Disk Access. For CLI use, grant Full Disk Access to your terminal app and `$(brew --prefix)/bin/omnimount`, then run `omnimount list`. Use the actual partition identifier from that list with `sudo omnimount mount diskXsY --read-only` for an initial read-only mount, or omit `--read-only` for read/write; unmount with `sudo omnimount unmount diskXsY`.
+
+To replace an existing universal build with the patched native build, quit Omnimount, run the following, and accept the Omnimount installation prompt:
+
+```bash
+OMNIMOUNT_REBUILD=1 make macos
+```
+
 To pass flags to `bootstrap.sh`, use `bash -s --`:
 
 ```bash
@@ -148,7 +173,7 @@ Git and stow both ignore these, so they can live in the repo without being track
 
 `bootstrap.sh` offers the script for the current platform, and each one can be run on its own later. Every step asks first, and prompts default to No after `DOTFILES_CONFIRM_TIMEOUT` seconds (30 by default).
 
-- `scripts/platform/macos.sh`: Touch ID for sudo, Rosetta, computer name, macOS defaults, power settings, Dock layout, showing `~/Library`, Spotlight exclusions, a custom Hungarian keyboard layout, the LLVM `dlltool` link, Xcode first-launch setup, GitHub CLI login and the stable Rust toolchain. It then runs the two scripts below.
+- `scripts/platform/macos.sh`: Touch ID for sudo, Rosetta, computer name, macOS defaults, power settings, Dock layout, showing `~/Library`, Spotlight exclusions, a custom Hungarian keyboard layout, Omnimount for ext2/3/4 and NTFS disks, the LLVM `dlltool` link, Xcode first-launch setup, GitHub CLI login and the stable Rust toolchain. It then runs the two scripts below.
 - `scripts/platform/macos-hardening.sh`: the firewall and Stealth Mode, FileVault, remote login and sharing, privacy defaults, automatic security responses, and Homebrew analytics.
 - `scripts/platform/macos-office-tweaks.sh`: turns off Microsoft AutoUpdate for Office and Teams so `topgrade` handles their updates.
 - `scripts/platform/linux.sh`: the `en_US.UTF-8` locale and zsh as the default shell.

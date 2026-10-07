@@ -95,6 +95,9 @@ brew "qemu"
 brew "squashfs"
 cask "orbstack"
 
+# Filesystems
+cask "fuse-t"
+
 # Android development
 cask "android-commandlinetools"
 
@@ -104,6 +107,7 @@ cask "claude-code@latest"
 cask "codex"
 cask "github-copilot-app"
 cask "steipete/tap/codexbar"
+cask "t3-code@nightly"
 
 # General development tools
 brew "azure-cli"
@@ -112,6 +116,7 @@ brew "pngquant"
 brew "watchman"
 brew "webp"
 cask "visual-studio-code"
+cask "qlmarkdown"
 
 # Databases
 cask "tablepro"

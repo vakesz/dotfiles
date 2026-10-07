@@ -69,6 +69,9 @@
 	process = git-lfs filter-process
 	required = true
 
+[credential "https://dev.azure.com"]
+	useHttpPath = true
+
 # Machine-local overrides. Git skips the file if it doesn't exist.
 [include]
 	path = gitconfig.local
