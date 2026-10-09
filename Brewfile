@@ -116,7 +116,6 @@ brew "pngquant"
 brew "watchman"
 brew "webp"
 cask "visual-studio-code"
-cask "qlmarkdown"
 
 # Databases
 cask "tablepro"
@@ -132,6 +131,7 @@ cask "affinity"
 cask "coteditor"
 cask "meetingbar"
 cask "mountain-duck"
+cask "qlmarkdown"
 cask "tiled"
 
 # Desktop apps: media and communication

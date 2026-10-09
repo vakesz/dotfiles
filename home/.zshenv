@@ -4,6 +4,7 @@ export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 export XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
 
+# Don't pass stale corepack state from the old setup into child shells.
 unset COREPACK_HOME
 
 export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
