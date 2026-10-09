@@ -203,4 +203,3 @@ Check these again after updating, especially if the signing identity changed. `o
 - [pnpm](https://pnpm.io/)
 - [Bun](https://bun.com/)
 - [GnuPG](https://gnupg.org/)
-
