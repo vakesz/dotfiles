@@ -105,7 +105,7 @@ cask "android-commandlinetools"
 cask "chatgpt"
 cask "claude-code@latest"
 cask "codex"
-cask "github-copilot-app"
+cask "copilot-cli"
 cask "steipete/tap/codexbar"
 cask "t3-code@nightly"
 
@@ -123,7 +123,6 @@ cask "tablepro"
 # Desktop apps: system and maintenance
 brew "mole"
 cask "linearmouse"
-cask "shottr"
 cask "tailscale-app"
 
 # Desktop apps: productivity
