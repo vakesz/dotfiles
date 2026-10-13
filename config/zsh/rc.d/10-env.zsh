@@ -8,6 +8,8 @@ export VISUAL="vi"
 
 [[ -t 0 ]] && export GPG_TTY="$TTY"
 
+# No analytics, no background auto-update during prompt init (brew/topgrade
+# handle updates explicitly), no env hints cluttering the prompt.
 export HOMEBREW_NO_ANALYTICS=1
 export HOMEBREW_NO_AUTO_UPDATE=1
 export HOMEBREW_NO_ENV_HINTS=1

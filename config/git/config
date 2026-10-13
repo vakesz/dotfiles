@@ -32,8 +32,15 @@
 [pager]
 	difftool = true
 
+[commit]
+	verbose = true
+
+[column]
+	ui = auto
+
 [credential]
-	# Git Credential Manager, installed from the Brewfile
+	# Git Credential Manager from the Brewfile (macOS). On Linux HTTPS auth
+	# falls back to the store/cache helper in gitconfig.local.
 	helper = manager
 
 [diff]

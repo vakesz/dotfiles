@@ -4,7 +4,7 @@
 set -euo pipefail
 
 # shellcheck source-path=SCRIPTDIR
-source "$(dirname "${BASH_SOURCE[0]}")/../lib/paths.sh"
+source "${BASH_SOURCE[0]%/*}/../lib/paths.sh"
 source "$DOTFILES_ROOT/scripts/lib/ui.sh"
 source "$DOTFILES_ROOT/scripts/lib/platform.sh"
 
@@ -13,7 +13,9 @@ MAU_AGENTS=(
     com.microsoft.autoupdate.helper.plist
     com.microsoft.autoupdate.helpertool.plist
 )
+readonly MAU_AGENTS
 
+# Unload and delete one launchd plist in the given domain.
 remove_launchd_plist() {
     local domain="$1" plist="$2"
     [[ -e "$plist" ]] || return 0
@@ -21,14 +23,15 @@ remove_launchd_plist() {
     if [[ "$domain" == "system" ]]; then
         sudo launchctl bootout system "$plist" 2>/dev/null || true
         sudo chflags noschg "$plist" 2>/dev/null || true
-        sudo rm -f "$plist"
+        sudo rm -f -- "$plist"
     else
         launchctl bootout "$domain" "$plist" 2>/dev/null || true
         chflags nouchg "$plist" 2>/dev/null || true
-        rm -f "$plist"
+        rm -f -- "$plist"
     fi
 }
 
+# Remove Microsoft AutoUpdate agents from user and system domains.
 remove_launchd_agents() {
     local uid="" name=""
     uid="$(id -u)"

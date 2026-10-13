@@ -1,6 +1,7 @@
 [misc]
 # Homebrew updates Bun, Claude Code, Codex and uv. JavaScript packages are
 # managed per project, so skip the global package-manager steps too.
+# uv tools/python versions still need `uv tool upgrade --all` now and then.
 disable = [
     "bun",
     "bun_packages",

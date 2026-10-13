@@ -2,32 +2,43 @@
 # Status messages, prompts and check results. The only file in scripts/ that
 # prints ANSI colors.
 
+[[ -n "${__DOTFILES_UI_LOADED:-}" ]] && return 0
+__DOTFILES_UI_LOADED=1
+
+# Print a blue informational message to stdout.
 info() {
     printf '\033[34m[INFO]\033[0m %s\n' "$1"
 }
 
+# Print a green success message to stdout.
 success() {
     printf '\033[32m[OK]\033[0m %s\n' "$1"
 }
 
+# Print a yellow warning to stderr.
 warn() {
     printf '\033[33m[WARN]\033[0m %s\n' "$1" >&2
 }
 
+# Print a red error to stderr.
 error() {
     printf '\033[31m[ERROR]\033[0m %s\n' "$1" >&2
 }
 
+# True when both stdin and stdout are terminals.
 is_interactive() {
     [[ -t 0 && -t 1 ]]
 }
 
+# Ask a y/N question; defaults to No on timeout or non-interactive shells.
 confirm() {
     local answer="n"
     local timeout="${DOTFILES_CONFIRM_TIMEOUT:-30}"
 
     is_interactive || return 1
     [[ "$timeout" =~ ^[0-9]+$ ]] || timeout=30
+    # A timeout of 0 would instantly decline; treat it as unset.
+    [[ "$timeout" == "0" ]] && timeout=30
 
     printf '\n%s (y/N) ' "$1"
 
@@ -45,7 +56,7 @@ confirm() {
     esac
 }
 
-# Always returns 0, so a declined or failed step doesn't abort a `set -e` script.
+# Offer to run "$@" after confirmation. Always returns 0.
 offer() {
     local prompt="$1"
     shift
@@ -54,6 +65,7 @@ offer() {
     "$@" || warn "$1 did not complete"
 }
 
+# Run action_fn after confirmation unless check_fn already passes.
 offer_if_missing() {
     local prompt="$1" check_fn="$2" action_fn="$3" already_message="$4"
 
@@ -65,6 +77,7 @@ offer_if_missing() {
     offer "$prompt" "$action_fn"
 }
 
+# Skip the caller's step with info when $1 is missing from PATH.
 require_command() {
     command -v "$1" >/dev/null 2>&1 && return 0
     info "$1 not installed; skipping ${2:-$1}"

@@ -11,7 +11,7 @@ esac
 _dotfiles_path_prepend() {
   local dir
   for dir in "$@"; do
-    [[ -n "$dir" ]] && path=("$dir" $path)
+    [[ -n "$dir" ]] && path=("$dir" "${path[@]}")
   done
   return 0
 }
@@ -29,16 +29,21 @@ _dotfiles_cache_source() {
 
   [[ -s "$cache_file" ]] || refresh=1
   for dep in "$@"; do
-    [[ -e "$dep" && "$dep" -nt "$cache_file" ]] && { refresh=1; break; }
+    # Refresh when a dependency is newer than the cache, or when it vanished
+    # (e.g. the tool was uninstalled) so a stale cache is never sourced.
+    [[ ! -e "$dep" ]] && { refresh=1; break; }
+    [[ "$dep" -nt "$cache_file" ]] && { refresh=1; break; }
   done
 
   if (( refresh )); then
     mkdir -p "${cache_file:h}"
-    tmp_file="${cache_file}.$$"
+    tmp_file="$(mktemp "${cache_file:h}/.init.XXXXXX")" || return 0
+    # init_command comes from hardcoded call sites below (starship init,
+    # zoxide init, ...), never from user input, so eval is safe here.
     if eval "$init_command" > "$tmp_file" 2>/dev/null; then
-      mv "$tmp_file" "$cache_file"
+      mv -- "$tmp_file" "$cache_file"
     else
-      rm -f "$tmp_file"
+      rm -f -- "$tmp_file"
       return 0
     fi
   fi

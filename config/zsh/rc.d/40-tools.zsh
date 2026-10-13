@@ -17,6 +17,7 @@ _dotfiles_cache_tool zoxide "zoxide init zsh --cmd cd" "$_dotfiles_tools_rc"
 [[ -t 0 && -t 1 ]] && _dotfiles_cache_tool direnv "direnv hook zsh" "$_dotfiles_tools_rc"
 
 # fzf runs FZF_DEFAULT_COMMAND through sh, where the fd=fdfind alias doesn't exist.
+# fd reads $XDG_CONFIG_HOME/fd/ignore automatically, so no --ignore-file needed.
 if (( $+commands[fd] || $+commands[fdfind] )); then
   export FZF_DEFAULT_COMMAND="${commands[fd]:-${commands[fdfind]}} --type f --hidden --follow"
 fi

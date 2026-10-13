@@ -2,10 +2,11 @@
 # Check that a bootstrapped machine is in the expected state. It only reports,
 # never fixes, and exits non-zero on any failure, so it works as a smoke test.
 
+# Deliberately no -e: every check must run so the summary counts all results.
 set -uo pipefail
 
 # shellcheck source=scripts/lib/paths.sh
-source "$(dirname "${BASH_SOURCE[0]}")/lib/paths.sh"
+source "${BASH_SOURCE[0]%/*}/lib/paths.sh"
 # shellcheck source=scripts/lib/ui.sh
 source "$DOTFILES_ROOT/scripts/lib/ui.sh"
 # shellcheck source=scripts/lib/platform.sh
@@ -21,14 +22,17 @@ CORE_COMMANDS=(git stow zsh)
 WORKSTATION_COMMANDS=(starship fzf rg fd bat eza zoxide jq uv tldr yq direnv ccache git-lfs node pnpm bun rustup)
 MACOS_COMMANDS=(brew dockutil gh mas topgrade)
 
+# True when $1 is on PATH.
 has_command() {
     command -v "$1" >/dev/null 2>&1
 }
 
+# Run "$@" discarding all output; report only success/failure.
 quietly() {
     "$@" >/dev/null 2>&1
 }
 
+# Run a check ("$@" after the first three args) and record pass/fail via reporter.
 verify() {
     local ok="$1" bad="$2" reporter="$3"
     shift 3
@@ -37,6 +41,16 @@ verify() {
         pass "$ok"
     else
         "$reporter" "$bad"
+    fi
+}
+
+# Resolve a path to its canonical target. realpath ships with macOS 13+
+# and Linux; fall back to python3 for older macOS.
+canonical_path() {
+    if command -v realpath >/dev/null 2>&1; then
+        realpath "$1"
+    else
+        python3 -c 'import os, sys; print(os.path.realpath(sys.argv[1]))' "$1"
     fi
 }
 
@@ -68,9 +82,9 @@ check_stow_links() {
             continue
         fi
 
-        # Stow may link a parent directory instead of the file, so resolve the
-        # whole path. realpath ships with macOS 13+ and Linux.
-        resolved="$(realpath "$target")"
+        # Bootstrap links files individually (--no-folding), but resolve the
+        # whole path anyway in case an older checkout used directory folding.
+        resolved="$(canonical_path "$target")"
         if [[ "$resolved" != "$DOTFILES_ROOT/$repo_file" ]]; then
             fail "does not resolve into this repo: $target -> $resolved"
             missing=1
@@ -135,11 +149,28 @@ check_commands() {
     done
 }
 
+# Print the current user's login shell basename without forking basename.
+login_shell_name() {
+    local shell_path=""
+
+    if command -v getent >/dev/null 2>&1; then
+        shell_path="$(getent passwd "${USER:-$(id -un)}" 2>/dev/null | awk -F: '{print $7}')"
+    elif command -v dscl >/dev/null 2>&1; then
+        shell_path="$(dscl . -read "${HOME}" UserShell 2>/dev/null | awk '{print $2}')"
+    fi
+
+    shell_path="${shell_path:-${SHELL:-}}"
+    printf '%s\n' "${shell_path##*/}"
+}
+
 check_shell() {
+    local current_shell=""
+
     section "Shell"
 
-    verify "login shell is zsh" "login shell is ${SHELL:-unset}, expected zsh" \
-        fail test "$(basename "${SHELL:-}")" = "zsh"
+    current_shell="$(login_shell_name)"
+    verify "login shell is zsh" "login shell is ${current_shell:-unset}, expected zsh" \
+        fail test "$current_shell" = "zsh"
     verify "zshrc readable at $CONFIG_TARGET/zsh/.zshrc" "no readable zshrc at $CONFIG_TARGET/zsh/.zshrc" \
         fail test -r "$CONFIG_TARGET/zsh/.zshrc"
 }

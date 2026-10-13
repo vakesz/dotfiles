@@ -1,14 +1,20 @@
 #!/usr/bin/env bash
 # Everything a fresh Mac needs before bootstrap.sh can stow.
 
+[[ -n "${__DOTFILES_MACOS_PREFLIGHT_LOADED:-}" ]] && return 0
+__DOTFILES_MACOS_PREFLIGHT_LOADED=1
+
 # shellcheck source=scripts/lib/ui.sh
 source "${BASH_SOURCE[0]%/*}/ui.sh"
 # shellcheck source=scripts/lib/macos-state.sh
 source "${BASH_SOURCE[0]%/*}/macos-state.sh"
 
 XCODE_CLI_TOOLS_WAIT_TIMEOUT="${XCODE_CLI_TOOLS_WAIT_TIMEOUT:-1800}"
+readonly XCODE_CLI_TOOLS_WAIT_TIMEOUT
 HOMEBREW_INSTALLER_URL="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
+readonly HOMEBREW_INSTALLER_URL
 
+# Install the Xcode Command Line Tools via the GUI installer if missing.
 ensure_xcode_cli_tools() {
     local waited=0
 
@@ -45,6 +51,7 @@ load_homebrew_environment() {
 
     for brew_path in /opt/homebrew/bin/brew /usr/local/bin/brew; do
         if [[ -x "$brew_path" ]]; then
+            # Output comes from the Homebrew binary itself, not user input.
             eval "$("$brew_path" shellenv)"
             return 0
         fi
@@ -53,6 +60,7 @@ load_homebrew_environment() {
     return 1
 }
 
+# Install Homebrew if the shellenv loader above found nothing.
 ensure_homebrew() {
     if load_homebrew_environment; then
         info "Homebrew already installed"
@@ -75,6 +83,7 @@ ensure_homebrew() {
     success "Homebrew installed"
 }
 
+# Install every Brewfile entry unless everything is already satisfied.
 ensure_brewfile() {
     local brewfile="$1"
 

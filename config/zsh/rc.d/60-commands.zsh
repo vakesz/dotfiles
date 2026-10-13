@@ -4,7 +4,7 @@
 zsh-profile() {
   local runs="${1:-10}" i
   for (( i = 1; i <= runs; i++ )); do
-    /usr/bin/time zsh -lic exit
+    command time zsh -lic exit
   done
 }
 

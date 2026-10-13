@@ -9,8 +9,13 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - run: sudo apt-get update -qq && sudo apt-get install -y jq python3 ruby shellcheck shfmt zsh
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update -qq && sudo apt-get install -y jq python3 ruby shellcheck shfmt zsh ripgrep fd-find
+      - run: |
+          # Ubuntu names the fd binary fdfind; check-apps.sh expects fd.
+          if command -v fdfind >/dev/null 2>&1 && ! command -v fd >/dev/null 2>&1; then
+            sudo ln -sf "$(command -v fdfind)" /usr/local/bin/fd
+          fi
       # actionlint isn't packaged for Ubuntu, but the runner image has Go.
       - run: |
           go install github.com/rhysd/actionlint/cmd/actionlint@latest

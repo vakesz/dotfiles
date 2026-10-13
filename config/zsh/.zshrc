@@ -8,3 +8,7 @@ done
 
 # Untracked machine-local overrides
 [[ -f "$ZDOTDIR/.zshrc.local" ]] && source "$ZDOTDIR/.zshrc.local"
+
+# Normalize the startup status: the guards above return 1 when an optional
+# file is absent, which a bare `exit` would otherwise propagate.
+true

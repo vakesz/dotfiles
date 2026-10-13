@@ -102,6 +102,8 @@ dotfiles/
 └── Makefile
 ```
 
+Per-user agent state (`.claude/`, `.agents/`, `skills-lock.json`) is gitignored and never committed.
+
 `make help` lists all targets.
 
 ## What's configured

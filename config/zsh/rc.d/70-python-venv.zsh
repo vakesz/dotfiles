@@ -54,7 +54,7 @@ venv-trust() {
   }
 
   # mkdir -m doesn't change an existing directory, so chmod it explicitly.
-  command mkdir -p -- "${record:h}" && command chmod 700 -- "${record:h}" || return 1
+  command mkdir -p -- "${record:h}" && command chmod 700 "${record:h}" || return 1
   (umask 077; print -r -- "$hash" >| "$record") || return 1
 
   print -r -- "Trusted virtualenv: $project_dir/.venv"
@@ -87,12 +87,12 @@ venv() {
   fi
 
   if [[ -d "$venv_dir" ]]; then
-    echo "Error: $venv_dir exists but is not a valid virtualenv" >&2
+    print -u2 -r -- "Error: $venv_dir exists but is not a valid virtualenv"
     return 1
   fi
 
   (( $+commands[uv] )) || {
-    echo "Error: uv not found" >&2
+    print -u2 -r -- "Error: uv not found"
     return 1
   }
 
@@ -117,7 +117,8 @@ _dotfiles_venv_auto() {
 
   if [[ -n "$VIRTUAL_ENV" ]]; then
     local venv_parent="${VIRTUAL_ENV:h}"
-    if [[ "$PWD" != "${venv_parent}/"* && "$PWD" != "$venv_parent" ]]; then
+    # Compare physical paths: $PWD may be logical under a symlinked dir.
+    if [[ "${PWD:A}" != "${venv_parent}/"* && "${PWD:A}" != "$venv_parent" ]]; then
       (( $+functions[deactivate] )) && deactivate
     fi
   fi

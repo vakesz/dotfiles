@@ -4,13 +4,14 @@
 set -euo pipefail
 
 # shellcheck source=scripts/lib/paths.sh
-source "$(dirname "${BASH_SOURCE[0]}")/scripts/lib/paths.sh"
+source "${BASH_SOURCE[0]%/*}/scripts/lib/paths.sh"
 # shellcheck source=scripts/lib/ui.sh
 source "$DOTFILES_ROOT/scripts/lib/ui.sh"
 # shellcheck source=scripts/lib/platform.sh
 source "$DOTFILES_ROOT/scripts/lib/platform.sh"
 
-SCRIPT_NAME="$(basename "$0")"
+SCRIPT_NAME="${0##*/}"
+# Recomputed in main after XDG defaults are set; kept here for usage text.
 CONFIG_TARGET="${XDG_CONFIG_HOME:-$HOME/.config}"
 ADOPT=0
 SKIP_PREFLIGHT=0
@@ -106,7 +107,7 @@ assert_stow_targets_clean() {
         target="$HOME"
         [[ "$package" == "config" ]] && target="$CONFIG_TARGET"
 
-        stow_output="$(stow -n --restow -d "$DOTFILES_ROOT" -t "$target" "$package" 2>&1)" || {
+        stow_output="$(stow -n --restow --no-folding -d "$DOTFILES_ROOT" -t "$target" "$package" 2>&1)" || {
             error "stow found existing files or directories that would conflict with linking"
             if [[ -n "$stow_output" ]]; then
                 printf '%s\n' "$stow_output"
@@ -118,7 +119,9 @@ assert_stow_targets_clean() {
 }
 
 stow_selected_packages() {
-    local stow_args=(--restow -d "$DOTFILES_ROOT")
+    # --no-folding links files individually so a later *.local.zsh lands in
+    # $HOME/$XDG_CONFIG_HOME, never inside the repo working tree.
+    local stow_args=(--restow --no-folding -d "$DOTFILES_ROOT")
 
     mkdir -p "$CONFIG_TARGET"
     info "Stowing home/ into $HOME and config/ into $CONFIG_TARGET"
@@ -156,7 +159,7 @@ maybe_run_platform_setup() {
         return 0
     fi
 
-    if confirm "Run optional $(basename "$setup_path") setup now?"; then
+    if confirm "Run optional ${setup_path##*/} setup now?"; then
         "$setup_path" || warn "Platform setup did not complete"
     else
         info "Skipping platform setup for now"
@@ -170,6 +173,8 @@ main() {
 
     maybe_run_preflight
     ensure_xdg_runtime_directories
+    # XDG defaults are authoritative only after the call above.
+    CONFIG_TARGET="${XDG_CONFIG_HOME:-$HOME/.config}"
     require_stow
     confirm_adopt
     stow_selected_packages

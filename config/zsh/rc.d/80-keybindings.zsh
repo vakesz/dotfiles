@@ -23,6 +23,7 @@ bindkey -M viins '^K' kill-line
 
 # terminfo has the keys this terminal sends. The literal sequences cover
 # terminals without terminfo entries and multiplexers in application-cursor mode.
+zmodload -F zsh/terminfo b:terminfo 2>/dev/null || true
 for keymap in viins vicmd; do
   bindkey -M "$keymap" '^[[A' up-line-or-beginning-search
   bindkey -M "$keymap" '^[[B' down-line-or-beginning-search
@@ -59,8 +60,10 @@ for keymap in viopp visual; do
 done
 unset keymap object
 
-# Block cursor in normal mode, bar in insert.
+# Block cursor in normal mode, bar in insert. Skipped when stdout isn't a
+# tty or TERM is dumb, where the escape codes would print as garbage.
 _dotfiles_set_cursor_shape() {
+  [[ -t 1 && ${TERM:-} != dumb ]] || return 0
   case "${KEYMAP:-viins}" in
     vicmd) print -n '\e[2 q' ;;
     *)     print -n '\e[6 q' ;;
@@ -74,7 +77,10 @@ _dotfiles_zle_line_init() {
 }
 
 # Restore the block cursor for the command about to run.
-_dotfiles_zle_line_finish() { print -n '\e[2 q' }
+_dotfiles_zle_line_finish() {
+  [[ -t 1 && ${TERM:-} != dumb ]] || return 0
+  print -n '\e[2 q'
+}
 
 zle -N zle-keymap-select _dotfiles_set_cursor_shape
 zle -N zle-line-init _dotfiles_zle_line_init

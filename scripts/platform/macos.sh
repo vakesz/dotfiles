@@ -4,7 +4,7 @@
 set -euo pipefail
 
 # shellcheck source-path=SCRIPTDIR
-source "$(dirname "${BASH_SOURCE[0]}")/../lib/paths.sh"
+source "${BASH_SOURCE[0]%/*}/../lib/paths.sh"
 source "$DOTFILES_ROOT/scripts/lib/ui.sh"
 source "$DOTFILES_ROOT/scripts/lib/platform.sh"
 source "$DOTFILES_ROOT/scripts/lib/macos-state.sh"
@@ -13,6 +13,7 @@ source "$DOTFILES_ROOT/scripts/lib/macos-preflight.sh"
 set_xdg_environment_defaults
 
 ASSETS_DIR="$DOTFILES_ROOT/assets/macos"
+readonly ASSETS_DIR
 readonly FUSE_T_CASK="fuse-t"
 readonly OMNIMOUNT_APP="/Applications/Omnimount.app"
 readonly OMNIMOUNT_REPOSITORY="https://github.com/ramdoor/omnimount.git"
@@ -34,11 +35,13 @@ DOCK_APPS=(
     "$XCODE_APP"
     "/Applications/Ghostty.app"
 )
+readonly DOCK_APPS
 
 SPOTLIGHT_EXCLUDED_PATHS=(
     "$HOME/Library/Developer/Xcode/DerivedData"
     "$XDG_CACHE_HOME"
 )
+readonly SPOTLIGHT_EXCLUDED_PATHS
 
 # Created by other tools: excluded only if they exist, never created here.
 SPOTLIGHT_OPTIONAL_PATHS=(
@@ -46,7 +49,18 @@ SPOTLIGHT_OPTIONAL_PATHS=(
     "$XDG_DATA_HOME/gradle"
     "${ANDROID_HOME:-$HOME/Library/Android/sdk}"
 )
+readonly SPOTLIGHT_OPTIONAL_PATHS
 
+# Cache brew's prefix once per run instead of forking brew in every helper.
+DOTFILES_BREW_PREFIX=""
+brew_prefix_once() {
+    if [[ -z "$DOTFILES_BREW_PREFIX" ]]; then
+        DOTFILES_BREW_PREFIX="$(brew --prefix 2>/dev/null)" || return 1
+    fi
+    printf '%s\n' "$DOTFILES_BREW_PREFIX"
+}
+
+# True when Rosetta's auto-update package is installed.
 rosetta_installed() {
     pkgutil --pkg-info=com.apple.pkg.RosettaUpdateAuto >/dev/null 2>&1
 }
@@ -189,7 +203,7 @@ keyboard_layout_installed() {
 install_keyboard_layout() {
     info "Installing Hungarian keyboard layout..."
     mkdir -p "$HOME/Library/Keyboard Layouts"
-    cp "$ASSETS_DIR/hungarian-win.keylayout" "$HOME/Library/Keyboard Layouts/Hungarian_Win.keylayout"
+    cp -- "$ASSETS_DIR/hungarian-win.keylayout" "$HOME/Library/Keyboard Layouts/Hungarian_Win.keylayout"
     success "Keyboard layout installed"
 }
 
@@ -212,13 +226,20 @@ configure_spotlight_exclusions() {
 
     local path
     for path in "${SPOTLIGHT_EXCLUDED_PATHS[@]}"; do
-        mkdir -p "$path"
-        touch "$path/.metadata_never_index"
+        # Never create Xcode's DerivedData just to exclude it; only the cache
+        # dir (which bootstrap already created) may be created here.
+        if [[ "$path" == "$XDG_CACHE_HOME" ]]; then
+            mkdir -p -- "$path"
+        elif [[ ! -d "$path" ]]; then
+            info "Skipping missing directory: $path"
+            continue
+        fi
+        touch -- "$path/.metadata_never_index"
     done
 
     for path in "${SPOTLIGHT_OPTIONAL_PATHS[@]}"; do
         [[ -d "$path" ]] || continue
-        touch "$path/.metadata_never_index"
+        touch -- "$path/.metadata_never_index"
     done
 
     success "Spotlight exclusions applied"
@@ -233,7 +254,9 @@ enable_touch_id_sudo() {
 
     info "Enabling Touch ID for sudo..."
     sudo -v
-    sed 's/^#auth/auth/' /etc/pam.d/sudo_local.template | sudo tee /etc/pam.d/sudo_local >/dev/null
+    # Uncomment only the pam_tid line; the template may contain other #auth
+    # lines (smartcard, etc.) that must stay disabled.
+    sed -E 's/^#[[:space:]]*(auth[^#]*pam_tid\.so.*)/\1/' /etc/pam.d/sudo_local.template | sudo tee /etc/pam.d/sudo_local >/dev/null
     sudo chmod 444 /etc/pam.d/sudo_local
 
     if ! macos_touch_id_sudo_enabled; then
@@ -245,23 +268,37 @@ enable_touch_id_sudo() {
 }
 
 computer_name_configured() {
-    # Only Apple's default "Name's Mac" counts as unset (either apostrophe style).
+    # Apple's default is "<Name>'s <Model>" (either apostrophe style). A custom
+    # name containing "'s " (e.g. "Bob's Desktop") still counts as configured
+    # unless it ends with a known Apple model suffix.
     local current=""
     current="$(scutil --get ComputerName 2>/dev/null)" || return 1
-    [[ -n "$current" && "$current" != *"'s "* && "$current" != *"’s "* ]]
+    [[ -n "$current" ]] || return 1
+    if [[ "$current" == *"'s "* || "$current" == *"’s "* ]]; then
+        [[ "$current" != *" Mac" && "$current" != *"MacBook"* && "$current" != *"iMac"* && "$current" != *"Mac mini"* && "$current" != *"Mac Pro"* && "$current" != *"Mac Studio"* ]] || return 1
+    fi
+    return 0
 }
 
 configure_computer_name() {
     local current="" new="" local_name=""
+    local timeout="${DOTFILES_CONFIRM_TIMEOUT:-30}"
 
     if ! is_interactive; then
         info "Non-interactive shell; skipping computer name"
         return 0
     fi
 
+    [[ "$timeout" =~ ^[0-9]+$ ]] || timeout=30
+    [[ "$timeout" == "0" ]] && timeout=30
+
     current="$(scutil --get ComputerName 2>/dev/null || printf '%s' "unknown")"
     printf '\nComputer name [%s]: ' "$current"
-    IFS= read -r new
+    if ! IFS= read -r -t "$timeout" new; then
+        printf '\n'
+        info "No input; keeping the current computer name"
+        return 0
+    fi
 
     if [[ -z "$new" ]]; then
         info "Keeping the current computer name"
@@ -269,7 +306,8 @@ configure_computer_name() {
     fi
 
     # LocalHostName must be a DNS label, so turn everything else into hyphens.
-    local_name="$(printf '%s' "$new" | sed -E 's/[^a-zA-Z0-9]+/-/g; s/^-+//; s/-+$//')"
+    # NetBIOS names are limited to 15 chars, so truncate there too.
+    local_name="$(printf '%s' "$new" | sed -E 's/[^a-zA-Z0-9]+/-/g; s/^-+//; s/-+$//' | tr '[:upper:]' '[:lower:]' | cut -c1-15 | sed -E 's/-+$//')"
     if [[ -z "$local_name" ]]; then
         warn "Computer name must contain at least one ASCII letter or number"
         return 1
@@ -289,18 +327,18 @@ configure_dock() {
     info "Applying Dock layout..."
 
     local app
-    dockutil --no-restart --remove all >/dev/null
+    dockutil --no-restart --remove all 2>&1 | grep -v '^$' >/dev/null || true
 
     for app in "${DOCK_APPS[@]}"; do
         if [[ ! -d "$app" ]]; then
             warn "Not installed, skipping in Dock: $app"
             continue
         fi
-        dockutil --no-restart --add "$app" >/dev/null
+        dockutil --no-restart --add "$app" >/dev/null || warn "Failed to add to Dock: $app"
     done
 
     # --remove all also removed Downloads, so add it back.
-    dockutil --no-restart --add "$HOME/Downloads" --view auto --display folder --section others >/dev/null
+    dockutil --no-restart --add "$HOME/Downloads" --view auto --display folder --section others >/dev/null || warn "Failed to re-add Downloads to Dock"
 
     killall Dock 2>/dev/null || true
     success "Dock layout applied"
@@ -328,10 +366,13 @@ report_missing_app_store_apps() {
     command -v mas >/dev/null 2>&1 || return 0
     [[ -f "$DOTFILES_BREWFILE" ]] || return 0
 
-    installed="$(mas list 2>/dev/null | awk '{print $1}')" || return 0
+    if ! installed="$(mas list 2>/dev/null | awk '{print $1}')"; then
+        warn "Could not list Mac App Store apps; is mas working and signed in?"
+        return 0
+    fi
 
     while read -r id name; do
-        grep -qx "$id" <<<"$installed" && continue
+        grep -qx -- "$id" <<<"$installed" && continue
         # Apps installed outside the App Store have no receipt for mas to list.
         [[ -d "/Applications/$name.app" ]] && continue
         missing+=("$name ($id)")
@@ -360,7 +401,9 @@ authenticate_gh() {
 }
 
 rustup_path() {
-    printf '%s/bin/rustup\n' "$(brew --prefix rustup 2>/dev/null)"
+    local prefix=""
+    prefix="$(brew_prefix_once 2>/dev/null)" || return 1
+    printf '%s/opt/rustup/bin/rustup\n' "$prefix"
 }
 
 rustup_stable_toolchain_installed() {
@@ -386,9 +429,11 @@ install_rustup_stable_toolchain() {
 }
 
 # Homebrew llvm names it llvm-dlltool, but Wine's build looks for `dlltool`.
-# `brew --prefix` succeeds even if the formula isn't installed, so callers check -x.
+# Callers check -x since the path may not exist when llvm isn't installed.
 llvm_dlltool_path() {
-    printf '%s/bin/llvm-dlltool\n' "$(brew --prefix llvm 2>/dev/null)"
+    local prefix=""
+    prefix="$(brew_prefix_once 2>/dev/null)" || return 1
+    printf '%s/opt/llvm/bin/llvm-dlltool\n' "$prefix"
 }
 
 llvm_dlltool_linked() {
@@ -405,8 +450,8 @@ link_llvm_dlltool() {
         return 1
     }
 
-    mkdir -p "$XDG_BIN_HOME"
-    ln -sf "$src" "$XDG_BIN_HOME/dlltool"
+    mkdir -p -- "$XDG_BIN_HOME"
+    ln -sf -- "$src" "$XDG_BIN_HOME/dlltool"
     success "Symlinked $XDG_BIN_HOME/dlltool -> $src"
 }
 
@@ -415,7 +460,7 @@ omnimount_installed() {
     local brew_prefix=""
 
     [[ "${OMNIMOUNT_REBUILD:-0}" != "1" ]] || return 1
-    brew_prefix="$(brew --prefix 2>/dev/null)" || return 1
+    brew_prefix="$(brew_prefix_once 2>/dev/null)" || return 1
     brew list --cask "$FUSE_T_CASK" >/dev/null 2>&1 || return 1
     [[ -x "$brew_prefix/bin/omnimount" && -x "$brew_prefix/sbin/fuse2fs" && -d "$OMNIMOUNT_APP" ]]
 }
@@ -430,7 +475,7 @@ apply_omnimount_build_patch() {
 install_omnimount() {
     local brew_prefix="" build_arch="" build_dir="" scratch_dir="" source_dir="" work_dir=""
 
-    brew_prefix="$(brew --prefix 2>/dev/null)" || {
+    brew_prefix="$(brew_prefix_once 2>/dev/null)" || {
         warn "Homebrew is required to install Omnimount"
         return 1
     }

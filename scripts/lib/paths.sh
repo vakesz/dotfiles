@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 # Repo paths, XDG defaults, and the runtime directories bootstrap creates.
 
+[[ -n "${__DOTFILES_PATHS_LOADED:-}" ]] && return 0
+__DOTFILES_PATHS_LOADED=1
+
 DOTFILES_ROOT="$(cd "${BASH_SOURCE[0]%/*}/../.." && pwd -P)"
+readonly DOTFILES_ROOT
 # shellcheck disable=SC2034 # read by the scripts that source this file
-DOTFILES_BREWFILE="$DOTFILES_ROOT/Brewfile"
+readonly DOTFILES_BREWFILE="$DOTFILES_ROOT/Brewfile"
 
 set_xdg_environment_defaults() {
     export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"

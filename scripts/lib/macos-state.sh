@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
 # Read-only macOS state checks shared by the setup and doctor scripts.
 
+# Guard against double-sourcing: macos.sh sources both this file and
+# macos-preflight.sh (which sources this file again). Reassigning a readonly
+# would abort under `set -e`.
+[[ -n "${__DOTFILES_MACOS_STATE_LOADED:-}" ]] && return 0
+__DOTFILES_MACOS_STATE_LOADED=1
+
 MACOS_FIREWALL="/usr/libexec/ApplicationFirewall/socketfilterfw"
+readonly MACOS_FIREWALL
 XCODE_APP="${XCODE_APP:-/Applications/Xcode.app}"
+readonly XCODE_APP
 
 # On a managed Mac, a profile can reject or later revert a setting that looked applied.
 macos_mdm_managed() {

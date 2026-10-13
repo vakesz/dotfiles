@@ -4,7 +4,7 @@
 set -euo pipefail
 
 # shellcheck source=scripts/lib/paths.sh
-source "$(dirname "${BASH_SOURCE[0]}")/lib/paths.sh"
+source "${BASH_SOURCE[0]%/*}/lib/paths.sh"
 # shellcheck source=scripts/lib/ui.sh
 source "$DOTFILES_ROOT/scripts/lib/ui.sh"
 

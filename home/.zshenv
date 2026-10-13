@@ -3,6 +3,9 @@ export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 export XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
+if [[ "$OSTYPE" == linux* && -z "${XDG_RUNTIME_DIR:-}" && -d "/run/user/$(id -u 2>/dev/null)" ]]; then
+  export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+fi
 
 # Don't pass stale corepack state from the old setup into child shells.
 unset COREPACK_HOME
@@ -69,9 +72,9 @@ fi
 _dotfiles_base_path() {
   local dir
   # pnpm 11 won't run unless its global bin dir is on PATH, even before it exists.
-  path=("$PNPM_HOME/bin" "$CARGO_HOME/bin" $path)
+  path=("$PNPM_HOME/bin" "$CARGO_HOME/bin" "${path[@]}")
   for dir in "$ANDROID_HOME"/{platform-tools,emulator,cmdline-tools/latest/bin}; do
-    [[ -d "$dir" ]] && path=("$dir" $path)
+    [[ -d "$dir" ]] && path=("$dir" "${path[@]}")
   done
   return 0
 }

@@ -4,7 +4,7 @@
 set -euo pipefail
 
 # shellcheck source-path=SCRIPTDIR
-source "$(dirname "${BASH_SOURCE[0]}")/../lib/paths.sh"
+source "${BASH_SOURCE[0]%/*}/../lib/paths.sh"
 source "$DOTFILES_ROOT/scripts/lib/ui.sh"
 source "$DOTFILES_ROOT/scripts/lib/platform.sh"
 source "$DOTFILES_ROOT/scripts/lib/macos-state.sh"

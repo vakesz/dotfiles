@@ -1,5 +1,9 @@
 SHELL := /usr/bin/env bash
 
+# Propagated to platform-setup recipes (e.g. OMNIMOUNT_REBUILD=1 make macos
+# forces an Omnimount rebuild in scripts/platform/macos.sh).
+export OMNIMOUNT_REBUILD ?= 0
+
 .DEFAULT_GOAL := help
 .PHONY: help bootstrap adopt macos linux doctor check check-shell check-fmt check-zsh check-config check-apps brew-check brew-install
 

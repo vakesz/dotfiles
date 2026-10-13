@@ -4,22 +4,25 @@
 set -euo pipefail
 
 # shellcheck source-path=SCRIPTDIR
-source "$(dirname "${BASH_SOURCE[0]}")/../lib/paths.sh"
+source "${BASH_SOURCE[0]%/*}/../lib/paths.sh"
 source "$DOTFILES_ROOT/scripts/lib/ui.sh"
 source "$DOTFILES_ROOT/scripts/lib/platform.sh"
 
 DISTRO_ID=""
 DISTRO_LIKE=""
 
+# Persist LANG via localectl, falling back to /etc/locale.conf when localectl
+# is missing or fails (e.g. non-systemd WSL).
 persist_locale_with_systemd() {
-    if command -v localectl >/dev/null 2>&1; then
-        sudo localectl set-locale LANG=en_US.UTF-8
-    else
-        warn "localectl not found; writing /etc/locale.conf directly"
-        echo "LANG=en_US.UTF-8" | sudo tee /etc/locale.conf >/dev/null
+    if command -v localectl >/dev/null 2>&1 && sudo localectl set-locale LANG=en_US.UTF-8; then
+        return 0
     fi
+
+    warn "localectl unavailable or failed; writing /etc/locale.conf directly"
+    printf '%s\n' "LANG=en_US.UTF-8" | sudo tee /etc/locale.conf >/dev/null
 }
 
+# Read ID/ID_LIKE from /etc/os-release into DISTRO_ID/DISTRO_LIKE globals.
 load_linux_release_info() {
     DISTRO_ID=""
     DISTRO_LIKE=""
@@ -32,13 +35,14 @@ load_linux_release_info() {
     fi
 }
 
+# Map the distro to debian/redhat/arch/suse for locale setup.
 distro_family() {
     case "$DISTRO_ID" in
         debian | ubuntu)
             printf 'debian\n'
             return 0
             ;;
-        fedora)
+        fedora | opensuse* | suse)
             printf 'redhat\n'
             return 0
             ;;
@@ -49,12 +53,13 @@ distro_family() {
     esac
     case "$DISTRO_LIKE" in
         *debian*) printf 'debian\n' ;;
-        *rhel* | *fedora*) printf 'redhat\n' ;;
+        *rhel* | *fedora* | *suse*) printf 'redhat\n' ;;
         *arch*) printf 'arch\n' ;;
         *) return 1 ;;
     esac
 }
 
+# Install the en_US.UTF-8 locale for the given distro family.
 install_locale_for_family() {
     case "$1" in
         debian)
@@ -72,8 +77,10 @@ install_locale_for_family() {
                 sudo dnf install -y glibc-langpack-en
             elif command -v yum >/dev/null 2>&1; then
                 sudo yum install -y glibc-langpack-en
+            elif command -v zypper >/dev/null 2>&1; then
+                sudo zypper install -y glibc-locale
             else
-                warn "dnf/yum not found; skipping locale install"
+                warn "dnf/yum/zypper not found; skipping locale install"
                 return 0
             fi
             success "Locale en_US.UTF-8 installed"
@@ -120,6 +127,23 @@ ensure_locale() {
     persist_locale_for_family "$family"
 }
 
+# Print the current login shell basename ($SHELL is stale until re-login).
+current_login_shell() {
+    local shell_path="" user_name=""
+
+    user_name="${USER:-}"
+    if [[ -z "$user_name" ]]; then
+        user_name="$(id -un 2>/dev/null)"
+    fi
+    if command -v getent >/dev/null 2>&1 && [[ -n "$user_name" ]]; then
+        shell_path="$(getent passwd "$user_name" 2>/dev/null | awk -F: '{print $7}')"
+    fi
+    if [[ -z "$shell_path" ]]; then
+        shell_path="${SHELL:-}"
+    fi
+    printf '%s\n' "${shell_path##*/}"
+}
+
 ensure_zsh_shell() {
     local zsh_path=""
 
@@ -128,13 +152,13 @@ ensure_zsh_shell() {
         return 0
     }
 
-    if [[ "$(basename "$SHELL")" == "zsh" ]]; then
+    if [[ "$(current_login_shell)" == "zsh" ]]; then
         info "Shell is already zsh"
         return 0
     fi
 
     info "Changing default shell to zsh..."
-    grep -Fxq "$zsh_path" /etc/shells 2>/dev/null || echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
+    grep -Fxq -- "$zsh_path" /etc/shells 2>/dev/null || printf '%s\n' "$zsh_path" | sudo tee -a /etc/shells >/dev/null
 
     if chsh -s "$zsh_path"; then
         success "Default shell changed to zsh (log out and back in to apply)"

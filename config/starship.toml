@@ -18,7 +18,8 @@ scan_timeout = 1000
 [directory]
 format = "[$path]($style)"
 style = "cyan"
-truncation_length = 0
+# Full paths get very long in deep trees; 0 disables truncation.
+truncation_length = 3
 truncate_to_repo = false
 
 [git_branch]
