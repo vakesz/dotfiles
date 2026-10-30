@@ -44,8 +44,10 @@ cask "git-credential-manager"
 
 # Languages and runtimes
 brew "bun"
+brew "composer"
 brew "go"
 brew "node"
+brew "php"
 brew "pnpm"
 brew "protobuf"
 brew "ruby"
@@ -102,10 +104,12 @@ cask "fuse-t"
 cask "android-commandlinetools"
 
 # AI tools
+brew "opencode"
 cask "chatgpt"
 cask "claude-code@latest"
 cask "codex"
 cask "copilot-cli"
+cask "cursor"
 cask "steipete/tap/codexbar"
 cask "t3-code@nightly"
 
@@ -115,6 +119,7 @@ brew "imagemagick"
 brew "pngquant"
 brew "watchman"
 brew "webp"
+cask "linear"
 cask "visual-studio-code"
 
 # Databases
@@ -122,16 +127,21 @@ cask "tablepro"
 
 # Desktop apps: system and maintenance
 brew "mole"
+cask "citrix-workspace"
 cask "linearmouse"
 cask "tailscale-app"
 
 # Desktop apps: productivity
-cask "affinity"
 cask "coteditor"
 cask "meetingbar"
 cask "mountain-duck"
-cask "qlmarkdown"
 cask "tiled"
+
+# Desktop apps: creative
+cask "filmcraft"
+cask "lightcraft"
+cask "pdfcraft"
+cask "photocraft"
 
 # Desktop apps: media and communication
 cask "iina"

@@ -34,6 +34,7 @@ DOCK_APPS=(
     "/Applications/Visual Studio Code.app"
     "$XCODE_APP"
     "/Applications/Ghostty.app"
+    "/Applications/T3 Code (Nightly).app"
 )
 readonly DOCK_APPS
 
@@ -48,6 +49,12 @@ SPOTLIGHT_OPTIONAL_PATHS=(
     "$HOME/Library/Developer/CoreSimulator"
     "$XDG_DATA_HOME/gradle"
     "${ANDROID_HOME:-$HOME/Library/Android/sdk}"
+    "$XDG_CONFIG_HOME/.android"
+    "$HOME/.t3"
+    "$HOME/.codex"
+    "$XDG_DATA_HOME/pnpm"
+    "$HOME/Code"
+    "$HOME/Work"
 )
 readonly SPOTLIGHT_OPTIONAL_PATHS
 

@@ -28,6 +28,8 @@ if [[ $OS_TYPE == linux ]]; then
   _dotfiles_path_prepend /snap/bin
 fi
 
-_dotfiles_path_prepend "$GOPATH/bin" "$UV_TOOL_BIN_DIR" "$GEM_HOME/bin" "$CARGO_HOME/bin"
+_dotfiles_path_prepend \
+  "${COMPOSER_HOME:-$XDG_CONFIG_HOME/composer}/vendor/bin" \
+  "$GOPATH/bin" "$UV_TOOL_BIN_DIR" "$GEM_HOME/bin" "$CARGO_HOME/bin"
 
 export PATH
