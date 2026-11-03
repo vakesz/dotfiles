@@ -20,7 +20,6 @@ if [[ $OS_TYPE == macos && -n ${HOMEBREW_PREFIX:-} ]]; then
     "$HOMEBREW_PREFIX/opt/make/libexec/gnubin" \
     "$HOMEBREW_PREFIX/opt/flex/bin" \
     "$HOMEBREW_PREFIX/opt/bison/bin" \
-    "$HOMEBREW_PREFIX/opt/rustup/bin" \
     "$HOMEBREW_PREFIX/opt/ccache/libexec"
 fi
 
@@ -31,5 +30,11 @@ fi
 _dotfiles_path_prepend \
   "${COMPOSER_HOME:-$XDG_CONFIG_HOME/composer}/vendor/bin" \
   "$GOPATH/bin" "$UV_TOOL_BIN_DIR" "$GEM_HOME/bin" "$CARGO_HOME/bin"
+
+# Homebrew's rustup wrappers must win over the proxies rustup installs in
+# $CARGO_HOME/bin, so brew upgrades never leave stale cargo and rustc shims.
+if [[ $OS_TYPE == macos && -n ${HOMEBREW_PREFIX:-} ]]; then
+  _dotfiles_path_prepend "$HOMEBREW_PREFIX/opt/rustup/bin"
+fi
 
 export PATH

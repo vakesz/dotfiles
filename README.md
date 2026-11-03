@@ -139,10 +139,10 @@ Git and stow both ignore these, so they can live in the repo without being track
 
 - **Homebrew** installs the CLI tools, apps and Mac App Store apps in the Brewfile. App Store apps need a signed-in account. The zsh plugins come from Homebrew too, so there's no plugin manager. The login shell is the system `/bin/zsh`.
 - **JavaScript**: Node, pnpm and Bun come from Homebrew. pnpm's global binaries go in `$PNPM_HOME/bin`; formatters and linters stay project-local.
-- **Rust**: Homebrew's rustup, with toolchains in the XDG data directory. `macos.sh` offers to install the stable toolchain. ccache's compiler wrappers are on the interactive `PATH`.
+- **Rust**: Homebrew's rustup, with toolchains in the XDG data directory. Its wrappers go on `PATH` ahead of `$CARGO_HOME/bin`, in every shell, so `cargo` and `rustc` stay brew-managed instead of relying on rustup proxies. `macos.sh` offers to install the stable toolchain. ccache's compiler wrappers are on the interactive `PATH`.
 - **Python**: `uv` manages Python versions, environments and tools, and its tool bin directory is on `PATH`. Homebrew also provides `ruff`.
 - **Ruby**: Homebrew's Ruby comes before the system one. Gems install to `$GEM_HOME`, whose `bin` is on `PATH`.
-- **Keg-only formulae**: `rc.d/20-path.zsh` adds `curl`, GNU `make`, Ruby, `flex`, `bison` and rustup to `PATH`. GNU coreutils is only available with its `g` prefix, because the unprefixed commands break GMP builds. LLVM stays off `PATH` so `clang` is Apple's; `macos.sh` only links `dlltool` into `$XDG_BIN_HOME`.
+- **Keg-only formulae**: `rc.d/20-path.zsh` adds `curl`, GNU `make`, Ruby, `flex` and `bison` to `PATH`. Homebrew's rustup wrappers take precedence over `$CARGO_HOME/bin`. GNU coreutils is only available with its `g` prefix, because the unprefixed commands break GMP builds. LLVM stays off `PATH` so `clang` is Apple's; `macos.sh` only links `dlltool` into `$XDG_BIN_HOME`.
 - **Updates** go through `topgrade`. Homebrew updates apps and runtimes, including self-updating apps (greedy casks). Topgrade handles the rest: tldr pages, editor and `gh` extensions, global skills, git repos, macOS and firmware.
 - **Xcode** is installed separately so any build works (stable, beta or a direct download). `macos.sh` runs its first-launch setup.
 

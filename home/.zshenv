@@ -73,6 +73,14 @@ _dotfiles_base_path() {
   local dir
   # pnpm 11 won't run unless its global bin dir is on PATH, even before it exists.
   path=("$PNPM_HOME/bin" "$CARGO_HOME/bin" "${path[@]}")
+  # Homebrew's rustup wrappers come before $CARGO_HOME/bin (which holds
+  # cargo-installed binaries), so non-interactive shells get the brew-managed
+  # cargo and rustc without relying on rustup proxies.
+  if [[ "$OSTYPE" == darwin* ]]; then
+    for dir in /usr/local /opt/homebrew; do
+      [[ -d "$dir/opt/rustup/bin" ]] && path=("$dir/opt/rustup/bin" "${path[@]}")
+    done
+  fi
   for dir in "$ANDROID_HOME"/{platform-tools,emulator,cmdline-tools/latest/bin}; do
     [[ -d "$dir" ]] && path=("$dir" "${path[@]}")
   done
