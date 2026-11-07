@@ -21,6 +21,21 @@ is_macos() {
     [[ "$OSTYPE" == darwin* ]]
 }
 
+# Print the login shell's basename. $SHELL stays stale until the next login,
+# so ask the user database first.
+login_shell_name() {
+    local shell_path="" user_name="${USER:-$(id -un 2>/dev/null)}"
+
+    if command -v getent >/dev/null 2>&1; then
+        shell_path="$(getent passwd "$user_name" 2>/dev/null | awk -F: '{print $7}')"
+    elif command -v dscl >/dev/null 2>&1; then
+        shell_path="$(dscl . -read "/Users/$user_name" UserShell 2>/dev/null | awk '{print $2}')"
+    fi
+
+    shell_path="${shell_path:-${SHELL:-}}"
+    printf '%s\n' "${shell_path##*/}"
+}
+
 # Abort unless the current platform is $1.
 require_platform() {
     [[ "$(detect_platform)" == "$1" ]] || {

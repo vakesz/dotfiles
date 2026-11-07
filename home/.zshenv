@@ -12,6 +12,8 @@ unset COREPACK_HOME
 
 export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 
+export LANG="${LANG:-en_US.UTF-8}"
+
 # Tool config and cache locations, needed by non-interactive shells too.
 export LESS='-R -i -M -W -x4 -F -X'
 export LESSHISTFILE="$XDG_STATE_HOME/less/history"
@@ -40,8 +42,13 @@ export RUSTUP_HOME="$XDG_DATA_HOME/rustup"
 export DOCKER_CONFIG="$XDG_CONFIG_HOME/docker"
 export GRADLE_USER_HOME="$XDG_DATA_HOME/gradle"
 export AZURE_CONFIG_DIR="$XDG_DATA_HOME/azure"
+export AZURE_DEVOPS_CACHE_DIR="$XDG_CACHE_HOME/azure-devops"
 export CP_HOME_DIR="$XDG_CACHE_HOME/cocoapods"
 export NPM_CONFIG_LOGS_DIR="$XDG_STATE_HOME/npm/logs"
+export COPILOT_HOME="$XDG_DATA_HOME/copilot"
+export __UNSAFE_EXPO_HOME_DIRECTORY="$XDG_DATA_HOME/expo"
+export KUBECONFIG="$XDG_CONFIG_HOME/kube/config"
+export KUBECACHEDIR="$XDG_CACHE_HOME/kube"
 
 # Gradle and the Android tools need JAVA_HOME, and the Android Gradle Plugin
 # needs JDK 17. java_home fails if no matching JDK is installed.
@@ -59,7 +66,8 @@ else
   export ANDROID_HOME="${ANDROID_HOME:-$HOME/Android/Sdk}"
 fi
 export ANDROID_SDK_ROOT="$ANDROID_HOME"
-export ANDROID_USER_HOME="$XDG_CONFIG_HOME/.android"
+# AVDs and emulator snapshots are data, not config.
+export ANDROID_USER_HOME="$XDG_DATA_HOME/android"
 export ANDROID_EMULATOR_HOME="$ANDROID_USER_HOME"
 export ANDROID_AVD_HOME="$ANDROID_USER_HOME/avd"
 

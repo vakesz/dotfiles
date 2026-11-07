@@ -9,7 +9,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: sudo apt-get update -qq && sudo apt-get install -y jq python3 ruby shellcheck shfmt zsh ripgrep fd-find
       - run: |
           # Ubuntu names the fd binary fdfind; check-apps.sh expects fd.
@@ -18,6 +18,6 @@ jobs:
           fi
       # actionlint isn't packaged for Ubuntu, but the runner image has Go.
       - run: |
-          go install github.com/rhysd/actionlint/cmd/actionlint@latest
+          go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
       - run: make check

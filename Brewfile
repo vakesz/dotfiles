@@ -131,10 +131,13 @@ cask "citrix-workspace"
 cask "linearmouse"
 cask "tailscale-app"
 
-# Desktop apps: productivity
+# Desktop apps: productivity and file access
 cask "coteditor"
 cask "meetingbar"
 cask "mountain-duck"
+
+# Desktop apps: game development
+# Tiled is the tile-map level editor, not a window manager.
 cask "tiled"
 
 # Desktop apps: creative

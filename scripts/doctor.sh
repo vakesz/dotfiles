@@ -44,16 +44,6 @@ verify() {
     fi
 }
 
-# Resolve a path to its canonical target. realpath ships with macOS 13+
-# and Linux; fall back to python3 for older macOS.
-canonical_path() {
-    if command -v realpath >/dev/null 2>&1; then
-        realpath "$1"
-    else
-        python3 -c 'import os, sys; print(os.path.realpath(sys.argv[1]))' "$1"
-    fi
-}
-
 check_stow_links() {
     local repo_file target package rest resolved missing=0
 
@@ -84,7 +74,7 @@ check_stow_links() {
 
         # Bootstrap links files individually (--no-folding), but resolve the
         # whole path anyway in case an older checkout used directory folding.
-        resolved="$(canonical_path "$target")"
+        resolved="$(realpath "$target")"
         if [[ "$resolved" != "$DOTFILES_ROOT/$repo_file" ]]; then
             fail "does not resolve into this repo: $target -> $resolved"
             missing=1
@@ -147,20 +137,6 @@ check_commands() {
     for command_name in "${MACOS_COMMANDS[@]}"; do
         verify "found: $command_name" "not on PATH: $command_name" fail has_command "$command_name"
     done
-}
-
-# Print the current user's login shell basename without forking basename.
-login_shell_name() {
-    local shell_path=""
-
-    if command -v getent >/dev/null 2>&1; then
-        shell_path="$(getent passwd "${USER:-$(id -un)}" 2>/dev/null | awk -F: '{print $7}')"
-    elif command -v dscl >/dev/null 2>&1; then
-        shell_path="$(dscl . -read "${HOME}" UserShell 2>/dev/null | awk '{print $2}')"
-    fi
-
-    shell_path="${shell_path:-${SHELL:-}}"
-    printf '%s\n' "${shell_path##*/}"
 }
 
 check_shell() {
@@ -237,6 +213,29 @@ check_macos_security() {
     fi
 }
 
+# Reads what Spotlight actually indexed, so it catches exclusions that never
+# took effect and items indexed before a path was excluded.
+check_macos_spotlight() {
+    local path count clean=1
+
+    section "Spotlight"
+
+    # One pass over the index: the first input is the existing exclusion
+    # paths, the second every indexed item under $HOME.
+    while IFS=$'\t' read -r count path; do
+        soft_warn "Spotlight indexes $count items under $path (run scripts/platform/macos.sh)"
+        clean=0
+    done < <(awk '
+        NR == FNR { if ($0 != "") prefixes[++n] = $0; next }
+        { for (i = 1; i <= n; i++) if (index($0, prefixes[i] "/") == 1) { hits[i]++; break } }
+        END { for (i = 1; i <= n; i++) if (hits[i]) printf "%d\t%s\n", hits[i], prefixes[i] }
+    ' <(while IFS= read -r path; do [[ -d "$path" ]] && printf '%s\n' "$path"; done < <(macos_spotlight_exclusion_paths)) \
+        <(macos_spotlight_indexed_home))
+
+    ((clean)) && pass "no excluded dev paths are indexed"
+    return 0
+}
+
 print_summary() {
     section "Summary"
     printf '  %d passed, %d failed, %d warnings\n\n' "$PASS_COUNT" "$FAIL_COUNT" "$WARN_COUNT"
@@ -264,6 +263,7 @@ main() {
         check_brewfile
         check_macos_tooling
         check_macos_security
+        check_macos_spotlight
     fi
 
     print_summary

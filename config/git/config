@@ -4,7 +4,8 @@
 
 [core]
 	whitespace = trailing-space,cr-at-eol
-	fsmonitor = true
+	# fsmonitor starts a watcher daemon per repo, so turn it on only in large
+	# repos: git config core.fsmonitor true
 	untrackedcache = true
 
 [apply]

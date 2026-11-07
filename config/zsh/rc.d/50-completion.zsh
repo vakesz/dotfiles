@@ -2,10 +2,7 @@
 
 export ZSH_COMPDUMP="$XDG_CACHE_HOME/zsh/.zcompdump"
 
-# Homebrew completions (brew shellenv runs for Homebrew and Linuxbrew in 20-path.zsh).
-if (( $+commands[brew] )) && [[ -n ${HOMEBREW_PREFIX:-} ]]; then
-  fpath=("$HOMEBREW_PREFIX/share/zsh/site-functions" $fpath)
-fi
+# Homebrew's completions are already on fpath: brew shellenv (20-path.zsh) adds them.
 
 if ! (( ${+_comps} )); then
   zmodload zsh/complist 2>/dev/null || true

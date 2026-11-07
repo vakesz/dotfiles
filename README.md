@@ -52,7 +52,7 @@ This moves your existing files into the repo with `stow --adopt`, replacing the 
 make doctor
 ```
 
-This checks that every file in `home/` and `config/` is linked, the XDG directories exist, `$GNUPGHOME` and `~/.ssh` are private, the expected commands are installed, and the Brewfile is satisfied. On macOS it also checks Touch ID for sudo, GitHub CLI login, FileVault, SIP, Gatekeeper, automatic security responses, the firewall and Stealth Mode. Missing CLI tools are only warnings on Linux. It never changes anything and exits non-zero if a check fails.
+This checks that every file in `home/` and `config/` is linked, the XDG directories exist, `$GNUPGHOME` and `~/.ssh` are private, the expected commands are installed, and the Brewfile is satisfied. On macOS it also checks Touch ID for sudo, GitHub CLI login, FileVault, SIP, Gatekeeper, automatic security responses, the firewall and Stealth Mode, and warns about dev paths Spotlight still indexes. Missing CLI tools are only warnings on Linux. It never changes anything and exits non-zero if a check fails.
 
 ### Updating
 
@@ -86,6 +86,7 @@ dotfiles/
 │   ├── check.sh          # Lint, formatting, zsh syntax and config checks
 │   ├── check-apps.sh     # Validate configs with the installed apps
 │   ├── doctor.sh         # Check a bootstrapped machine
+│   ├── launchd-env.zsh   # Copy ~/.zshenv exports into launchd for GUI apps
 │   ├── lib/
 │   │   ├── macos-preflight.sh # Command Line Tools, Homebrew, Brewfile
 │   │   ├── macos-state.sh     # Read-only macOS state checks
@@ -109,9 +110,10 @@ Per-user agent state (`.claude/`, `.agents/`, `skills-lock.json`) is gitignored 
 ## What's configured
 
 - `home/.zshenv`: XDG directories, `ZDOTDIR`, and tool locations that non-interactive shells need too (Go, Rust, uv, pnpm, ccache, Gradle, the Android SDK, and JDK 17 via `java_home`).
+- `scripts/launchd-env.zsh`: apps opened from Finder or the Dock don't read `~/.zshenv`, so they write dot-directories into `$HOME`. `macos.sh` offers to install a LaunchAgent that runs this script at login and copies every variable `~/.zshenv` exports, except `PATH`, into launchd with `launchctl setenv`. Restart an app to pick up changes.
 - `config/zsh`: `.zshrc` loads `rc.d/*.zsh` in order: helpers, environment, PATH, options, tools, completion, commands, Python venvs, keybindings, then plugins. Tool init scripts are cached in `$XDG_CACHE_HOME/zsh` and only regenerated when the tool or its config changes. Commands you type have plain names (`venv`, `rgf`); internal helpers start with `_dotfiles_`.
-- `config/starship.toml`: the prompt. Git status runs the `git` binary so the fsmonitor and untracked-cache settings apply.
-- `config/git`: config and global ignores. HTTPS credentials go through Git Credential Manager. The Git LFS filter is part of the config, so `git lfs install` isn't needed.
+- `config/starship.toml`: the prompt. Git status runs the `git` binary so the untracked cache, and fsmonitor in repos that turn it on, apply.
+- `config/git`: config and global ignores. HTTPS credentials go through Git Credential Manager. `core.fsmonitor` is off globally because it starts a daemon per repo; enable it in large repos with `git config core.fsmonitor true`. The Git LFS filter is part of the config, so `git lfs install` isn't needed.
 - `config/ghostty`: the terminal.
 - `config/linearmouse`: mice get no acceleration and reversed scrolling; trackpads keep the system settings.
 - `config/fd`, `config/ripgrep`, `config/tealdeer`, `config/topgrade.toml`: CLI tool settings. `make check-config` keeps the fd and ripgrep ignore lists in sync.
@@ -151,6 +153,7 @@ Git and stow both ignore these, so they can live in the repo without being track
 `bootstrap.sh` offers the script for the current platform, and each one can be run on its own later. Every step asks first, and prompts default to No after `DOTFILES_CONFIRM_TIMEOUT` seconds (30 by default).
 
 - `scripts/platform/macos.sh`: Touch ID for sudo, Rosetta, computer name, macOS defaults, power settings, Dock layout, showing `~/Library`, Spotlight exclusions, a custom Hungarian keyboard layout, [Omnimount](#omnimount), the LLVM `dlltool` link, Xcode first-launch setup, GitHub CLI login and the stable Rust toolchain. It then runs the two scripts below.
+  Spotlight exclusions go on the Search Privacy list, because macOS 27 ignores `.metadata_never_index` marker files. The list lives in a root-only plist, so this step needs your terminal to have Full Disk Access. If an entry doesn't survive the Spotlight restart, the script opens System Settings so you can add it there.
 - `scripts/platform/macos-hardening.sh`: the firewall and Stealth Mode, FileVault, remote login and sharing, privacy defaults, automatic security responses, and Homebrew analytics.
 - `scripts/platform/macos-office-tweaks.sh`: turns off Microsoft AutoUpdate for Office and Teams so `topgrade` handles their updates.
 - `scripts/platform/linux.sh`: the `en_US.UTF-8` locale and zsh as the default shell.

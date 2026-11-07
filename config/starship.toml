@@ -18,7 +18,7 @@ scan_timeout = 1000
 [directory]
 format = "[$path]($style)"
 style = "cyan"
-# Full paths get very long in deep trees; 0 disables truncation.
+# Show the last 3 path segments; full paths get long in deep trees.
 truncation_length = 3
 truncate_to_repo = false
 
@@ -31,8 +31,9 @@ format = ' \([$state( $progress_current/$progress_total)]($style)\)'
 style = "bright-black"
 
 [git_status]
-# Shell out to git so core.fsmonitor and core.untrackedcache from
-# config/git/config apply; the built-in library ignores both.
+# Shell out to git so core.untrackedcache from config/git/config, and
+# core.fsmonitor where a repo turns it on, apply; the built-in library
+# ignores both.
 use_git_executable = true
 format = " [](white)[($all_status)](magenta)[($ahead_behind)]($style)"
 style = "cyan"

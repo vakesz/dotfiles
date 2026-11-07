@@ -38,26 +38,6 @@ DOCK_APPS=(
 )
 readonly DOCK_APPS
 
-SPOTLIGHT_EXCLUDED_PATHS=(
-    "$HOME/Library/Developer/Xcode/DerivedData"
-    "$XDG_CACHE_HOME"
-)
-readonly SPOTLIGHT_EXCLUDED_PATHS
-
-# Created by other tools: excluded only if they exist, never created here.
-SPOTLIGHT_OPTIONAL_PATHS=(
-    "$HOME/Library/Developer/CoreSimulator"
-    "$XDG_DATA_HOME/gradle"
-    "${ANDROID_HOME:-$HOME/Library/Android/sdk}"
-    "$XDG_CONFIG_HOME/.android"
-    "$HOME/.t3"
-    "$HOME/.codex"
-    "$XDG_DATA_HOME/pnpm"
-    "$HOME/Code"
-    "$HOME/Work"
-)
-readonly SPOTLIGHT_OPTIONAL_PATHS
-
 # Cache brew's prefix once per run instead of forking brew in every helper.
 DOTFILES_BREW_PREFIX=""
 brew_prefix_once() {
@@ -214,42 +194,85 @@ install_keyboard_layout() {
     success "Keyboard layout installed"
 }
 
-spotlight_exclusions_applied() {
-    local path
+# Print the Spotlight Privacy list, one path per line. Needs root.
+spotlight_privacy_list() {
+    local count="" i
 
-    # Required paths are always checked; a fresh machine has none of them yet.
-    for path in "${SPOTLIGHT_EXCLUDED_PATHS[@]}"; do
-        [[ -f "$path/.metadata_never_index" ]] || return 1
-    done
-
-    for path in "${SPOTLIGHT_OPTIONAL_PATHS[@]}"; do
-        [[ -d "$path" ]] || continue
-        [[ -f "$path/.metadata_never_index" ]] || return 1
+    # The key is absent until something has been excluded once.
+    count="$(sudo plutil -extract Exclusions raw -o - "$MACOS_SPOTLIGHT_CONFIG" 2>/dev/null)" || return 0
+    [[ "$count" =~ ^[0-9]+$ ]] || return 0
+    for ((i = 0; i < count; i++)); do
+        sudo plutil -extract "Exclusions.$i" raw -o - "$MACOS_SPOTLIGHT_CONFIG"
     done
 }
 
-configure_spotlight_exclusions() {
-    info "Excluding high-churn dev paths from Spotlight..."
+# Print the existing exclusion paths that the Privacy list lacks. Needs root.
+spotlight_missing_exclusions() {
+    local current="" path
 
-    local path
-    for path in "${SPOTLIGHT_EXCLUDED_PATHS[@]}"; do
-        # Never create Xcode's DerivedData just to exclude it; only the cache
-        # dir (which bootstrap already created) may be created here.
-        if [[ "$path" == "$XDG_CACHE_HOME" ]]; then
-            mkdir -p -- "$path"
-        elif [[ ! -d "$path" ]]; then
-            info "Skipping missing directory: $path"
-            continue
-        fi
-        touch -- "$path/.metadata_never_index"
-    done
-
-    for path in "${SPOTLIGHT_OPTIONAL_PATHS[@]}"; do
+    current="$(spotlight_privacy_list)"
+    while IFS= read -r path; do
         [[ -d "$path" ]] || continue
-        touch -- "$path/.metadata_never_index"
-    done
+        grep -Fxq -- "$path" <<<"$current" || printf '%s\n' "$path"
+    done < <(macos_spotlight_exclusion_paths)
+}
 
-    success "Spotlight exclusions applied"
+# Uses cached sudo credentials only, so the check itself never prompts.
+spotlight_exclusions_applied() {
+    sudo -n true 2>/dev/null || return 1
+    sudo -n plutil -p "$MACOS_SPOTLIGHT_CONFIG" >/dev/null 2>&1 || return 1
+    [[ -z "$(spotlight_missing_exclusions)" ]]
+}
+
+# macOS 27 ignores .metadata_never_index markers. A folder name ending in
+# .noindex still works, but these folders can't be renamed, so use the Privacy
+# list. It lives in a root-only plist that mds reads when it starts.
+configure_spotlight_exclusions() {
+    local missing="" path="" still_missing=""
+
+    info "Adding high-churn dev paths to the Spotlight Privacy list..."
+    sudo -v
+    mkdir -p -- "$XDG_CACHE_HOME"
+
+    if ! sudo plutil -p "$MACOS_SPOTLIGHT_CONFIG" >/dev/null 2>&1; then
+        warn "Cannot read $MACOS_SPOTLIGHT_CONFIG"
+        info "Grant your terminal Full Disk Access and retry, or add the paths in System Settings > Spotlight > Search Privacy"
+        return 1
+    fi
+
+    missing="$(spotlight_missing_exclusions)"
+    if [[ -z "$missing" ]]; then
+        success "Spotlight Privacy list already complete"
+        return 0
+    fi
+
+    sudo plutil -extract Exclusions raw -o - "$MACOS_SPOTLIGHT_CONFIG" >/dev/null 2>&1 ||
+        sudo plutil -insert Exclusions -array "$MACOS_SPOTLIGHT_CONFIG"
+
+    while IFS= read -r path; do
+        info "Excluding $path"
+        sudo plutil -insert Exclusions -string "$path" -append "$MACOS_SPOTLIGHT_CONFIG"
+    done <<<"$missing"
+
+    # mds only reads the list at start. launchd respawns it at once.
+    sudo launchctl kickstart -k system/com.apple.metadata.mds 2>/dev/null ||
+        sudo killall mds 2>/dev/null || true
+
+    # mds can rewrite the file from memory as it exits, so check that the
+    # entries survived the restart.
+    sleep 2
+    still_missing="$(spotlight_missing_exclusions)"
+    if [[ -n "$still_missing" ]]; then
+        while IFS= read -r path; do
+            error "Spotlight dropped this exclusion on restart: $path"
+        done <<<"$still_missing"
+        info "Add them in System Settings > Spotlight > Search Privacy"
+        open "x-apple.systempreferences:com.apple.Spotlight-Settings.extension" 2>/dev/null || true
+        return 1
+    fi
+
+    success "Spotlight Privacy list updated"
+    info "Items indexed before now drop out in the background; make doctor reports any that remain"
 }
 
 enable_touch_id_sudo() {
@@ -288,16 +311,14 @@ computer_name_configured() {
 }
 
 configure_computer_name() {
-    local current="" new="" local_name=""
-    local timeout="${DOTFILES_CONFIRM_TIMEOUT:-30}"
+    local current="" new="" local_name="" timeout=""
 
     if ! is_interactive; then
         info "Non-interactive shell; skipping computer name"
         return 0
     fi
 
-    [[ "$timeout" =~ ^[0-9]+$ ]] || timeout=30
-    [[ "$timeout" == "0" ]] && timeout=30
+    timeout="$(prompt_timeout)"
 
     current="$(scutil --get ComputerName 2>/dev/null || printf '%s' "unknown")"
     printf '\nComputer name [%s]: ' "$current"
@@ -462,6 +483,51 @@ link_llvm_dlltool() {
     success "Symlinked $XDG_BIN_HOME/dlltool -> $src"
 }
 
+readonly LAUNCHD_ENV_LABEL="io.github.vakesz.dotfiles.launchd-env"
+readonly LAUNCHD_ENV_PLIST="$HOME/Library/LaunchAgents/$LAUNCHD_ENV_LABEL.plist"
+
+# The plist needs absolute paths, so it's generated rather than stowed.
+launchd_env_plist() {
+    cat <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>$LAUNCHD_ENV_LABEL</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/zsh</string>
+        <string>-f</string>
+        <string>$DOTFILES_ROOT/scripts/launchd-env.zsh</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+</dict>
+</plist>
+EOF
+}
+
+launchd_env_agent_installed() {
+    [[ -f "$LAUNCHD_ENV_PLIST" && "$(cat "$LAUNCHD_ENV_PLIST")" == "$(launchd_env_plist)" ]] &&
+        launchctl print "gui/$(id -u)/$LAUNCHD_ENV_LABEL" >/dev/null 2>&1
+}
+
+# Give GUI apps the ~/.zshenv variables, so they stop writing dot-dirs into $HOME.
+install_launchd_env_agent() {
+    local domain=""
+    domain="gui/$(id -u)"
+
+    mkdir -p -- "${LAUNCHD_ENV_PLIST%/*}"
+    launchd_env_plist >"$LAUNCHD_ENV_PLIST"
+    launchctl bootout "$domain" "$LAUNCHD_ENV_PLIST" 2>/dev/null || true
+    launchctl bootstrap "$domain" "$LAUNCHD_ENV_PLIST" || {
+        warn "Couldn't load $LAUNCHD_ENV_PLIST"
+        return 1
+    }
+    success "Installed the launchd env agent; restart running apps to pick it up"
+}
+
 # Verify that FUSE-T, the Omnimount CLI, and the app are all installed.
 omnimount_installed() {
     local brew_prefix=""
@@ -547,7 +613,7 @@ omnimount_setup_notes() {
     info "FUSE-T needs no kernel extension, Reduced Security, or Recovery-mode changes. Do not install macFUSE alongside it."
     info "Connect a drive, dismiss any macOS Initialize prompt, and mount its ext2/3/4 or NTFS partition from Omnimount's menu. Eject before unplugging."
     info "If NTFS stays read-only, fully shut down Windows with Fast Startup/hibernation disabled and check the filesystem there before retrying."
-    info "For sudo CLI use, also grant Full Disk Access to your terminal and $(brew --prefix)/bin/omnimount. Run omnimount doctor and omnimount list; doctor checks tools, not permissions."
+    info "For sudo CLI use, also grant Full Disk Access to your terminal and $(brew_prefix_once)/bin/omnimount. Run omnimount doctor and omnimount list; doctor checks tools, not permissions."
 }
 
 main() {
@@ -572,8 +638,9 @@ main() {
     offer "Configure power management?" configure_power_management
     require_command dockutil "the Dock layout" && offer "Apply the Dock layout?" configure_dock
 
+    offer_if_missing "Pass the ~/.zshenv variables to GUI apps with a LaunchAgent?" launchd_env_agent_installed install_launchd_env_agent "launchd env agent already installed"
     offer_if_missing "Unhide the user Library folder in Finder?" library_folder_visible unhide_library_folder "User Library folder already visible"
-    offer_if_missing "Exclude high-churn dev paths from Spotlight?" spotlight_exclusions_applied configure_spotlight_exclusions "Spotlight exclusions already applied"
+    offer_if_missing "Add high-churn dev paths to the Spotlight Privacy list?" spotlight_exclusions_applied configure_spotlight_exclusions "Spotlight Privacy list already complete"
     offer_if_missing "Install the custom Hungarian keyboard layout?" keyboard_layout_installed install_keyboard_layout "Custom Hungarian keyboard layout already installed"
     offer_if_missing "Symlink LLVM dlltool into $XDG_BIN_HOME for Wine builds?" llvm_dlltool_linked link_llvm_dlltool "LLVM dlltool symlink already in place"
     offer_if_missing "Install Omnimount for ext2/3/4 and NTFS disks?" omnimount_installed install_omnimount "Omnimount already installed"

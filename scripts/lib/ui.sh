@@ -30,15 +30,20 @@ is_interactive() {
     [[ -t 0 && -t 1 ]]
 }
 
+# Print the prompt timeout in seconds: DOTFILES_CONFIRM_TIMEOUT, else 30.
+# 0 would make `read -t` give up at once, so it counts as unset.
+prompt_timeout() {
+    local timeout="${DOTFILES_CONFIRM_TIMEOUT:-30}"
+    [[ "$timeout" =~ ^[1-9][0-9]*$ ]] || timeout=30
+    printf '%s\n' "$timeout"
+}
+
 # Ask a y/N question; defaults to No on timeout or non-interactive shells.
 confirm() {
-    local answer="n"
-    local timeout="${DOTFILES_CONFIRM_TIMEOUT:-30}"
+    local answer="n" timeout=""
 
     is_interactive || return 1
-    [[ "$timeout" =~ ^[0-9]+$ ]] || timeout=30
-    # A timeout of 0 would instantly decline; treat it as unset.
-    [[ "$timeout" == "0" ]] && timeout=30
+    timeout="$(prompt_timeout)"
 
     printf '\n%s (y/N) ' "$1"
 

@@ -11,6 +11,53 @@ MACOS_FIREWALL="/usr/libexec/ApplicationFirewall/socketfilterfw"
 readonly MACOS_FIREWALL
 XCODE_APP="${XCODE_APP:-/Applications/Xcode.app}"
 readonly XCODE_APP
+# Backs System Settings > Spotlight > Search Privacy. Root-only.
+MACOS_SPOTLIGHT_CONFIG="/System/Volumes/Data/.Spotlight-V100/VolumeConfiguration.plist"
+# shellcheck disable=SC2034 # read by macos.sh
+readonly MACOS_SPOTLIGHT_CONFIG
+
+# High-churn dev paths to keep out of Spotlight, one per line. Callers set the
+# XDG variables first. Only paths that exist are excluded.
+macos_spotlight_exclusion_paths() {
+    printf '%s\n' \
+        "$HOME/Code" \
+        "$HOME/Work" \
+        "$XDG_CACHE_HOME" \
+        "$XDG_DATA_HOME/gradle" \
+        "$XDG_DATA_HOME/pnpm" \
+        "$XDG_CONFIG_HOME/.android" \
+        "$HOME/.t3" \
+        "$HOME/.codex" \
+        "${ANDROID_HOME:-$HOME/Library/Android/sdk}" \
+        "$HOME/Library/Caches" \
+        "$HOME/Library/Developer/CoreSimulator" \
+        "$HOME/Library/Developer/Xcode/DerivedData" \
+        "$HOME/Library/Application Support/Code" \
+        "$HOME/Library/Application Support/Codex" \
+        "$HOME/Library/Application Support/t3code-v2" \
+        "$HOME/Library/Python" \
+        "$HOME/Library/Application Support/Firefox" \
+        "$HOME/Library/Application Support/LibreOffice" \
+        "$HOME/Library/Containers/com.microsoft.teams2" \
+        "$HOME/Library/Group Containers/UBF8T346G9.Office" \
+        "$HOME/Library/Containers/com.microsoft.Excel" \
+        "$HOME/Library/Containers/com.microsoft.Outlook" \
+        "$HOME/Library/Containers/com.microsoft.Powerpoint" \
+        "$HOME/Library/Containers/com.microsoft.Word" \
+        "$HOME/Library/Containers/com.microsoft.teams2.agent" \
+        "$HOME/Library/Group Containers/UBF8T346G9.com.microsoft.teams" \
+        "$HOME/Library/Containers/com.microsoft.entrabroker.BrokerApp" \
+        "$HOME/Library/Containers/net.whatsapp.WhatsApp" \
+        "$HOME/Library/Containers/net.whatsapp.WhatsApp.ServiceExtension" \
+        "$HOME/Library/Application Support/com.colliderli.iina"
+}
+
+# Every item Spotlight has indexed under $HOME, one path per line. Scoping
+# mdfind to a sandbox container returns nothing, so callers filter this
+# listing instead.
+macos_spotlight_indexed_home() {
+    mdfind -onlyin "$HOME" 'kMDItemContentTypeTree == "public.item"' 2>/dev/null
+}
 
 # On a managed Mac, a profile can reject or later revert a setting that looked applied.
 macos_mdm_managed() {

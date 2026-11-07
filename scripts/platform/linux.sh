@@ -127,23 +127,6 @@ ensure_locale() {
     persist_locale_for_family "$family"
 }
 
-# Print the current login shell basename ($SHELL is stale until re-login).
-current_login_shell() {
-    local shell_path="" user_name=""
-
-    user_name="${USER:-}"
-    if [[ -z "$user_name" ]]; then
-        user_name="$(id -un 2>/dev/null)"
-    fi
-    if command -v getent >/dev/null 2>&1 && [[ -n "$user_name" ]]; then
-        shell_path="$(getent passwd "$user_name" 2>/dev/null | awk -F: '{print $7}')"
-    fi
-    if [[ -z "$shell_path" ]]; then
-        shell_path="${SHELL:-}"
-    fi
-    printf '%s\n' "${shell_path##*/}"
-}
-
 ensure_zsh_shell() {
     local zsh_path=""
 
@@ -152,7 +135,7 @@ ensure_zsh_shell() {
         return 0
     }
 
-    if [[ "$(current_login_shell)" == "zsh" ]]; then
+    if [[ "$(login_shell_name)" == "zsh" ]]; then
         info "Shell is already zsh"
         return 0
     fi
