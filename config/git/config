@@ -60,6 +60,13 @@
 
 [fetch]
 	prune = true
+	# Keep the commit-graph current so log, merge-base and blame stay fast.
+	writeCommitGraph = true
+	# 0 picks a sensible number of parallel jobs for multiple remotes.
+	parallel = 0
+
+[submodule]
+	fetchJobs = 0
 
 [color "branch"]
 	current = yellow bold

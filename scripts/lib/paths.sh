@@ -20,6 +20,7 @@ set_xdg_environment_defaults() {
     export CCACHE_DIR="${CCACHE_DIR:-$XDG_CACHE_HOME/ccache}"
     export CARGO_HOME="${CARGO_HOME:-$XDG_DATA_HOME/cargo}"
     export RUSTUP_HOME="${RUSTUP_HOME:-$XDG_DATA_HOME/rustup}"
+    export GRADLE_USER_HOME="${GRADLE_USER_HOME:-$XDG_DATA_HOME/gradle}"
 
     DOTFILES_STATE_DIRS=(
         "$XDG_STATE_HOME/zsh"
@@ -30,6 +31,7 @@ set_xdg_environment_defaults() {
         "$CCACHE_DIR"
         "$CARGO_HOME"
         "$RUSTUP_HOME"
+        "$GRADLE_USER_HOME"
     )
 }
 

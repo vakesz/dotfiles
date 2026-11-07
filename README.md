@@ -69,6 +69,7 @@ dotfiles/
 │   ├── .stow-local-ignore
 │   ├── fd/
 │   ├── ghostty/
+│   ├── gradle/           # Linked into $GRADLE_USER_HOME by bootstrap.sh
 │   ├── git/
 │   ├── linearmouse/
 │   ├── ripgrep/
@@ -114,6 +115,7 @@ Per-user agent state (`.claude/`, `.agents/`, `skills-lock.json`) is gitignored 
 - `config/zsh`: `.zshrc` loads `rc.d/*.zsh` in order: helpers, environment, PATH, options, tools, completion, commands, Python venvs, keybindings, then plugins. Tool init scripts are cached in `$XDG_CACHE_HOME/zsh` and only regenerated when the tool or its config changes. Commands you type have plain names (`venv`, `rgf`); internal helpers start with `_dotfiles_`.
 - `config/starship.toml`: the prompt. Git status runs the `git` binary so the untracked cache, and fsmonitor in repos that turn it on, apply.
 - `config/git`: config and global ignores. HTTPS credentials go through Git Credential Manager. `core.fsmonitor` is off globally because it starts a daemon per repo; enable it in large repos with `git config core.fsmonitor true`. The Git LFS filter is part of the config, so `git lfs install` isn't needed.
+- `config/gradle/gradle.properties`: parallel builds, the build cache and the configuration cache for every Gradle project. Configuration-cache problems are warnings, so incompatible React Native or Expo plugins don't fail the build. Gradle only reads user settings from `$GRADLE_USER_HOME`, so `bootstrap.sh` links the file there.
 - `config/ghostty`: the terminal.
 - `config/linearmouse`: mice get no acceleration and reversed scrolling; trackpads keep the system settings.
 - `config/fd`, `config/ripgrep`, `config/tealdeer`, `config/topgrade.toml`: CLI tool settings. `make check-config` keeps the fd and ripgrep ignore lists in sync.

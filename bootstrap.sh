@@ -142,6 +142,21 @@ stow_selected_packages() {
     fi
 }
 
+link_gradle_properties() {
+    # Gradle only reads user settings from $GRADLE_USER_HOME, which lives in
+    # XDG_DATA_HOME, so link the stowed copy there.
+    local src="$CONFIG_TARGET/gradle/gradle.properties"
+    local dest="$GRADLE_USER_HOME/gradle.properties"
+
+    [[ -f "$src" ]] || return 0
+    if [[ -e "$dest" && ! -L "$dest" ]]; then
+        warn "$dest exists and isn't a link; leaving it alone"
+        return 0
+    fi
+    ln -sfn -- "$src" "$dest"
+    success "Linked $dest"
+}
+
 maybe_run_platform_setup() {
     local platform="" setup_path=""
 
@@ -178,6 +193,7 @@ main() {
     require_stow
     confirm_adopt
     stow_selected_packages
+    link_gradle_properties
     maybe_run_platform_setup
 
     success "Bootstrap complete"
