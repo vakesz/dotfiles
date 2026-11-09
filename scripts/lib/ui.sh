@@ -67,7 +67,21 @@ offer() {
     shift
 
     confirm "$prompt" || return 0
-    "$@" || warn "$1 did not complete"
+
+    # `"$@" || warn ...` would make bash ignore errexit for the whole action, so
+    # a failed step would still print [OK]. Run it as a plain statement in a
+    # subshell instead, so variables it sets do not persist.
+    local status=0 had_errexit=0
+    [[ $- == *e* ]] && had_errexit=1
+    set +e
+    (
+        set -e
+        "$@"
+    )
+    status=$?
+    ((had_errexit)) && set -e
+    ((status == 0)) || warn "$1 did not complete"
+    return 0
 }
 
 # Run action_fn after confirmation unless check_fn already passes.

@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -21,3 +24,33 @@ jobs:
           go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
       - run: make check
+
+  bootstrap-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: sudo apt-get update -qq && sudo apt-get install -y git stow zsh
+      # Not run from a terminal, so bootstrap skips the platform setup prompt.
+      - run: ./bootstrap.sh
+      - run: test -L "$HOME/.zshenv"
+      # Not `make doctor`: the runner's login shell is bash, which doctor fails.
+      - run: |
+          status=0
+          errors="$(zsh -ic exit 2>&1 >/dev/null)" || status=$?
+          if [[ -n "$errors" ]]; then
+            printf 'zsh wrote to stderr:\n%s\n' "$errors"
+            exit 1
+          fi
+          exit "$status"
+        shell: bash
+
+  brewfile-names:
+    runs-on: macos-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      # Every entry comes from the default taps, so a missing name means the
+      # formula or cask was renamed or removed.
+      - run: |
+          brew bundle list --file Brewfile --formula | xargs brew info --formula >/dev/null
+          brew bundle list --file Brewfile --cask | xargs brew info --cask >/dev/null

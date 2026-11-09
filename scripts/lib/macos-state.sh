@@ -16,6 +16,13 @@ MACOS_SPOTLIGHT_CONFIG="/System/Volumes/Data/.Spotlight-V100/VolumeConfiguration
 # shellcheck disable=SC2034 # read by macos.sh
 readonly MACOS_SPOTLIGHT_CONFIG
 
+# The generated LaunchAgent that gives GUI apps the ~/.zshenv variables.
+LAUNCHD_ENV_LABEL="io.github.vakesz.dotfiles.launchd-env"
+readonly LAUNCHD_ENV_LABEL
+LAUNCHD_ENV_PLIST="$HOME/Library/LaunchAgents/$LAUNCHD_ENV_LABEL.plist"
+# shellcheck disable=SC2034 # read by macos.sh and doctor.sh
+readonly LAUNCHD_ENV_PLIST
+
 # High-churn dev paths to keep out of Spotlight, one per line. Callers set the
 # XDG variables first. Only paths that exist are excluded.
 macos_spotlight_exclusion_paths() {
@@ -25,7 +32,7 @@ macos_spotlight_exclusion_paths() {
         "$XDG_CACHE_HOME" \
         "$XDG_DATA_HOME/gradle" \
         "$XDG_DATA_HOME/pnpm" \
-        "$XDG_CONFIG_HOME/.android" \
+        "$XDG_DATA_HOME/android" \
         "$HOME/.t3" \
         "$HOME/.codex" \
         "${ANDROID_HOME:-$HOME/Library/Android/sdk}" \

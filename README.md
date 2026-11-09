@@ -52,7 +52,7 @@ This moves your existing files into the repo with `stow --adopt`, replacing the 
 make doctor
 ```
 
-This checks that every file in `home/` and `config/` is linked, the XDG directories exist, `$GNUPGHOME` and `~/.ssh` are private, the expected commands are installed, and the Brewfile is satisfied. On macOS it also checks Touch ID for sudo, GitHub CLI login, FileVault, SIP, Gatekeeper, automatic security responses, the firewall and Stealth Mode, and warns about dev paths Spotlight still indexes. Missing CLI tools are only warnings on Linux. It never changes anything and exits non-zero if a check fails.
+This checks that every file in `home/` and `config/` is linked, `$GRADLE_USER_HOME/gradle.properties` points at the repo's copy, the XDG directories exist, `$GNUPGHOME` and `~/.ssh` are private, the expected commands are installed, and the Brewfile is satisfied. On macOS it also checks Touch ID for sudo, GitHub CLI login, the launchd env agent (warns unless it is installed and loaded), FileVault, SIP, Gatekeeper, automatic security responses, the firewall and Stealth Mode, and warns about dev paths Spotlight still indexes. Missing CLI tools are only warnings on Linux. It never changes anything and exits non-zero if a check fails.
 
 ### Updating
 
@@ -201,7 +201,7 @@ Check these again after updating, especially if the signing identity changed. `o
 - [Ghostty](https://ghostty.org/docs/config)
 - [fzf](https://github.com/junegunn/fzf)
 - [zoxide](https://github.com/ajeetdsouza/zoxide)
-- [ripgrep](https://ripgrep.dev/docs/guide/)
+- [ripgrep](https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md)
 - [fd](https://github.com/sharkdp/fd)
 - [tealdeer](https://tealdeer-rs.github.io/tealdeer/)
 - [topgrade](https://github.com/topgrade-rs/topgrade)

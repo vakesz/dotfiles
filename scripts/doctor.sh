@@ -86,6 +86,26 @@ check_stow_links() {
     fi
 }
 
+# Gradle only reads gradle.properties from $GRADLE_USER_HOME; bootstrap links
+# the stowed copy there.
+check_gradle_properties() {
+    local linked="$GRADLE_USER_HOME/gradle.properties" resolved=""
+
+    section "Gradle"
+
+    if [[ ! -e "$linked" ]]; then
+        fail "missing: $linked"
+        return 0
+    fi
+
+    resolved="$(realpath "$linked")"
+    if [[ "$resolved" == "$DOTFILES_ROOT/config/gradle/gradle.properties" ]]; then
+        pass "gradle.properties links to the repo"
+    else
+        fail "does not resolve into this repo: $linked -> $resolved"
+    fi
+}
+
 check_xdg_directories() {
     local dir
 
@@ -164,6 +184,11 @@ check_brewfile() {
         soft_warn quietly brew bundle check --file "$DOTFILES_BREWFILE"
 }
 
+launchd_env_agent_loaded() {
+    [[ -f "$LAUNCHD_ENV_PLIST" ]] &&
+        launchctl print "gui/$(id -u)/$LAUNCHD_ENV_LABEL" >/dev/null 2>&1
+}
+
 check_macos_tooling() {
     section "macOS tooling"
 
@@ -175,6 +200,8 @@ check_macos_tooling() {
         soft_warn macos_full_xcode_installed
     verify "GitHub CLI authenticated" "GitHub CLI not authenticated (run: gh auth login)" \
         soft_warn quietly gh auth status
+    verify "launchd env agent installed and loaded" "launchd env agent not installed or not loaded (run scripts/platform/macos.sh)" \
+        soft_warn launchd_env_agent_loaded
 }
 
 # Report only. macos-hardening.sh can fix FileVault, security updates and the
@@ -223,7 +250,7 @@ check_macos_spotlight() {
     # One pass over the index: the first input is the existing exclusion
     # paths, the second every indexed item under $HOME.
     while IFS=$'\t' read -r count path; do
-        soft_warn "Spotlight indexes $count items under $path (run scripts/platform/macos.sh)"
+        soft_warn "Spotlight indexes $count items under $path (run scripts/platform/macos.sh; if it's already on the Privacy list, rebuild the index: sudo mdutil -E /)"
         clean=0
     done < <(awk '
         NR == FNR { if ($0 != "") prefixes[++n] = $0; next }
@@ -254,6 +281,7 @@ main() {
     set_xdg_environment_defaults
 
     check_stow_links
+    check_gradle_properties
     check_xdg_directories
     check_directory_permissions
     check_commands

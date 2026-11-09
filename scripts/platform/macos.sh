@@ -59,6 +59,19 @@ install_rosetta() {
 }
 
 apply_macos_defaults() {
+    local failed=0
+
+    # Keep going past a domain macOS refuses (com.apple.universalaccess can
+    # fail without Full Disk Access) and report it at the end. This can't leak
+    # into other code: offer runs this function in a subshell.
+    # shellcheck disable=SC2032 # the `sudo defaults` elsewhere runs the real binary
+    defaults() {
+        command defaults "$@" || {
+            warn "defaults $* failed"
+            failed=1
+        }
+    }
+
     info "Applying macOS defaults..."
 
     # Finder
@@ -155,6 +168,10 @@ apply_macos_defaults() {
     killall Finder 2>/dev/null || true
     killall Dock 2>/dev/null || true
     killall SystemUIServer 2>/dev/null || true
+
+    if ((failed)); then
+        return 1
+    fi
 
     success "macOS defaults applied"
     info "Separate Spaces per display takes effect after the next log out"
@@ -345,6 +362,7 @@ configure_computer_name() {
     sudo scutil --set ComputerName "$new"
     sudo scutil --set HostName "$local_name"
     sudo scutil --set LocalHostName "$local_name"
+    # shellcheck disable=SC2033 # no shadow here; it exists only in apply_macos_defaults's subshell
     sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server \
         NetBIOSName -string "$local_name"
 
@@ -355,7 +373,8 @@ configure_dock() {
     info "Applying Dock layout..."
 
     local app
-    dockutil --no-restart --remove all 2>&1 | grep -v '^$' >/dev/null || true
+    # Fails on an already empty Dock, which is fine.
+    dockutil --no-restart --remove all >/dev/null 2>&1 || true
 
     for app in "${DOCK_APPS[@]}"; do
         if [[ ! -d "$app" ]]; then
@@ -482,9 +501,6 @@ link_llvm_dlltool() {
     ln -sf -- "$src" "$XDG_BIN_HOME/dlltool"
     success "Symlinked $XDG_BIN_HOME/dlltool -> $src"
 }
-
-readonly LAUNCHD_ENV_LABEL="io.github.vakesz.dotfiles.launchd-env"
-readonly LAUNCHD_ENV_PLIST="$HOME/Library/LaunchAgents/$LAUNCHD_ENV_LABEL.plist"
 
 # The plist needs absolute paths, so it's generated rather than stowed.
 launchd_env_plist() {

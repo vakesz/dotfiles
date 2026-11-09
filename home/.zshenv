@@ -7,9 +7,6 @@ if [[ "$OSTYPE" == linux* && -z "${XDG_RUNTIME_DIR:-}" && -d "/run/user/$(id -u 
   export XDG_RUNTIME_DIR="/run/user/$(id -u)"
 fi
 
-# Don't pass stale corepack state from the old setup into child shells.
-unset COREPACK_HOME
-
 export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 
 export LANG="${LANG:-en_US.UTF-8}"
@@ -81,11 +78,13 @@ _dotfiles_base_path() {
   local dir
   # pnpm 11 won't run unless its global bin dir is on PATH, even before it exists.
   path=("$PNPM_HOME/bin" "$CARGO_HOME/bin" "${path[@]}")
-  # Homebrew's rustup wrappers come before $CARGO_HOME/bin (which holds
-  # cargo-installed binaries), so non-interactive shells get the brew-managed
-  # cargo and rustc without relying on rustup proxies.
+  # Non-login `zsh -c` shells skip the system profile, so add Homebrew here.
+  # Its rustup wrappers come before both Homebrew's bin and $CARGO_HOME/bin
+  # (which holds cargo-installed binaries), so non-interactive shells get the
+  # brew-managed cargo and rustc without relying on rustup proxies.
   if [[ "$OSTYPE" == darwin* ]]; then
     for dir in /usr/local /opt/homebrew; do
+      [[ -x "$dir/bin/brew" ]] && path=("$dir/bin" "$dir/sbin" "${path[@]}")
       [[ -d "$dir/opt/rustup/bin" ]] && path=("$dir/opt/rustup/bin" "${path[@]}")
     done
   fi

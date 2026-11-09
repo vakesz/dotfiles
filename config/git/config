@@ -17,12 +17,14 @@
 [push]
 	default = current
 	autoSetupRemote = true
+	followTags = true
 
 [init]
 	defaultBranch = main
 
 [branch]
 	autosetupmerge = simple
+	sort = -committerdate
 
 [alias]
 	# Fast-forward the current branch from upstream, then push it to origin
@@ -42,6 +44,8 @@
 [credential]
 	# Git Credential Manager from the Brewfile (macOS). On Linux HTTPS auth
 	# falls back to the store/cache helper in gitconfig.local.
+	# An empty value clears helpers inherited from system config (Homebrew git sets osxkeychain).
+	helper =
 	helper = manager
 
 [diff]
@@ -54,6 +58,10 @@
 [rebase]
 	autosquash = true
 	autostash = true
+	updateRefs = true
+
+[tag]
+	sort = version:refname
 
 [rerere]
 	enabled = true

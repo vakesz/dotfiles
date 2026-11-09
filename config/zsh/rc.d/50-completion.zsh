@@ -41,5 +41,5 @@ zstyle ':completion:*' cache-path "$XDG_CACHE_HOME/zsh/completion-cache"
 zstyle ':completion:*' group-name ''
 zstyle ':completion:*:descriptions' format '[%d]'
 zstyle ':completion:*:corrections' format '%F{green}-- %d (errors: %e) --%f'
-zstyle ':completion:*:messages' format '%F{purple}-- %d --%f'
+zstyle ':completion:*:messages' format '%F{magenta}-- %d --%f'
 zstyle ':completion:*:warnings' format '%F{red}-- no matches found --%f'

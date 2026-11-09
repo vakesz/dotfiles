@@ -26,7 +26,8 @@ die() {
 ensure_git() {
     local waited=0
 
-    git --version >/dev/null 2>&1 && return 0
+    # Check xcode-select first: without the tools, the git shim opens the installer.
+    xcode-select -p >/dev/null 2>&1 && git --version >/dev/null 2>&1 && return 0
 
     say "Installing the Xcode Command Line Tools for git..."
     xcode-select --install 2>/dev/null || true
