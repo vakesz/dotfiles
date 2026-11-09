@@ -37,7 +37,6 @@ macos_spotlight_exclusion_paths() {
         "$HOME/Library/Application Support/t3code-v2" \
         "$HOME/Library/Python" \
         "$HOME/Library/Application Support/Firefox" \
-        "$HOME/Library/Application Support/LibreOffice" \
         "$HOME/Library/Containers/com.microsoft.teams2" \
         "$HOME/Library/Group Containers/UBF8T346G9.Office" \
         "$HOME/Library/Containers/com.microsoft.Excel" \

@@ -109,8 +109,7 @@ cask "chatgpt"
 cask "claude-code@latest"
 cask "codex"
 cask "copilot-cli"
-cask "cursor"
-cask "steipete/tap/codexbar"
+cask "cursor-cli"
 cask "t3-code@nightly"
 
 # General development tools
@@ -119,7 +118,6 @@ brew "imagemagick"
 brew "pngquant"
 brew "watchman"
 brew "webp"
-cask "linear"
 cask "visual-studio-code"
 
 # Databases
@@ -156,7 +154,6 @@ cask "firefox"
 
 # Desktop apps: Office
 cask "intune-company-portal"
-cask "libreoffice"
 cask "microsoft-excel"
 cask "microsoft-outlook"
 cask "microsoft-powerpoint"
