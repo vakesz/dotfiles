@@ -33,6 +33,9 @@ jobs:
       # Not run from a terminal, so bootstrap skips the platform setup prompt.
       - run: ./bootstrap.sh
       - run: test -L "$HOME/.zshenv"
+      # The runner image runs chmod -R 777 /usr/share, so compinit rejects zsh's
+      # own function directories and aborts when it can't prompt on a terminal.
+      - run: zsh -c 'autoload -Uz compaudit; compaudit' 2>/dev/null | xargs -r sudo chmod g-w,o-w
       # Not `make doctor`: the runner's login shell is bash, which doctor fails.
       - run: |
           status=0

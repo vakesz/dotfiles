@@ -113,7 +113,7 @@ cask "cursor-cli"
 cask "t3-code@nightly"
 
 # General development tools
-brew "azure-cli"
+cask "azure-cli"
 brew "imagemagick"
 brew "pngquant"
 brew "watchman"
