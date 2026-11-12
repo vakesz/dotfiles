@@ -4,15 +4,11 @@
 set -euo pipefail
 
 # shellcheck source=scripts/lib/paths.sh
-source "${BASH_SOURCE[0]%/*}/lib/paths.sh"
+source "$(dirname -- "${BASH_SOURCE[0]}")/lib/paths.sh"
+# shellcheck source=scripts/lib/ui.sh
+source "$DOTFILES_ROOT/scripts/lib/ui.sh"
 
 FILES=()
-
-# Print an error to stderr and exit non-zero.
-die() {
-    printf '%s\n' "$1" >&2
-    exit 1
-}
 
 # Abort unless the named command exists on PATH.
 require() {
@@ -50,12 +46,13 @@ check_shell() {
     printf 'shellcheck: clean\n'
 }
 
-# Verify shfmt formatting for every bash script.
+# Verify shfmt formatting for every bash script. The style comes from
+# .editorconfig; shfmt ignores that file as soon as any formatting flag is set.
 check_fmt() {
     require shfmt "brew install shfmt"
     collect '*.sh'
 
-    shfmt -i 4 -ci -d "${FILES[@]}"
+    shfmt -d "${FILES[@]}"
     printf 'shfmt: clean\n'
 }
 
@@ -117,14 +114,6 @@ check_toml() {
     "$py" -c 'import sys, tomllib; [tomllib.load(open(path, "rb")) for path in sys.argv[1:]]' "${FILES[@]}"
 }
 
-# Validate YAML files (workflows) with Ruby's stdlib parser.
-check_yaml() {
-    collect --allow-empty '*.yml' '*.yaml'
-    ((${#FILES[@]} == 0)) && return 0
-
-    ruby -e 'require "yaml"; ARGV.each { |path| YAML.safe_load_file(path, aliases: true) }' "${FILES[@]}"
-}
-
 # Lint GitHub workflows with actionlint when available.
 check_actionlint() {
     # Optional locally, but required in CI so the workflow lint can't be skipped.
@@ -154,6 +143,62 @@ check_brewfile_duplicates() {
     fi
 }
 
+# Print NAME=value for each variable named in $3.. as a login-less zsh at path
+# $1 sees it with HOME=$2 and nothing else in the environment.
+zsh_env_values() {
+    local zsh_path="$1" home="$2"
+    shift 2
+    # shellcheck disable=SC2016 # expanded by zsh, not here
+    env -i HOME="$home" PATH=/usr/bin:/bin "$zsh_path" -c 'for v; do print -r -- "$v=${(P)v}"; done' zsh "$@"
+}
+
+# Print NAME=value for each variable named in $2.. after paths.sh applies its
+# defaults with HOME=$1 and nothing else in the environment.
+bash_env_values() {
+    local home="$1"
+    shift
+    # shellcheck disable=SC2016 # expanded by the child bash, not here
+    env -i HOME="$home" PATH=/usr/bin:/bin "$BASH" -c \
+        'source "$1"; shift; set_xdg_environment_defaults; for v; do printf "%s=%s\n" "$v" "${!v}"; done' \
+        bash "$DOTFILES_ROOT/scripts/lib/paths.sh" "$@"
+}
+
+# Fail when scripts/lib/paths.sh and the zsh environment disagree on a
+# variable paths.sh exports. bootstrap and doctor run in bash, so paths.sh
+# repeats those defaults by hand. The zsh side starts a real shell in a temp
+# HOME laid out like a stowed machine, so it doesn't matter which startup
+# file holds the exports.
+check_xdg_drift() {
+    local tmp="" names=() name zsh_path="" zsh_values="" bash_values="" status=0
+
+    while IFS= read -r name; do
+        names+=("$name")
+    done < <(sed -n 's/^ *export \([A-Z_][A-Z0-9_]*\)=.*/\1/p' scripts/lib/paths.sh)
+    ((${#names[@]} > 0)) || die "no exports found in scripts/lib/paths.sh"
+
+    # The clean PATH below may not contain zsh (Homebrew, Linuxbrew, nix), so
+    # call it by absolute path.
+    zsh_path="$(command -v zsh)"
+
+    tmp="$(mktemp -d)"
+    mkdir -p "$tmp/.config"
+    ln -s "$DOTFILES_ROOT/home/.zshenv" "$tmp/.zshenv"
+    ln -s "$DOTFILES_ROOT/config/zsh" "$tmp/.config/zsh"
+
+    zsh_values="$(zsh_env_values "$zsh_path" "$tmp" "${names[@]}")" || status=$?
+    bash_values="$(bash_env_values "$tmp" "${names[@]}")" || status=$?
+    rm -rf -- "$tmp"
+
+    # A shell that failed to start is a broken check, not drift.
+    if ((status != 0)) || [[ -z "$zsh_values" || -z "$bash_values" ]]; then
+        die "could not read the environment from $zsh_path or paths.sh (exit $status)"
+    fi
+
+    diff -u --label config/zsh/.zshenv --label scripts/lib/paths.sh \
+        <(printf '%s\n' "$zsh_values") <(printf '%s\n' "$bash_values") ||
+        die "scripts/lib/paths.sh defaults drifted from the zsh environment"
+}
+
 # Check committed lines, local edits, and untracked files for whitespace.
 check_whitespace() {
     git diff --check "$(git hash-object -t tree /dev/null)" HEAD
@@ -164,14 +209,15 @@ check_whitespace() {
 check_config() {
     require jq
     require ruby
+    require zsh
     toml_python >/dev/null || die "no python3 with tomllib found (need 3.11+)"
 
     check_json
     check_toml
-    check_yaml
     check_actionlint
     check_app_syntax
     check_brewfile_duplicates
+    check_xdg_drift
     check_whitespace
 
     printf 'config syntax and whitespace: clean\n'

@@ -27,11 +27,3 @@ config/zsh/rc.d/*.local.zsh
 
 # Logs
 *.log
-
-# Tooling leftovers
-node_modules/
-__pycache__/
-*.pyc
-*.pyo
-.vscode/
-config/zsh/.zcompdump

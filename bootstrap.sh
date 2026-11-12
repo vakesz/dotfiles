@@ -1,28 +1,48 @@
 #!/usr/bin/env bash
-# Link the dotfiles into $HOME and $XDG_CONFIG_HOME with stow.
+# Link the dotfiles into $HOME and the XDG directories with stow.
 
 set -euo pipefail
 
 # shellcheck source=scripts/lib/paths.sh
-source "${BASH_SOURCE[0]%/*}/scripts/lib/paths.sh"
+source "$(dirname -- "${BASH_SOURCE[0]}")/scripts/lib/paths.sh"
 # shellcheck source=scripts/lib/ui.sh
 source "$DOTFILES_ROOT/scripts/lib/ui.sh"
 # shellcheck source=scripts/lib/platform.sh
 source "$DOTFILES_ROOT/scripts/lib/platform.sh"
 
 SCRIPT_NAME="${0##*/}"
-# Recomputed in main after XDG defaults are set; kept here for usage text.
-CONFIG_TARGET="${XDG_CONFIG_HOME:-$HOME/.config}"
 ADOPT=0
 SKIP_PREFLIGHT=0
+
+# --no-folding links files individually so a later *.local.zsh lands in
+# $XDG_CONFIG_HOME, never inside the repo working tree. The packages have no
+# .stow-local-ignore on purpose: a local ignore file replaces stow's built-in
+# defaults (README, .git, ...), while --ignore adds to them.
+# stow anchors each --ignore at the end of the package-relative path only, so
+# (^|/) pins a pattern to the start of a file name and ^ to the package root.
+STOW_ARGS=(
+    --no-folding
+    -d "$DOTFILES_ROOT"
+    --ignore='(^|/)\.DS_Store'
+    --ignore='(^|/)\._[^/]*'
+    --ignore='(^|/)\.AppleDouble'
+    --ignore='(^|/)\.LSOverride'
+    --ignore='\.sw[op]'
+    --ignore='~'
+    --ignore='(^|/)#[^/]*#'
+    # Machine-local overrides, in case one is ever copied into the repo.
+    --ignore='(^|/)[^/]+\.local'
+    --ignore='^zsh/rc\.d/[^/]+\.local\.zsh'
+)
 
 usage() {
     cat <<EOF
 Usage: ./$SCRIPT_NAME [--adopt] [--skip-preflight]
 
 On macOS, first ensures the Xcode Command Line Tools, Homebrew, and the
-Brewfile packages are present. Then stows ./home into \$HOME and ./config
-into \$XDG_CONFIG_HOME, and offers to run the matching platform setup script.
+Brewfile packages are present. Then stows ./home into \$HOME, ./config (and
+./config-macos on macOS) into \$XDG_CONFIG_HOME and ./data into
+\$XDG_DATA_HOME, and offers to run the matching platform setup script.
 
 Options:
   --adopt           Import existing files into the repo with 'stow --adopt'
@@ -100,31 +120,73 @@ confirm_adopt() {
     }
 }
 
+# Remove links left by older layouts that would block or outlive the current
+# packages. Each removal only matches the exact shape an older bootstrap made.
+# Safe to delete once every machine has rerun bootstrap.
+remove_legacy_links() {
+    local legacy_gradle="$GRADLE_USER_HOME/gradle.properties" path=""
+
+    # gradle.properties used to live in config/ and was linked into
+    # $GRADLE_USER_HOME with an absolute `ln -sfn`. stow can't replace that
+    # link, so the data/ package would conflict.
+    if [[ -L "$legacy_gradle" && "$(readlink "$legacy_gradle")" == "$XDG_CONFIG_HOME/gradle/gradle.properties" ]]; then
+        rm -f -- "$legacy_gradle"
+        info "Removed legacy link $legacy_gradle"
+    fi
+
+    # Restowing config/ leaves links to files that moved out of it dangling.
+    for path in gradle/gradle.properties linearmouse/linearmouse.json; do
+        remove_dangling_repo_link "$XDG_CONFIG_HOME/$path" "config/$path"
+    done
+}
+
+# Remove $1 if it is a dangling link to $DOTFILES_ROOT/$2, then its parent
+# directory if that is now empty.
+remove_dangling_repo_link() {
+    local link="$1" repo_path="$2" target="" existing="" rest=""
+
+    [[ -L "$link" && ! -e "$link" ]] || return 0
+
+    # stow links are relative to the link's directory.
+    target="$(readlink "$link")"
+    [[ "$target" == /* ]] || target="${link%/*}/$target"
+
+    # The file and maybe its directories are gone, so resolve the deepest
+    # directory that still exists and append the rest.
+    existing="${target%/*}"
+    rest="${target##*/}"
+    while [[ -n "$existing" && ! -d "$existing" ]]; do
+        rest="${existing##*/}/$rest"
+        existing="${existing%/*}"
+    done
+    # A .. below a missing directory can't be resolved; leave such links alone.
+    [[ "/$rest/" != */../* ]] || return 0
+    existing="$(cd "${existing:-/}" && pwd -P)" || return 0
+
+    [[ "$existing/$rest" == "$DOTFILES_ROOT/$repo_path" ]] || return 0
+
+    rm -f -- "$link"
+    rmdir -- "${link%/*}" 2>/dev/null || true
+    info "Removed stale link $link"
+}
+
 assert_stow_targets_clean() {
     local package target stow_output
 
-    for package in home config; do
-        target="$HOME"
-        [[ "$package" == "config" ]] && target="$CONFIG_TARGET"
-
-        stow_output="$(stow -n --restow --no-folding -d "$DOTFILES_ROOT" -t "$target" "$package" 2>&1)" || {
-            error "stow found existing files or directories that would conflict with linking"
+    while IFS=$'\t' read -r package target; do
+        stow_output="$(stow -n --restow "${STOW_ARGS[@]}" -t "$target" "$package" 2>&1)" || {
+            error "stow found existing files or directories that would conflict with linking $package/"
             if [[ -n "$stow_output" ]]; then
                 printf '%s\n' "$stow_output"
             fi
             info "Remove the conflicting files manually, or rerun interactively with: ./$SCRIPT_NAME --adopt"
             exit 1
         }
-    done
+    done < <(stow_package_targets)
 }
 
-stow_selected_packages() {
-    # --no-folding links files individually so a later *.local.zsh lands in
-    # $HOME/$XDG_CONFIG_HOME, never inside the repo working tree.
-    local stow_args=(--restow --no-folding -d "$DOTFILES_ROOT")
-
-    mkdir -p "$CONFIG_TARGET"
-    info "Stowing home/ into $HOME and config/ into $CONFIG_TARGET"
+stow_packages() {
+    local package target stow_args=(--restow "${STOW_ARGS[@]}")
 
     if ((ADOPT)); then
         stow_args+=(--adopt)
@@ -132,29 +194,17 @@ stow_selected_packages() {
         assert_stow_targets_clean
     fi
 
-    stow "${stow_args[@]}" -t "$HOME" home
-    stow "${stow_args[@]}" -t "$CONFIG_TARGET" config
+    while IFS=$'\t' read -r package target; do
+        mkdir -p "$target"
+        info "Stowing $package/ into $target"
+        stow "${stow_args[@]}" -t "$target" "$package"
+    done < <(stow_package_targets)
 
     success "Dotfiles linked"
 
     if ((ADOPT)) && command -v git >/dev/null 2>&1 && git -C "$DOTFILES_ROOT" rev-parse --git-dir >/dev/null 2>&1 && ! git -C "$DOTFILES_ROOT" diff --quiet 2>/dev/null; then
         warn "Existing files were adopted into the repo. Review with: git diff"
     fi
-}
-
-link_gradle_properties() {
-    # Gradle only reads user settings from $GRADLE_USER_HOME, which lives in
-    # XDG_DATA_HOME, so link the stowed copy there.
-    local src="$CONFIG_TARGET/gradle/gradle.properties"
-    local dest="$GRADLE_USER_HOME/gradle.properties"
-
-    [[ -f "$src" ]] || return 0
-    if [[ -e "$dest" && ! -L "$dest" ]]; then
-        warn "$dest exists and isn't a link; leaving it alone"
-        return 0
-    fi
-    ln -sfn -- "$src" "$dest"
-    success "Linked $dest"
 }
 
 maybe_run_platform_setup() {
@@ -183,17 +233,16 @@ maybe_run_platform_setup() {
 
 main() {
     parse_args "$@"
+    set_xdg_environment_defaults
 
     info "Dotfiles bootstrap"
 
     maybe_run_preflight
     ensure_xdg_runtime_directories
-    # XDG defaults are authoritative only after the call above.
-    CONFIG_TARGET="${XDG_CONFIG_HOME:-$HOME/.config}"
     require_stow
     confirm_adopt
-    stow_selected_packages
-    link_gradle_properties
+    remove_legacy_links
+    stow_packages
     maybe_run_platform_setup
 
     success "Bootstrap complete"

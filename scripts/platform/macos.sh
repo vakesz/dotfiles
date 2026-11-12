@@ -4,7 +4,7 @@
 set -euo pipefail
 
 # shellcheck source-path=SCRIPTDIR
-source "${BASH_SOURCE[0]%/*}/../lib/paths.sh"
+source "$(dirname -- "${BASH_SOURCE[0]}")/../lib/paths.sh"
 source "$DOTFILES_ROOT/scripts/lib/ui.sh"
 source "$DOTFILES_ROOT/scripts/lib/platform.sh"
 source "$DOTFILES_ROOT/scripts/lib/macos-state.sh"
@@ -14,38 +14,6 @@ set_xdg_environment_defaults
 
 ASSETS_DIR="$DOTFILES_ROOT/assets/macos"
 readonly ASSETS_DIR
-readonly FUSE_T_CASK="fuse-t"
-readonly OMNIMOUNT_APP="/Applications/Omnimount.app"
-readonly OMNIMOUNT_REPOSITORY="https://github.com/ramdoor/omnimount.git"
-readonly OMNIMOUNT_REVISION="73eed3bb1652eef4a4f60c054214ad4475aa6002"
-readonly OMNIMOUNT_BUILD_PATCH="$ASSETS_DIR/omnimount-build.patch"
-
-DOCK_APPS=(
-    "/System/Applications/Apps.app"
-    "/Applications/Safari.app"
-    "/Applications/Firefox.app"
-    "/System/Applications/Messages.app"
-    "/System/Applications/Mail.app"
-    "/System/Applications/Calendar.app"
-    "/Applications/WhatsApp.app"
-    "/Applications/Microsoft Teams.app"
-    "/Applications/Microsoft Outlook.app"
-    "/System/Applications/Music.app"
-    "/Applications/Visual Studio Code.app"
-    "$XCODE_APP"
-    "/Applications/Ghostty.app"
-    "/Applications/T3 Code (Nightly).app"
-)
-readonly DOCK_APPS
-
-# Cache brew's prefix once per run instead of forking brew in every helper.
-DOTFILES_BREW_PREFIX=""
-brew_prefix_once() {
-    if [[ -z "$DOTFILES_BREW_PREFIX" ]]; then
-        DOTFILES_BREW_PREFIX="$(brew --prefix 2>/dev/null)" || return 1
-    fi
-    printf '%s\n' "$DOTFILES_BREW_PREFIX"
-}
 
 # True when Rosetta's auto-update package is installed.
 rosetta_installed() {
@@ -448,9 +416,8 @@ authenticate_gh() {
 }
 
 rustup_path() {
-    local prefix=""
-    prefix="$(brew_prefix_once 2>/dev/null)" || return 1
-    printf '%s/opt/rustup/bin/rustup\n' "$prefix"
+    macos_brew_prefix || return 1
+    printf '%s/opt/rustup/bin/rustup\n' "$MACOS_BREW_PREFIX"
 }
 
 rustup_stable_toolchain_installed() {
@@ -478,9 +445,8 @@ install_rustup_stable_toolchain() {
 # Homebrew llvm names it llvm-dlltool, but Wine's build looks for `dlltool`.
 # Callers check -x since the path may not exist when llvm isn't installed.
 llvm_dlltool_path() {
-    local prefix=""
-    prefix="$(brew_prefix_once 2>/dev/null)" || return 1
-    printf '%s/opt/llvm/bin/llvm-dlltool\n' "$prefix"
+    macos_brew_prefix || return 1
+    printf '%s/opt/llvm/bin/llvm-dlltool\n' "$MACOS_BREW_PREFIX"
 }
 
 llvm_dlltool_linked() {
@@ -525,8 +491,8 @@ EOF
 }
 
 launchd_env_agent_installed() {
-    [[ -f "$LAUNCHD_ENV_PLIST" && "$(cat "$LAUNCHD_ENV_PLIST")" == "$(launchd_env_plist)" ]] &&
-        launchctl print "gui/$(id -u)/$LAUNCHD_ENV_LABEL" >/dev/null 2>&1
+    macos_launchd_env_agent_loaded &&
+        [[ "$(cat "$LAUNCHD_ENV_PLIST")" == "$(launchd_env_plist)" ]]
 }
 
 # Give GUI apps the ~/.zshenv variables, so they stop writing dot-dirs into $HOME.
@@ -544,94 +510,6 @@ install_launchd_env_agent() {
     success "Installed the launchd env agent; restart running apps to pick it up"
 }
 
-# Verify that FUSE-T, the Omnimount CLI, and the app are all installed.
-omnimount_installed() {
-    local brew_prefix=""
-
-    [[ "${OMNIMOUNT_REBUILD:-0}" != "1" ]] || return 1
-    brew_prefix="$(brew_prefix_once 2>/dev/null)" || return 1
-    brew list --cask "$FUSE_T_CASK" >/dev/null 2>&1 || return 1
-    [[ -x "$brew_prefix/bin/omnimount" && -x "$brew_prefix/sbin/fuse2fs" && -d "$OMNIMOUNT_APP" ]]
-}
-
-# Apply local compatibility fixes before building Omnimount.
-apply_omnimount_build_patch() {
-    local source_dir="$1"
-
-    /usr/bin/patch --directory "$source_dir" --strip=1 --batch --forward <"$OMNIMOUNT_BUILD_PATCH"
-}
-
-install_omnimount() {
-    local brew_prefix="" build_arch="" build_dir="" scratch_dir="" source_dir="" work_dir=""
-
-    brew_prefix="$(brew_prefix_once 2>/dev/null)" || {
-        warn "Homebrew is required to install Omnimount"
-        return 1
-    }
-
-    if ! brew list --cask "$FUSE_T_CASK" >/dev/null 2>&1; then
-        warn "FUSE-T is not installed; rerun ./bootstrap.sh to install the Brewfile first"
-        return 1
-    fi
-
-    require_command git "Omnimount" || return 1
-    require_command make "Omnimount" || return 1
-    require_command pkg-config "Omnimount FUSE-T builds" || return 1
-    [[ -r "$OMNIMOUNT_BUILD_PATCH" ]] || {
-        error "Missing Omnimount build compatibility patch: $OMNIMOUNT_BUILD_PATCH"
-        return 1
-    }
-
-    work_dir="$(mktemp -d "${TMPDIR:-/tmp}/omnimount.XXXXXX")" || {
-        error "Could not create a temporary directory for Omnimount"
-        return 1
-    }
-    source_dir="$work_dir/source"
-    build_dir="$work_dir/build"
-    scratch_dir="$work_dir/swift-build"
-
-    if [[ "$(sysctl -n hw.optional.arm64 2>/dev/null)" == "1" ]]; then
-        build_arch="arm64"
-    else
-        build_arch="x86_64"
-    fi
-
-    info "Building Omnimount for $build_arch with FUSE-T (temporary files are removed afterward)..."
-    if ! (
-        trap 'rm -rf -- "$work_dir"' EXIT
-        export OMNIMOUNT_ARCH="$build_arch" BACKEND="fuse-t"
-        mkdir -p "$build_dir" "$scratch_dir" &&
-            git clone --no-checkout --depth 1 "$OMNIMOUNT_REPOSITORY" "$source_dir" &&
-            git -C "$source_dir" fetch --depth 1 origin "$OMNIMOUNT_REVISION" &&
-            git -C "$source_dir" checkout --detach FETCH_HEAD &&
-            apply_omnimount_build_patch "$source_dir" &&
-            TMPDIR="$build_dir" make -C "$source_dir" "PREFIX=$brew_prefix" fuse2fs &&
-            TMPDIR="$build_dir" make -C "$source_dir" "PREFIX=$brew_prefix" ntfs3g &&
-            TMPDIR="$build_dir" SCRATCH="$scratch_dir" OMNIMOUNT_SCRATCH="$scratch_dir" \
-                make -j1 -C "$source_dir" "PREFIX=$brew_prefix" install
-    ); then
-        error "Omnimount installation failed"
-        return 1
-    fi
-
-    success "Omnimount installed"
-    "$brew_prefix/bin/omnimount" doctor || warn "Omnimount doctor reported an issue; finish the permissions below, then run: omnimount doctor"
-
-    open "$OMNIMOUNT_APP" || warn "Could not open Omnimount automatically; open $OMNIMOUNT_APP manually"
-}
-
-omnimount_setup_notes() {
-    info "Omnimount manual setup checklist (macOS permissions cannot be granted automatically):"
-    info "1. Open $OMNIMOUNT_APP, open Setup from its menu bar icon, and activate the helper."
-    info "2. System Settings > General > Login Items & Extensions (Login Items on older macOS): allow Omnimount in the background."
-    info "3. System Settings > Privacy & Security > Full Disk Access: click +, then Cmd+Shift+G, and add $OMNIMOUNT_APP/Contents/MacOS/OmnimountHelper. Enable its switch."
-    info "4. If the helper was already running, restart it after granting access or rebuilding: sudo launchctl kickstart -k system/org.omnimount.helper"
-    info "FUSE-T needs no kernel extension, Reduced Security, or Recovery-mode changes. Do not install macFUSE alongside it."
-    info "Connect a drive, dismiss any macOS Initialize prompt, and mount its ext2/3/4 or NTFS partition from Omnimount's menu. Eject before unplugging."
-    info "If NTFS stays read-only, fully shut down Windows with Fast Startup/hibernation disabled and check the filesystem there before retrying."
-    info "For sudo CLI use, also grant Full Disk Access to your terminal and $(brew_prefix_once)/bin/omnimount. Run omnimount doctor and omnimount list; doctor checks tools, not permissions."
-}
-
 main() {
     require_platform macos
 
@@ -639,10 +517,14 @@ main() {
 
     ensure_xcode_cli_tools
 
+    # Fill the brew prefix cache here, in the parent shell; offered actions run
+    # in subshells. Brew may be absent, which later steps handle themselves.
+    macos_brew_prefix || true
+
     # Do this first so every later sudo prompt can use Touch ID.
     offer_if_missing "Enable Touch ID for sudo?" macos_touch_id_sudo_enabled enable_touch_id_sudo "Touch ID for sudo already enabled"
 
-    if [[ "$(uname -m)" == "arm64" ]]; then
+    if macos_apple_silicon; then
         offer_if_missing "Install Rosetta?" rosetta_installed install_rosetta "Rosetta already installed"
     else
         info "Not Apple Silicon; skipping Rosetta"
@@ -659,7 +541,8 @@ main() {
     offer_if_missing "Add high-churn dev paths to the Spotlight Privacy list?" spotlight_exclusions_applied configure_spotlight_exclusions "Spotlight Privacy list already complete"
     offer_if_missing "Install the custom Hungarian keyboard layout?" keyboard_layout_installed install_keyboard_layout "Custom Hungarian keyboard layout already installed"
     offer_if_missing "Symlink LLVM dlltool into $XDG_BIN_HOME for Wine builds?" llvm_dlltool_linked link_llvm_dlltool "LLVM dlltool symlink already in place"
-    offer_if_missing "Install Omnimount for ext2/3/4 and NTFS disks?" omnimount_installed install_omnimount "Omnimount already installed"
+    # Asks for confirmation itself and prints the setup checklist.
+    "$DOTFILES_ROOT/scripts/platform/macos-omnimount.sh" || warn "Omnimount setup did not complete"
 
     report_missing_app_store_apps
 
@@ -677,9 +560,6 @@ main() {
     "$DOTFILES_ROOT/scripts/platform/macos-hardening.sh" || warn "macOS hardening did not complete"
     "$DOTFILES_ROOT/scripts/platform/macos-office-tweaks.sh" || warn "Microsoft updater tweaks did not complete"
 
-    if [[ -d "$OMNIMOUNT_APP" ]]; then
-        omnimount_setup_notes
-    fi
     success "macOS setup complete"
 }
 

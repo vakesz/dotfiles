@@ -4,7 +4,7 @@
 set -euo pipefail
 
 # shellcheck source-path=SCRIPTDIR
-source "${BASH_SOURCE[0]%/*}/../lib/paths.sh"
+source "$(dirname -- "${BASH_SOURCE[0]}")/../lib/paths.sh"
 source "$DOTFILES_ROOT/scripts/lib/ui.sh"
 source "$DOTFILES_ROOT/scripts/lib/platform.sh"
 
@@ -31,18 +31,6 @@ remove_launchd_plist() {
     fi
 }
 
-# Remove Microsoft AutoUpdate agents from user and system domains.
-remove_launchd_agents() {
-    local uid="" name=""
-    uid="$(id -u)"
-
-    for name in "$@"; do
-        remove_launchd_plist "gui/$uid" "$HOME/Library/LaunchAgents/$name"
-        remove_launchd_plist "system" "/Library/LaunchAgents/$name"
-        remove_launchd_plist "system" "/Library/LaunchDaemons/$name"
-    done
-}
-
 apply_mau_prefs() {
     info "Applying MAU no-auto-update user-domain preferences..."
 
@@ -55,10 +43,18 @@ apply_mau_prefs() {
     success "MAU preferences applied"
 }
 
+# Remove Microsoft AutoUpdate agents from user and system domains.
 remove_microsoft_autoupdate() {
+    local uid="" name=""
+    uid="$(id -u)"
+
     info "Removing Microsoft AutoUpdate (MAU) LaunchAgents..."
 
-    remove_launchd_agents "${MAU_AGENTS[@]}"
+    for name in "${MAU_AGENTS[@]}"; do
+        remove_launchd_plist "gui/$uid" "$HOME/Library/LaunchAgents/$name"
+        remove_launchd_plist "system" "/Library/LaunchAgents/$name"
+        remove_launchd_plist "system" "/Library/LaunchDaemons/$name"
+    done
 
     success "MAU LaunchAgents removed"
 }

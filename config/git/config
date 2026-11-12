@@ -23,7 +23,6 @@
 	defaultBranch = main
 
 [branch]
-	autosetupmerge = simple
 	sort = -committerdate
 
 [alias]

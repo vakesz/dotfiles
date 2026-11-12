@@ -9,6 +9,7 @@ readonly DOTFILES_ROOT
 # shellcheck disable=SC2034 # read by the scripts that source this file
 readonly DOTFILES_BREWFILE="$DOTFILES_ROOT/Brewfile"
 
+# Every export here must match the zsh environment; check.sh compares them all.
 set_xdg_environment_defaults() {
     export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
     export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
@@ -33,6 +34,20 @@ set_xdg_environment_defaults() {
         "$RUSTUP_HOME"
         "$GRADLE_USER_HOME"
     )
+}
+
+# Print "package<TAB>target" for every stow package on this platform. The
+# single source for what bootstrap links and what doctor verifies.
+stow_package_targets() {
+    : "${XDG_CONFIG_HOME:?call set_xdg_environment_defaults first}"
+    printf '%s\t%s\n' \
+        home "$HOME" \
+        config "$XDG_CONFIG_HOME" \
+        data "$XDG_DATA_HOME"
+    # Checks OSTYPE directly so this file doesn't depend on platform.sh.
+    if [[ "$OSTYPE" == darwin* ]]; then
+        printf '%s\t%s\n' config-macos "$XDG_CONFIG_HOME"
+    fi
 }
 
 ensure_xdg_runtime_directories() {

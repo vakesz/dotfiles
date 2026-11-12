@@ -38,8 +38,5 @@ login_shell_name() {
 
 # Abort unless the current platform is $1.
 require_platform() {
-    [[ "$(detect_platform)" == "$1" ]] || {
-        error "This script is for $1 only"
-        exit 1
-    }
+    [[ "$(detect_platform)" == "$1" ]] || die "This script is for $1 only"
 }
