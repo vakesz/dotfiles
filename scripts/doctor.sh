@@ -6,7 +6,7 @@
 set -uo pipefail
 
 # shellcheck source=scripts/lib/paths.sh
-source "${BASH_SOURCE[0]%/*}/lib/paths.sh"
+source "$(dirname -- "${BASH_SOURCE[0]}")/lib/paths.sh"
 # shellcheck source=scripts/lib/ui.sh
 source "$DOTFILES_ROOT/scripts/lib/ui.sh"
 # shellcheck source=scripts/lib/platform.sh
@@ -14,17 +14,30 @@ source "$DOTFILES_ROOT/scripts/lib/platform.sh"
 # shellcheck source=scripts/lib/macos-state.sh
 is_macos && source "$DOTFILES_ROOT/scripts/lib/macos-state.sh"
 
-CONFIG_TARGET="${XDG_CONFIG_HOME:-$HOME/.config}"
-
 # Required by bootstrap on every platform.
 CORE_COMMANDS=(git stow zsh)
-# Installed by the Brewfile on macOS; optional on Linux.
-WORKSTATION_COMMANDS=(starship fzf rg fd bat eza zoxide jq uv tldr yq direnv ccache git-lfs node pnpm bun rustup)
+# Installed by the Brewfile on macOS; optional on Linux. "a|b" accepts either
+# name: Debian and Ubuntu ship fd as fdfind and bat as batcat.
+WORKSTATION_COMMANDS=(starship fzf rg "fd|fdfind" "bat|batcat" eza zoxide jq uv tldr yq direnv ccache git-lfs node pnpm bun rustup)
 MACOS_COMMANDS=(brew dockutil gh mas topgrade)
 
 # True when $1 is on PATH.
 has_command() {
     command -v "$1" >/dev/null 2>&1
+}
+
+# Print the first name in "a|b" that is on PATH; fail if none is.
+find_command() {
+    local name names=()
+
+    IFS='|' read -r -a names <<<"$1"
+    for name in "${names[@]}"; do
+        if has_command "$name"; then
+            printf '%s\n' "$name"
+            return 0
+        fi
+    done
+    return 1
 }
 
 # Run "$@" discarding all output; report only success/failure.
@@ -46,25 +59,41 @@ verify() {
 
 check_stow_links() {
     local repo_file target package rest resolved missing=0
+    local packages=() targets=() i listing=""
 
     section "Stow symlinks"
+
+    while IFS=$'\t' read -r package target; do
+        packages+=("$package")
+        targets+=("$target")
+    done < <(stow_package_targets)
+
+    # An empty list would pass vacuously, so a git failure (its error is left
+    # on stderr) or no files at all is a failure.
+    if ! listing="$(git -C "$DOTFILES_ROOT" ls-files --cached --others --exclude-standard -- "${packages[@]}" | sort -u)"; then
+        fail "git ls-files failed; cannot list the managed files"
+        return 0
+    fi
+    if [[ -z "$listing" ]]; then
+        fail "git ls-files found no managed files in ${packages[*]}"
+        return 0
+    fi
 
     while IFS= read -r repo_file; do
         # Check the working tree as it is: skip tracked files removed by an
         # uncommitted rename, and include their untracked replacements.
         [[ -e "$DOTFILES_ROOT/$repo_file" || -L "$DOTFILES_ROOT/$repo_file" ]] || continue
 
-        # Stow's ignore file is never linked.
-        [[ "$repo_file" == "config/.stow-local-ignore" ]] && continue
-
         package="${repo_file%%/*}"
         rest="${repo_file#*/}"
-
-        case "$package" in
-            home) target="$HOME/$rest" ;;
-            config) target="$CONFIG_TARGET/$rest" ;;
-            *) continue ;;
-        esac
+        target=""
+        for i in "${!packages[@]}"; do
+            if [[ "${packages[i]}" == "$package" ]]; then
+                target="${targets[i]}/$rest"
+                break
+            fi
+        done
+        [[ -n "$target" ]] || continue
 
         if [[ ! -e "$target" ]]; then
             fail "missing: $target"
@@ -79,30 +108,10 @@ check_stow_links() {
             fail "does not resolve into this repo: $target -> $resolved"
             missing=1
         fi
-    done < <(git -C "$DOTFILES_ROOT" ls-files --cached --others --exclude-standard home config 2>/dev/null | sort -u)
+    done <<<"$listing"
 
     if ((missing == 0)); then
-        pass "all managed home/ and config/ files are linked"
-    fi
-}
-
-# Gradle only reads gradle.properties from $GRADLE_USER_HOME; bootstrap links
-# the stowed copy there.
-check_gradle_properties() {
-    local linked="$GRADLE_USER_HOME/gradle.properties" resolved=""
-
-    section "Gradle"
-
-    if [[ ! -e "$linked" ]]; then
-        fail "missing: $linked"
-        return 0
-    fi
-
-    resolved="$(realpath "$linked")"
-    if [[ "$resolved" == "$DOTFILES_ROOT/config/gradle/gradle.properties" ]]; then
-        pass "gradle.properties links to the repo"
-    else
-        fail "does not resolve into this repo: $linked -> $resolved"
+        pass "all managed files in ${packages[*]} are linked"
     fi
 }
 
@@ -134,7 +143,7 @@ check_directory_permissions() {
 }
 
 check_commands() {
-    local command_name
+    local command_name found
 
     section "Commands"
 
@@ -143,12 +152,16 @@ check_commands() {
     done
 
     for command_name in "${WORKSTATION_COMMANDS[@]}"; do
-        if has_command "$command_name"; then
-            pass "found: $command_name"
+        if found="$(find_command "$command_name")"; then
+            if [[ "$found" == "${command_name%%|*}" ]]; then
+                pass "found: $found"
+            else
+                pass "found: ${command_name%%|*} (as $found)"
+            fi
         elif is_macos; then
-            fail "not on PATH: $command_name"
+            fail "not on PATH: ${command_name//|/ or }"
         else
-            soft_warn "not on PATH: $command_name (optional on Linux)"
+            soft_warn "not on PATH: ${command_name//|/ or } (optional on Linux)"
         fi
     done
 
@@ -160,15 +173,18 @@ check_commands() {
 }
 
 check_shell() {
-    local current_shell=""
+    local current_shell="" reporter=fail
 
     section "Shell"
 
+    # CI runners log in with bash and can't change it, so only warn there.
+    [[ -n "${CI:-}" ]] && reporter=soft_warn
+
     current_shell="$(login_shell_name)"
     verify "login shell is zsh" "login shell is ${current_shell:-unset}, expected zsh" \
-        fail test "$current_shell" = "zsh"
-    verify "zshrc readable at $CONFIG_TARGET/zsh/.zshrc" "no readable zshrc at $CONFIG_TARGET/zsh/.zshrc" \
-        fail test -r "$CONFIG_TARGET/zsh/.zshrc"
+        "$reporter" test "$current_shell" = "zsh"
+    verify "zshrc readable at $XDG_CONFIG_HOME/zsh/.zshrc" "no readable zshrc at $XDG_CONFIG_HOME/zsh/.zshrc" \
+        fail test -r "$XDG_CONFIG_HOME/zsh/.zshrc"
 }
 
 check_brewfile() {
@@ -184,11 +200,6 @@ check_brewfile() {
         soft_warn quietly brew bundle check --file "$DOTFILES_BREWFILE"
 }
 
-launchd_env_agent_loaded() {
-    [[ -f "$LAUNCHD_ENV_PLIST" ]] &&
-        launchctl print "gui/$(id -u)/$LAUNCHD_ENV_LABEL" >/dev/null 2>&1
-}
-
 check_macos_tooling() {
     section "macOS tooling"
 
@@ -201,7 +212,7 @@ check_macos_tooling() {
     verify "GitHub CLI authenticated" "GitHub CLI not authenticated (run: gh auth login)" \
         soft_warn quietly gh auth status
     verify "launchd env agent installed and loaded" "launchd env agent not installed or not loaded (run scripts/platform/macos.sh)" \
-        soft_warn launchd_env_agent_loaded
+        soft_warn macos_launchd_env_agent_loaded
 }
 
 # Report only. macos-hardening.sh can fix FileVault, security updates and the
@@ -281,7 +292,6 @@ main() {
     set_xdg_environment_defaults
 
     check_stow_links
-    check_gradle_properties
     check_xdg_directories
     check_directory_permissions
     check_commands

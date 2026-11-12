@@ -4,7 +4,7 @@
 set -euo pipefail
 
 # shellcheck source=scripts/lib/paths.sh
-source "${BASH_SOURCE[0]%/*}/lib/paths.sh"
+source "$(dirname -- "${BASH_SOURCE[0]}")/lib/paths.sh"
 # shellcheck source=scripts/lib/ui.sh
 source "$DOTFILES_ROOT/scripts/lib/ui.sh"
 
@@ -33,8 +33,7 @@ check_starship() {
     # This repo has no C files. If Starship still detects C here, the prompt
     # would show a C module in every similar directory.
     if [[ -n "$(STARSHIP_CONFIG="$config" starship module c --path "$DOTFILES_ROOT")" ]]; then
-        printf 'error: Starship falsely detects the dotfiles repository as a C project\n' >&2
-        exit 1
+        die "Starship falsely detects the dotfiles repository as a C project"
     fi
 
     pass "Starship"

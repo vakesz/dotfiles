@@ -1,0 +1,31 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Read by shfmt too (scripts/check.sh passes it no formatting flags).
+[*.sh]
+indent_style = space
+indent_size = 4
+switch_case_indent = true
+shell_variant = bash
+
+[{*.zsh,.zshenv,.zshrc,.zprofile}]
+indent_style = space
+indent_size = 2
+
+[Makefile]
+indent_style = tab
+
+[config/git/config]
+indent_style = tab
+
+# Vendored patch and keyboard layout: keep them byte for byte.
+[assets/**]
+charset = unset
+end_of_line = unset
+insert_final_newline = unset
+trim_trailing_whitespace = unset

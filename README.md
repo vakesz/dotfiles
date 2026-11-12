@@ -1,6 +1,6 @@
 # Dotfiles
 
-My dotfiles for macOS, with Linux and WSL support. GNU Stow links `home/` into `$HOME` and `config/` into `$XDG_CONFIG_HOME`.
+My dotfiles for macOS, with Linux and WSL support. GNU Stow links `home/` into `$HOME`, `config/` (and `config-macos/` on macOS) into `$XDG_CONFIG_HOME`, and `data/` into `$XDG_DATA_HOME`.
 
 ## Install
 
@@ -26,17 +26,26 @@ If the repo is already cloned, run `./bootstrap.sh` directly. Add `--skip-prefli
 
 ### Linux / WSL
 
-Install the prerequisites first:
+The same one-liner works on Linux and WSL:
 
 ```bash
-sudo apt install -y git stow zsh      # Debian / Ubuntu
-sudo dnf install -y git stow zsh      # Fedora
-sudo pacman -S --needed git stow zsh  # Arch Linux
+curl -fsSL https://raw.githubusercontent.com/vakesz/dotfiles/main/install.sh | bash
 ```
 
-Then run `./bootstrap.sh`. It creates the XDG directories, links the dotfiles, and offers to run `scripts/platform/linux.sh` to set the locale and default shell.
+It installs `git`, `stow` and `zsh` with `apt-get`, `dnf`, `zypper` or `pacman`, clones the repo to `~/.dotfiles` and runs `bootstrap.sh`. This needs root or `sudo`. It never does a full system upgrade, so on Arch a stale package database is yours to sync (`sudo pacman -Syu`).
 
-The Brewfile is macOS-only, so install the CLI tools with your package manager: `bat`, `bun`, `ccache`, `direnv`, `eza`, `fd`, `fzf`, `git-lfs`, `jq`, `node`, `pnpm`, `ripgrep`, `rustup`, `starship`, `tealdeer`, `uv`, `yq` and `zoxide`. `make doctor` lists any that are missing.
+macOS is the first-class platform. Debian and Ubuntu, including WSL, are tested. Fedora, Arch and openSUSE are best-effort.
+
+`bootstrap.sh` creates the XDG directories, links the dotfiles and offers to run `scripts/platform/linux.sh`. That script asks before each of four steps:
+
+- **Locale**: installs and sets `en_US.UTF-8`.
+- **CLI tools and zsh plugins**: installs what the distro repos carry. For anything they don't carry, it prints the upstream install link. It never runs a third-party installer. It does not take `node` from apt, because Debian and Ubuntu ship an end-of-life Node. It does not take `yq` from apt either: Debian's `yq` is an unrelated Python wrapper around `jq`, not the Go tool the Brewfile installs.
+- **Git credential helper**: writes one to `$XDG_CONFIG_HOME/git/gitconfig.local`. On WSL it uses Git Credential Manager from Git for Windows if that is installed. Otherwise it uses libsecret when a keyring is reachable, and falls back to an in-memory cache that lasts an hour. It never overwrites a helper that is already set, and it skips the step when Git Credential Manager is already on `PATH`.
+- **Default shell**: switches the login shell to zsh.
+
+On WSL, `config/zsh/rc.d/25-wsl.zsh` also sets `BROWSER=wslview` when `wslu` is installed, provides `pbcopy` and `pbpaste` through `clip.exe` and PowerShell, and keeps the Windows entries on `PATH` last.
+
+If fzf is older than 0.48 (Ubuntu 24.04 ships 0.44), `fzf --zsh` doesn't exist, so the shell loads the key-binding and completion scripts that the distro package installs.
 
 ### Adopt existing files
 
@@ -52,91 +61,57 @@ This moves your existing files into the repo with `stow --adopt`, replacing the 
 make doctor
 ```
 
-This checks that every file in `home/` and `config/` is linked, `$GRADLE_USER_HOME/gradle.properties` points at the repo's copy, the XDG directories exist, `$GNUPGHOME` and `~/.ssh` are private, the expected commands are installed, and the Brewfile is satisfied. On macOS it also checks Touch ID for sudo, GitHub CLI login, the launchd env agent (warns unless it is installed and loaded), FileVault, SIP, Gatekeeper, automatic security responses, the firewall and Stealth Mode, and warns about dev paths Spotlight still indexes. Missing CLI tools are only warnings on Linux. It never changes anything and exits non-zero if a check fails.
+Doctor checks a bootstrapped machine. It never changes anything and exits non-zero if a check fails. It covers the stow links, the XDG directories, private directory permissions, the expected commands and the login shell. On macOS it also covers the Brewfile, system tooling, security settings and Spotlight indexing. Missing CLI tools are only warnings on Linux, and when `$CI` is set the login-shell check warns instead of failing. `make doctor` prints every check.
 
 ### Updating
 
-After pulling, rerun `./bootstrap.sh` if files were added or moved under `home/` or `config/`, or if `scripts/lib/paths.sh` gained a new directory. `make doctor` shows anything still missing.
+After pulling, rerun `./bootstrap.sh` if files were added or moved, or if `scripts/lib/paths.sh` gained a new directory. The first rerun after the move of `gradle.properties` to `data/` and `linearmouse.json` to `config-macos/` replaces the old links automatically. `make doctor` shows anything still missing.
 
 ## Layout
 
-```
-dotfiles/
-├── .github/workflows/    # CI checks
-├── assets/macos/         # Files used by the macOS setup (not stowed)
-├── Brewfile
-├── config/               # Stowed into ~/.config
-│   ├── .stow-local-ignore
-│   ├── fd/
-│   ├── ghostty/
-│   ├── gradle/           # Linked into $GRADLE_USER_HOME by bootstrap.sh
-│   ├── git/
-│   ├── linearmouse/
-│   ├── ripgrep/
-│   ├── starship.toml
-│   ├── tealdeer/
-│   ├── topgrade.toml
-│   └── zsh/
-│       ├── .zshenv       # For nested shells that inherit ZDOTDIR
-│       ├── .zprofile
-│       ├── .zshrc
-│       └── rc.d/         # Loaded in order by .zshrc
-├── home/                 # Stowed into ~
-│   └── .zshenv
-├── scripts/
-│   ├── check.sh          # Lint, formatting, zsh syntax and config checks
-│   ├── check-apps.sh     # Validate configs with the installed apps
-│   ├── doctor.sh         # Check a bootstrapped machine
-│   ├── launchd-env.zsh   # Copy ~/.zshenv exports into launchd for GUI apps
-│   ├── lib/
-│   │   ├── macos-preflight.sh # Command Line Tools, Homebrew, Brewfile
-│   │   ├── macos-state.sh     # Read-only macOS state checks
-│   │   ├── paths.sh           # Repo paths, XDG defaults, runtime directories
-│   │   ├── platform.sh        # OS detection
-│   │   └── ui.sh              # Messages, prompts, check results
-│   └── platform/         # Optional platform setup
-│       ├── linux.sh
-│       ├── macos.sh
-│       ├── macos-hardening.sh
-│       └── macos-office-tweaks.sh
-├── bootstrap.sh          # Links everything with stow
-├── install.sh            # One-line installer (self-contained)
-└── Makefile
-```
+- `home/`: stowed into `$HOME`. Only files that must live directly there.
+- `config/`: stowed into `$XDG_CONFIG_HOME`.
+- `config-macos/`: stowed into `$XDG_CONFIG_HOME` on macOS only.
+- `data/`: stowed into `$XDG_DATA_HOME`.
+- `scripts/`: `bootstrap.sh` helpers, `doctor.sh`, the repo checks, shared shell libraries in `lib/` and the optional platform setup in `platform/`.
+- `assets/`: files the macOS setup uses. They are not stowed.
+- `docs/`: longer notes. So far, [Omnimount](docs/omnimount.md).
 
 Per-user agent state (`.claude/`, `.agents/`, `skills-lock.json`) is gitignored and never committed.
 
-`make help` lists all targets.
+`make help` lists all targets. `make check` runs the repo checks, and `.editorconfig` defines the shell formatting style that `make check-fmt` enforces.
 
 ## What's configured
 
-- `home/.zshenv`: XDG directories, `ZDOTDIR`, and tool locations that non-interactive shells need too (Go, Rust, uv, pnpm, ccache, Gradle, the Android SDK, and JDK 17 via `java_home`).
+- `config/zsh/.zshenv`: XDG directories, `ZDOTDIR`, and tool locations that non-interactive shells need too (Go, Rust, uv, pnpm, ccache, Gradle, the Android SDK, and JDK 17 via `java_home`). `home/.zshenv` is a short shim that sets `ZDOTDIR` and sources it, because zsh reads `~/.zshenv` before it knows where `ZDOTDIR` is.
 - `scripts/launchd-env.zsh`: apps opened from Finder or the Dock don't read `~/.zshenv`, so they write dot-directories into `$HOME`. `macos.sh` offers to install a LaunchAgent that runs this script at login and copies every variable `~/.zshenv` exports, except `PATH`, into launchd with `launchctl setenv`. Restart an app to pick up changes.
 - `config/zsh`: `.zshrc` loads `rc.d/*.zsh` in order: helpers, environment, PATH, options, tools, completion, commands, Python venvs, keybindings, then plugins. Tool init scripts are cached in `$XDG_CACHE_HOME/zsh` and only regenerated when the tool or its config changes. Commands you type have plain names (`venv`, `rgf`); internal helpers start with `_dotfiles_`.
 - `config/starship.toml`: the prompt. Git status runs the `git` binary so the untracked cache, and fsmonitor in repos that turn it on, apply.
 - `config/git`: config and global ignores. HTTPS credentials go through Git Credential Manager. `core.fsmonitor` is off globally because it starts a daemon per repo; enable it in large repos with `git config core.fsmonitor true`. The Git LFS filter is part of the config, so `git lfs install` isn't needed.
-- `config/gradle/gradle.properties`: parallel builds, the build cache and the configuration cache for every Gradle project. Configuration-cache problems are warnings, so incompatible React Native or Expo plugins don't fail the build. Gradle only reads user settings from `$GRADLE_USER_HOME`, so `bootstrap.sh` links the file there.
+- `data/gradle/gradle.properties`: parallel builds, the build cache and the configuration cache for every Gradle project. Configuration-cache problems are warnings, so incompatible React Native or Expo plugins don't fail the build. Gradle only reads user settings from `$GRADLE_USER_HOME`, which is `$XDG_DATA_HOME/gradle`, so the file is stowed from `data/`.
 - `config/ghostty`: the terminal.
-- `config/linearmouse`: mice get no acceleration and reversed scrolling; trackpads keep the system settings.
+- `config-macos/linearmouse`: mice get no acceleration and reversed scrolling; trackpads keep the system settings.
 - `config/fd`, `config/ripgrep`, `config/tealdeer`, `config/topgrade.toml`: CLI tool settings. `make check-config` keeps the fd and ripgrep ignore lists in sync.
 
-Keep XDG config under `config/`, and only put files that must live directly in `$HOME` under `home/`.
+Keep XDG config under `config/` (`config-macos/` if it is macOS-only), XDG data under `data/`, and only put files that must live directly in `$HOME` under `home/`.
 
 ### Machine-local overrides
 
-Git and stow both ignore these, so they can live in the repo without being tracked:
+Bootstrap links files one by one (`--no-folding`), so `$XDG_CONFIG_HOME/zsh` and `$XDG_CONFIG_HOME/git` are real directories. Put machine-local files there, not in the repo:
 
-- `config/zsh/.zshrc.local`
-- `config/zsh/rc.d/*.local.zsh`
-- `config/git/gitconfig.local`
+- `$XDG_CONFIG_HOME/zsh/.zshrc.local`
+- `$XDG_CONFIG_HOME/zsh/rc.d/*.local.zsh`
+- `$XDG_CONFIG_HOME/git/gitconfig.local`
+
+As a guard, the repo also git-ignores and stow-ignores `*.local` files, in case one is copied in.
 
 ### Shell helpers
 
 - `rgf <rg args>`: search with ripgrep, pick a match in fzf, and open it in `$EDITOR` at that line.
 - `venv [dir]`: activate a virtualenv, creating it with `uv` if needed. `venv-off` deactivates it.
-- `venv-trust` / `venv-untrust`: a project's `.venv` only auto-activates after you trust it. Trust is tied to the project path and the activation script's SHA-256, so a changed script must be trusted again.
+- `venv-auto [dir]`: create the virtualenv if needed, write a `.envrc` that points direnv at it, and run `direnv allow`. direnv then activates it when you enter the directory and deactivates it when you leave. It won't edit an existing `.envrc`. `direnv allow` is the trust check, and a changed `.envrc` stays blocked until it is allowed again. The old `venv-trust` and `venv-untrust` commands are gone; delete the records in `$XDG_STATE_HOME/zsh/trusted-venvs/`.
 - `zsh-profile [runs]`: time shell startup.
-- `dots` and `c`: jump to `~/.dotfiles` and `~/Code`.
+- `dots` and `c`: jump to the repo clone and to `~/Code`.
 - Vi mode with the usual gaps filled: backspace and `^W` work past the insert point, `^A`, `^E`, `^U` and `^K` work as expected, `k`/`j` search history in normal mode, `v` edits the line in `$EDITOR`, text objects like `ci"` and `da(` work, and the cursor is a block in normal mode and a bar in insert mode.
 
 ## Toolchains
@@ -154,59 +129,9 @@ Git and stow both ignore these, so they can live in the repo without being track
 
 `bootstrap.sh` offers the script for the current platform, and each one can be run on its own later. Every step asks first, and prompts default to No after `DOTFILES_CONFIRM_TIMEOUT` seconds (30 by default).
 
-- `scripts/platform/macos.sh`: Touch ID for sudo, Rosetta, computer name, macOS defaults, power settings, Dock layout, showing `~/Library`, Spotlight exclusions, a custom Hungarian keyboard layout, [Omnimount](#omnimount), the LLVM `dlltool` link, Xcode first-launch setup, GitHub CLI login and the stable Rust toolchain. It then runs the two scripts below.
+- `scripts/platform/macos.sh`: Touch ID for sudo, Rosetta, computer name, macOS defaults, power settings, Dock layout, showing `~/Library`, Spotlight exclusions, a custom Hungarian keyboard layout, the LLVM `dlltool` link, Xcode first-launch setup, GitHub CLI login and the stable Rust toolchain. It also runs the three scripts below, each of which asks first.
   Spotlight exclusions go on the Search Privacy list, because macOS 27 ignores `.metadata_never_index` marker files. The list lives in a root-only plist, so this step needs your terminal to have Full Disk Access. If an entry doesn't survive the Spotlight restart, the script opens System Settings so you can add it there.
 - `scripts/platform/macos-hardening.sh`: the firewall and Stealth Mode, FileVault, remote login and sharing, privacy defaults, automatic security responses, and Homebrew analytics.
 - `scripts/platform/macos-office-tweaks.sh`: turns off Microsoft AutoUpdate for Office and Teams so `topgrade` handles their updates.
-- `scripts/platform/linux.sh`: the `en_US.UTF-8` locale and zsh as the default shell.
-
-## Omnimount
-
-`macos.sh` can build and install [Omnimount](https://github.com/ramdoor/omnimount) to mount ext2/3/4 and NTFS disks. It runs on FUSE-T from the Brewfile, which uses local NFS mounts instead of a kernel extension, so it needs no Reduced Security or Recovery changes. Don't install macFUSE alongside it; their libraries conflict.
-
-The build:
-
-- checks out a pinned upstream revision and applies `assets/macos/omnimount-build.patch`, which fixes the e2fsprogs and NTFS configure steps and Swift concurrency warnings, and translates the build messages and `omnimount doctor` into English (other CLI output may still be Spanish)
-- targets only the Mac's own architecture, even under Rosetta. FUSE-T's libraries are in `/usr/local` on both architectures, which doesn't mean an Intel build
-- happens in a temporary directory that is removed afterwards, whether or not it succeeds
-- installs the app to `/Applications/Omnimount.app`, the CLI to `$(brew --prefix)/bin` and `fuse2fs` to `$(brew --prefix)/sbin`
-
-To rebuild, for example to replace a universal build, quit Omnimount and run `OMNIMOUNT_REBUILD=1 make macos`.
-
-### Permissions
-
-macOS doesn't let a script grant these, so `macos.sh` prints this checklist whenever Omnimount is installed:
-
-1. Open Omnimount, click its menu bar icon, open **Setup** and activate the helper.
-2. In **System Settings > General > Login Items & Extensions** (**Login Items** on older macOS), allow Omnimount in the background.
-3. In **System Settings > Privacy & Security > Full Disk Access**, click **+**, press **Cmd+Shift+G**, add `/Applications/Omnimount.app/Contents/MacOS/OmnimountHelper` and turn it on.
-4. If the helper was already running, restart it: `sudo launchctl kickstart -k system/org.omnimount.helper`.
-
-Check these again after updating, especially if the signing identity changed. `omnimount doctor` only checks the tools, not these permissions.
-
-### Using drives
-
-- When you connect a drive, dismiss the macOS **Initialize** prompt without initializing.
-- Mount the partition from Omnimount's menu, and always eject before unplugging. Mounted disks can show up as network volumes; use Omnimount's reveal-in-Finder if they're missing from the sidebar.
-- If NTFS mounts read-only, turn off Windows Fast Startup and hibernation, check the disk in Windows, and shut Windows down fully. Only force-remove a hibernation file if you're fine losing that Windows session.
-- fuse2fs doesn't support every ext4 feature (internal quotas, for example). Don't change filesystem features or run repairs without a backup.
-- From the command line, give Full Disk Access to your terminal and `$(brew --prefix)/bin/omnimount`, find the partition with `omnimount list`, then run `sudo omnimount mount diskXsY --read-only` (leave out `--read-only` for read/write) and `sudo omnimount unmount diskXsY`.
-
-## Resources
-
-- [GNU Stow](https://www.gnu.org/software/stow/)
-- [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html)
-- [Homebrew Bundle](https://docs.brew.sh/Brew-Bundle-and-Brewfile)
-- [Starship](https://starship.rs/)
-- [Ghostty](https://ghostty.org/docs/config)
-- [fzf](https://github.com/junegunn/fzf)
-- [zoxide](https://github.com/ajeetdsouza/zoxide)
-- [ripgrep](https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md)
-- [fd](https://github.com/sharkdp/fd)
-- [tealdeer](https://tealdeer-rs.github.io/tealdeer/)
-- [topgrade](https://github.com/topgrade-rs/topgrade)
-- [uv](https://docs.astral.sh/uv/)
-- [Node.js](https://nodejs.org/)
-- [pnpm](https://pnpm.io/)
-- [Bun](https://bun.com/)
-- [GnuPG](https://gnupg.org/)
+- `scripts/platform/macos-omnimount.sh`: builds and installs Omnimount to mount ext2/3/4 and NTFS disks. `macos.sh` runs it, and it can run alone. See [docs/omnimount.md](docs/omnimount.md).
+- `scripts/platform/linux.sh`: the locale, CLI tools and zsh plugins from the distro repos, a git credential helper, and zsh as the default shell. See [Linux / WSL](#linux--wsl).

@@ -1,83 +1,8 @@
-# Python virtualenv helpers. .venv/bin/activate is arbitrary shell code from the
-# project, so a venv only auto-activates after venv-trust.
+# Python virtualenv helpers. Per-project auto-activation goes through direnv
+# (hooked in 40-tools.zsh), whose `direnv allow` is the trust check: a changed
+# .envrc stays blocked until it is allowed again.
 
-_dotfiles_sha256() {
-  local digest
-
-  if (( $+commands[shasum] )); then
-    digest="$(command shasum -a 256)" || return 1
-  elif (( $+commands[sha256sum] )); then
-    digest="$(command sha256sum)" || return 1
-  else
-    return 1
-  fi
-
-  print -r -- "${digest%% *}"
-}
-
-_dotfiles_venv_record() {
-  local project_hash
-
-  project_hash="$(print -rn -- "${1:A}" | _dotfiles_sha256)" || return 1
-  print -r -- "$XDG_STATE_HOME/zsh/trusted-venvs/$project_hash"
-}
-
-_dotfiles_venv_trusted() {
-  local record want have
-
-  record="$(_dotfiles_venv_record "$1")" || return 1
-  [[ -r "$record" ]] || return 1
-
-  want="$(<"$record")"
-  have="$(_dotfiles_sha256 < "${1:A}/.venv/bin/activate")" || return 1
-  # Require a non-empty record so an empty hash can never match.
-  [[ -n "$want" && "$want" == "$have" ]]
-}
-
-venv-trust() {
-  local project_dir="${PWD:A}"
-  local activate_file="$project_dir/.venv/bin/activate"
-  local record hash
-
-  if [[ ! -f "$activate_file" ]]; then
-    print -u2 -r -- "Error: no .venv/bin/activate found in $project_dir"
-    return 1
-  fi
-
-  record="$(_dotfiles_venv_record "$project_dir")" || {
-    print -u2 -r -- "Error: SHA-256 support requires shasum or sha256sum"
-    return 1
-  }
-  hash="$(_dotfiles_sha256 < "$activate_file")" || {
-    print -u2 -r -- "Error: unable to fingerprint $activate_file"
-    return 1
-  }
-
-  # mkdir -m doesn't change an existing directory, so chmod it explicitly.
-  command mkdir -p -- "${record:h}" && command chmod 700 "${record:h}" || return 1
-  (umask 077; print -r -- "$hash" >| "$record") || return 1
-
-  print -r -- "Trusted virtualenv: $project_dir/.venv"
-  _dotfiles_venv_auto
-}
-
-venv-untrust() {
-  local project_dir="${PWD:A}"
-  local record
-
-  record="$(_dotfiles_venv_record "$project_dir")" || {
-    print -u2 -r -- "Error: SHA-256 support requires shasum or sha256sum"
-    return 1
-  }
-  command rm -f -- "$record" || return 1
-
-  if [[ -n "$VIRTUAL_ENV" && "${VIRTUAL_ENV:A}" == "$project_dir/.venv" ]]; then
-    (( $+functions[deactivate] )) && deactivate
-  fi
-
-  print -r -- "Removed virtualenv trust: $project_dir/.venv"
-}
-
+# Activate a virtualenv for this shell, creating it with uv if it's missing.
 venv() {
   local venv_dir="${1:-.venv}"
 
@@ -100,39 +25,55 @@ venv() {
   uv venv "$venv_dir" && source "$venv_dir/bin/activate"
 }
 
-venv-off() {
+# Make direnv activate a virtualenv whenever the shell is in this directory.
+# Only setting VIRTUAL_ENV and PATH carries over: direnv exports variables, so
+# the functions and prompt changes in bin/activate would be lost anyway.
+venv-auto() {
+  local venv_dir="${1:-.venv}"
+  local envrc="$PWD/.envrc"
+  local -a lines=(
+    "export VIRTUAL_ENV=\"\$(expand_path ${(qq)venv_dir})\""
+    'PATH_add "$VIRTUAL_ENV/bin"'
+  )
+
+  (( $+commands[direnv] )) || {
+    print -u2 -r -- "Error: direnv not found"
+    return 1
+  }
+
+  if [[ ! -f "$venv_dir/bin/activate" ]]; then
+    if [[ -d "$venv_dir" ]]; then
+      print -u2 -r -- "Error: $venv_dir exists but is not a valid virtualenv"
+      return 1
+    fi
+    (( $+commands[uv] )) || {
+      print -u2 -r -- "Error: uv not found"
+      return 1
+    }
+    uv venv "$venv_dir" || return
+  fi
+
+  # Never edit an existing .envrc: it may do more than this, and allowing it
+  # unread would skip the review direnv's trust check exists for.
+  if [[ -e "$envrc" ]]; then
+    print -u2 -r -- "$envrc already exists. Add these lines, then run: direnv allow"
+    print -u2 -rl -- "${lines[@]}"
+    return 1
+  fi
+
+  # A manually activated venv would fight direnv over PATH.
   (( $+functions[deactivate] )) && deactivate
+  print -rl -- "# Activate the project virtualenv (written by venv-auto)." "${lines[@]}" >| "$envrc" || return
+  print -r -- "Wrote $envrc"
+  direnv allow "$envrc"
+}
+
+venv-off() {
+  if (( $+functions[deactivate] )); then
+    deactivate
+  elif [[ -n "${VIRTUAL_ENV:-}" ]]; then
+    print -u2 -r -- "This virtualenv comes from direnv. Leave the directory or run: direnv deny"
+    return 1
+  fi
 }
 alias venv-deactivate='venv-off'
-
-_dotfiles_venv_auto() {
-  # Clean up after a venv whose directory was deleted while active.
-  if [[ -n "$VIRTUAL_ENV" && ! -f "$VIRTUAL_ENV/bin/activate" ]]; then
-    if (( $+functions[deactivate] )); then
-      deactivate
-    else
-      unset VIRTUAL_ENV
-    fi
-  fi
-
-  if [[ -n "$VIRTUAL_ENV" ]]; then
-    local venv_parent="${VIRTUAL_ENV:h}"
-    # Compare physical paths: $PWD may be logical under a symlinked dir.
-    if [[ "${PWD:A}" != "${venv_parent}/"* && "${PWD:A}" != "$venv_parent" ]]; then
-      (( $+functions[deactivate] )) && deactivate
-    fi
-  fi
-
-  if [[ -z "$VIRTUAL_ENV" && -f ".venv/bin/activate" ]]; then
-    if _dotfiles_venv_trusted "$PWD"; then
-      source ".venv/bin/activate"
-    else
-      print -r -- "Virtualenv is not trusted: ${PWD:A}/.venv"
-      print -r -- "Review .venv/bin/activate, then run: venv-trust"
-    fi
-  fi
-}
-
-autoload -Uz add-zsh-hook
-add-zsh-hook chpwd _dotfiles_venv_auto
-_dotfiles_venv_auto

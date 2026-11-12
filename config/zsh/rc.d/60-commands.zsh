@@ -9,7 +9,11 @@ zsh-profile() {
 }
 
 # Navigation
-alias dots='cd ~/.dotfiles'
+# The repo can live anywhere, so follow this file's stow symlink back to it
+# (:A resolves without a fork). Copied, unlinked files get no alias.
+_dotfiles_root="${${(%):-%N}:A:h:h:h:h}"
+[[ -f "$_dotfiles_root/bootstrap.sh" ]] && alias dots="cd ${(q)_dotfiles_root}"
+unset _dotfiles_root
 alias c='cd ~/Code'
 
 # Git

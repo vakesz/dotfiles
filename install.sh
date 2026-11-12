@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# One-line installer for a fresh Mac:
+# One-line installer for a fresh Mac or Linux / WSL machine:
 #
 #   curl -fsSL https://raw.githubusercontent.com/vakesz/dotfiles/main/install.sh | bash
 #
-# Installs git, clones the repo, then hands off to bootstrap.sh for Homebrew,
-# the Brewfile and stow. It must stay self-contained: the repo isn't on disk
-# yet, so nothing in scripts/lib is available.
+# On macOS it installs git via the Command Line Tools; on Linux it installs
+# git, stow and zsh with apt-get, dnf, zypper or pacman (needs root or sudo).
+# Then it clones the repo and hands off to bootstrap.sh for the rest. It must
+# stay self-contained: the repo isn't on disk yet, so nothing in scripts/lib
+# is available. Keep it bash 3.2 compatible for macOS /bin/bash.
 
 set -euo pipefail
 
@@ -44,6 +46,51 @@ ensure_git() {
     say "Xcode Command Line Tools installed"
 }
 
+# Run "$@" as root: directly when already root, else through sudo.
+as_root() {
+    if [[ "$(id -u)" -eq 0 ]]; then
+        "$@"
+    else
+        sudo "$@"
+    fi
+}
+
+# Install whichever of git, stow and zsh are missing. Package names match the
+# command names on every supported package manager.
+ensure_linux_prereqs() {
+    local missing="" command_name="" pm=""
+
+    for command_name in git stow zsh; do
+        command -v "$command_name" >/dev/null 2>&1 || missing="$missing $command_name"
+    done
+    [[ -z "$missing" ]] && return 0
+
+    for pm in apt-get dnf zypper pacman ""; do
+        [[ -z "$pm" ]] && die "No supported package manager (apt-get, dnf, zypper, pacman) found; install$missing yourself, then rerun"
+        command -v "$pm" >/dev/null 2>&1 && break
+    done
+
+    if [[ "$(id -u)" -ne 0 ]] && ! command -v sudo >/dev/null 2>&1; then
+        die "sudo is not available; as root, install$missing with $pm, then rerun"
+    fi
+
+    say "Installing$missing with $pm..."
+    # $missing is a space-separated list of package names; split it on purpose.
+    # shellcheck disable=SC2086
+    case "$pm" in
+        apt-get)
+            as_root apt-get update -qq
+            # Minimal images lack CA certificates, so the HTTPS clone would fail.
+            as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates $missing
+            ;;
+        dnf) as_root dnf install -y $missing ;;
+        zypper) as_root zypper --non-interactive install $missing ;;
+        # Never upgrade the whole system from a curl | bash installer; a stale
+        # package database is the user's call to sync.
+        pacman) as_root pacman -S --needed --noconfirm $missing || die "pacman could not install$missing; run 'sudo pacman -Syu', then rerun" ;;
+    esac
+}
+
 ensure_repo() {
     local branch=""
 
@@ -67,14 +114,22 @@ ensure_repo() {
 }
 
 main() {
-    [[ "$OSTYPE" == darwin* ]] || die "This installer is macOS only; on Linux install git, stow and zsh, clone the repo, then run ./bootstrap.sh"
+    case "$OSTYPE" in
+        darwin* | linux*) ;;
+        *) die "Unsupported OS '$OSTYPE'; this installer supports macOS and Linux / WSL" ;;
+    esac
 
     # Under curl | bash, bash reads this script from stdin, so stdin can only be
-    # switched to the terminal here, once the whole file has been read.
-    [[ ! -t 0 && -r /dev/tty ]] && exec </dev/tty
+    # switched to the terminal here, once the whole file has been read. Test that
+    # /dev/tty really opens first: without a controlling terminal (CI, docker
+    # without -t) it exists but fails to open, and the run stays non-interactive.
+    [[ ! -t 0 ]] && { : </dev/tty; } 2>/dev/null && exec </dev/tty
 
     say "Dotfiles installer"
-    ensure_git
+    case "$OSTYPE" in
+        darwin*) ensure_git ;;
+        linux*) ensure_linux_prereqs ;;
+    esac
     ensure_repo
 
     say "Handing off to bootstrap.sh"

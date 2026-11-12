@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      # zsh is needed by check_xdg_drift and ruby by `ruby -c Brewfile`.
       - run: sudo apt-get update -qq && sudo apt-get install -y jq python3 ruby shellcheck shfmt zsh ripgrep fd-find
       - run: |
           # Ubuntu names the fd binary fdfind; check-apps.sh expects fd.
@@ -36,7 +37,10 @@ jobs:
       # The runner image runs chmod -R 777 /usr/share, so compinit rejects zsh's
       # own function directories and aborts when it can't prompt on a terminal.
       - run: zsh -c 'autoload -Uz compaudit; compaudit' 2>/dev/null | xargs -r sudo chmod g-w,o-w
-      # Not `make doctor`: the runner's login shell is bash, which doctor fails.
+      # The runner's login shell is bash, which doctor reports as a warning
+      # because CI is set.
+      - run: make doctor
+      # doctor never starts zsh, so check startup output separately.
       - run: |
           status=0
           errors="$(zsh -ic exit 2>&1 >/dev/null)" || status=$?
@@ -57,3 +61,30 @@ jobs:
       - run: |
           brew bundle list --file Brewfile --formula | xargs brew info --formula >/dev/null
           brew bundle list --file Brewfile --cask | xargs brew info --cask >/dev/null
+
+  bootstrap-macos:
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - run: brew install stow
+      - run: ./bootstrap.sh --skip-preflight
+      # One link from each stow package.
+      - run: |
+          test -L "$HOME/.zshenv"
+          test -L "$HOME/.config/zsh/.zshrc"
+          test -L "$HOME/.local/share/gradle/gradle.properties"
+          test -L "$HOME/.config/linearmouse/linearmouse.json"
+      # Full `make doctor` fails on a hosted runner: FileVault is off and the
+      # Brewfile commands aren't installed. Only its stow check is asserted,
+      # by the pass line it prints. Rewording that line in doctor.sh breaks
+      # this step.
+      - run: |
+          ./scripts/doctor.sh >doctor.log 2>&1 || true
+          if ! grep -qF 'all managed files in home config data config-macos are linked' doctor.log; then
+            cat doctor.log
+            echo "doctor did not report the stow links as healthy" >&2
+            exit 1
+          fi
+        env:
+          NO_COLOR: "1"

@@ -22,7 +22,9 @@ WORDCHARS="${WORDCHARS//[\/-]/}"
 HISTSIZE=100000
 SAVEHIST=100000
 HISTFILE="$XDG_STATE_HOME/zsh/history"
-[[ -d "${HISTFILE:h}" ]] || mkdir -p "${HISTFILE:h}"
+# zsh rewrites history through a temp file next to it, so a read-only state
+# dir would print errors at every save. Keep history in memory instead.
+_dotfiles_writable_dir "${HISTFILE:h}" || unset HISTFILE
 setopt HIST_IGNORE_ALL_DUPS
 setopt HIST_REDUCE_BLANKS
 setopt HIST_IGNORE_SPACE
