@@ -59,6 +59,9 @@ ensure_xdg_runtime_directories() {
         "$XDG_STATE_HOME" \
         "$XDG_CACHE_HOME" \
         "$XDG_BIN_HOME" \
-        "${DOTFILES_STATE_DIRS[@]}"
-    chmod 700 "$GNUPGHOME"
+        "${DOTFILES_STATE_DIRS[@]}" \
+        "$HOME/.ssh"
+    # Created before stow so it never inherits the umask default (0755) when
+    # stow makes it to hold home/.ssh/config.
+    chmod 700 "$GNUPGHOME" "$HOME/.ssh"
 }
