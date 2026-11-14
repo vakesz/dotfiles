@@ -28,8 +28,7 @@ readonly DOCK_APPS
 # XDG variables first. Only paths that exist are excluded.
 macos_spotlight_exclusion_paths() {
     printf '%s\n' \
-        "$HOME/Code" \
-        "$HOME/Work" \
+        "$HOME/projects" \
         "$XDG_CACHE_HOME" \
         "$XDG_DATA_HOME/gradle" \
         "$XDG_DATA_HOME/pnpm" \

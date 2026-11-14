@@ -1,7 +1,7 @@
 # AI coding agents (per user)
-.claude/
-.agents/
-skills-lock.json
+/.claude/
+/.agents/
+/skills-lock.json
 
 # macOS
 .DS_Store

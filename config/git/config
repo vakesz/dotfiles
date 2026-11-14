@@ -47,6 +47,12 @@
 	helper =
 	helper = manager
 
+[gpg]
+	# Sign with SSH keys. The key, commit.gpgsign and gpg.ssh.allowedSignersFile
+	# go in gitconfig.local, so no key material is tracked and a machine without
+	# that key can still commit.
+	format = ssh
+
 [diff]
 	algorithm = histogram
 	colorMoved = default

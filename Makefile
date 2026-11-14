@@ -1,12 +1,15 @@
 SHELL := /usr/bin/env bash
 
 .DEFAULT_GOAL := help
-.PHONY: help bootstrap adopt macos linux doctor check check-shell check-fmt check-zsh check-config check-apps brew-check brew-install
+.PHONY: help hooks bootstrap adopt macos linux doctor check check-shell check-fmt check-zsh check-config check-apps brew-check brew-install
 
 help: ## Show this help
 	@printf 'Targets:\n'
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
 		| awk -F':.*?## ' '{printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'
+
+hooks: ## Enable the repo's git hooks (gitleaks secret scan before each commit)
+	@git config --local core.hooksPath .githooks
 
 bootstrap: ## Run the full bootstrap (preflight, stow, platform setup)
 	@./bootstrap.sh

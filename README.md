@@ -12,7 +12,7 @@ On a fresh Mac, run:
 curl -fsSL https://raw.githubusercontent.com/vakesz/dotfiles/main/install.sh | bash
 ```
 
-This installs the Xcode Command Line Tools, clones the repo to `~/.dotfiles` and runs `bootstrap.sh`. That script installs Homebrew and the Brewfile, links the dotfiles, and offers to run the macOS setup.
+This installs the Xcode Command Line Tools, clones the repo to `~/projects/dotfiles` and runs `bootstrap.sh`. That script installs Homebrew and the Brewfile, links the dotfiles, and offers to run the macOS setup.
 
 To pass flags to `bootstrap.sh`, use `bash -s --`:
 
@@ -32,7 +32,7 @@ The same one-liner works on Linux and WSL:
 curl -fsSL https://raw.githubusercontent.com/vakesz/dotfiles/main/install.sh | bash
 ```
 
-It installs `git`, `stow` and `zsh` with `apt-get`, `dnf`, `zypper` or `pacman`, clones the repo to `~/.dotfiles` and runs `bootstrap.sh`. This needs root or `sudo`. It never does a full system upgrade, so on Arch a stale package database is yours to sync (`sudo pacman -Syu`).
+It installs `git`, `stow` and `zsh` with `apt-get`, `dnf`, `zypper` or `pacman`, clones the repo to `~/projects/dotfiles` and runs `bootstrap.sh`. This needs root or `sudo`. It never does a full system upgrade, so on Arch a stale package database is yours to sync (`sudo pacman -Syu`).
 
 macOS is the first-class platform. Debian and Ubuntu, including WSL, are tested. Fedora, Arch and openSUSE are best-effort.
 
@@ -62,6 +62,10 @@ make doctor
 ```
 
 Doctor checks a bootstrapped machine. It never changes anything and exits non-zero if a check fails. It covers the stow links, the XDG directories, private directory permissions, the expected commands and the login shell. On macOS it also covers the Brewfile, system tooling, security settings and Spotlight indexing. Missing CLI tools are only warnings on Linux, and when `$CI` is set the login-shell check warns instead of failing. `make doctor` prints every check.
+
+### Git hooks
+
+`make hooks` points this clone at `.githooks/`, whose pre-commit hook runs `gitleaks` on the staged changes. The repo is public, so this stops a token or key in a tracked config from being committed.
 
 ### Updating
 
@@ -111,7 +115,7 @@ As a guard, the repo also git-ignores and stow-ignores `*.local` files, in case 
 - `venv [dir]`: activate a virtualenv, creating it with `uv` if needed. `venv-off` deactivates it.
 - `venv-auto [dir]`: create the virtualenv if needed, write a `.envrc` that points direnv at it, and run `direnv allow`. direnv then activates it when you enter the directory and deactivates it when you leave. It won't edit an existing `.envrc`. `direnv allow` is the trust check, and a changed `.envrc` stays blocked until it is allowed again. The old `venv-trust` and `venv-untrust` commands are gone; delete the records in `$XDG_STATE_HOME/zsh/trusted-venvs/`.
 - `zsh-profile [runs]`: time shell startup.
-- `dots` and `c`: jump to the repo clone and to `~/Code`.
+- `dots` and `c`: jump to the repo clone and to `~/projects`.
 - Vi mode with the usual gaps filled: backspace and `^W` work past the insert point, `^A`, `^E`, `^U` and `^K` work as expected, `k`/`j` search history in normal mode, `v` edits the line in `$EDITOR`, text objects like `ci"` and `da(` work, and the cursor is a block in normal mode and a bar in insert mode.
 
 ## Toolchains
@@ -130,7 +134,7 @@ As a guard, the repo also git-ignores and stow-ignores `*.local` files, in case 
 `bootstrap.sh` offers the script for the current platform, and each one can be run on its own later. Every step asks first, and prompts default to No after `DOTFILES_CONFIRM_TIMEOUT` seconds (30 by default).
 
 - `scripts/platform/macos.sh`: Touch ID for sudo, Rosetta, computer name, macOS defaults, power settings, Dock layout, showing `~/Library`, Spotlight exclusions, a custom Hungarian keyboard layout, the LLVM `dlltool` link, Xcode first-launch setup, GitHub CLI login and the stable Rust toolchain. It also runs the three scripts below, each of which asks first.
-  Spotlight exclusions go on the Search Privacy list, because macOS 27 ignores `.metadata_never_index` marker files. The list lives in a root-only plist, so this step needs your terminal to have Full Disk Access. If an entry doesn't survive the Spotlight restart, the script opens System Settings so you can add it there.
+  Spotlight exclusions go on the Search Privacy list, because macOS 27 ignores `.metadata_never_index` marker files. The list lives in a root-only plist, so this step needs your terminal to have Full Disk Access. If an entry doesn't survive the Spotlight restart, the script opens System Settings so you can add it there. Once the list is updated, it rebuilds the Spotlight index for both `/` and `/System/Volumes/Data`, where the home folder lives, so items that were already indexed drop out.
 - `scripts/platform/macos-hardening.sh`: the firewall and Stealth Mode, FileVault, remote login and sharing, privacy defaults, automatic security responses, and Homebrew analytics.
 - `scripts/platform/macos-office-tweaks.sh`: turns off Microsoft AutoUpdate for Office and Teams so `topgrade` handles their updates.
 - `scripts/platform/macos-omnimount.sh`: builds and installs Omnimount to mount ext2/3/4 and NTFS disks. `macos.sh` runs it, and it can run alone. See [docs/omnimount.md](docs/omnimount.md).

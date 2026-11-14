@@ -8,12 +8,22 @@ disable = [
     "bun_packages",
     "claude_code",
     "codex",
+    # The global composer.json is empty; PHP deps are managed per project.
+    "composer",
     "containers",
+    # Homebrew's cursor-cli cask; `cursor-agent update` would install a second
+    # copy under ~/.local.
+    "cursor_agent",
+    # Global skills are installed and updated by `npx skills` (the "skills"
+    # step); `gh skill` has no metadata for them and just warns.
+    "github_cli_skills",
     "microsoft_office",
     "node",
     "pnpm",
     "tailscale",
     "uv",
+    # VS Code updates its own extensions, and Settings Sync covers them.
+    "vscode",
     "yarn",
 ]
 assume_yes = true
@@ -25,9 +35,13 @@ greedy_cask = true
 autoremove = true
 
 [git]
-repos = ["~/Code/*/", "~/Work/*/"]
+repos = ["~/projects/*/"]
 pull_predefined = false
 fallback_to_fetch_default = true
 
 [firmware]
 upgrade = true
+
+[rustup]
+# Only the toolchain bootstrap installs.
+channels = ["stable"]

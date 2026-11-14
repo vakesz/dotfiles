@@ -1,0 +1,10 @@
+# Mole Whitelist - Protected paths won't be deleted
+# Saved selections replace optional defaults; built-in safety protections still apply.
+# Add one pattern per line to keep items safe.
+
+/Users/vakesz/.cache/huggingface*
+/Users/vakesz/Library/Caches/JetBrains*
+/Users/vakesz/Library/Caches/com.jetbrains.toolbox*
+/Users/vakesz/Library/Application Support/JetBrains*
+/Users/vakesz/Library/Caches/com.apple.finder
+/Users/vakesz/Library/Mobile Documents*

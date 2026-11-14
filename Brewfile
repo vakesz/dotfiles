@@ -79,6 +79,7 @@ brew "libpng"
 brew "lld"
 brew "llvm"
 brew "make"
+brew "meson"
 brew "mingw-w64"
 brew "molten-vk"
 brew "ninja"
@@ -87,6 +88,7 @@ brew "pkgconf"
 # Linters and formatters
 brew "actionlint"
 brew "clang-format"
+brew "gitleaks"
 brew "ruff"
 brew "shellcheck"
 brew "shfmt"
@@ -105,7 +107,6 @@ cask "android-commandlinetools"
 
 # AI tools
 brew "opencode"
-cask "chatgpt"
 cask "claude-code@latest"
 cask "codex"
 cask "copilot-cli"
@@ -137,12 +138,6 @@ cask "mountain-duck"
 # Desktop apps: game development
 # Tiled is the tile-map level editor, not a window manager.
 cask "tiled"
-
-# Desktop apps: creative
-cask "filmcraft"
-cask "lightcraft"
-cask "pdfcraft"
-cask "photocraft"
 
 # Desktop apps: media and communication
 cask "iina"

@@ -261,7 +261,7 @@ check_macos_spotlight() {
     # One pass over the index: the first input is the existing exclusion
     # paths, the second every indexed item under $HOME.
     while IFS=$'\t' read -r count path; do
-        soft_warn "Spotlight indexes $count items under $path (run scripts/platform/macos.sh; if it's already on the Privacy list, rebuild the index: sudo mdutil -E /)"
+        soft_warn "Spotlight indexes $count items under $path (run scripts/platform/macos.sh; if it's already on the Privacy list, rebuild the index: sudo mdutil -E /System/Volumes/Data)"
         clean=0
     done < <(awk '
         NR == FNR { if ($0 != "") prefixes[++n] = $0; next }

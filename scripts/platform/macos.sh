@@ -257,7 +257,15 @@ configure_spotlight_exclusions() {
     fi
 
     success "Spotlight Privacy list updated"
-    info "Items indexed before now drop out in the background; make doctor reports any that remain"
+
+    # Already-indexed items stay searchable until the index is rebuilt. The
+    # home folder lives on the Data volume, which has its own index, so erasing
+    # / alone doesn't clear them.
+    info "Rebuilding the Spotlight indexes so excluded items drop out..."
+    sudo mdutil -E / >/dev/null || warn "Could not rebuild the Spotlight index for /"
+    sudo mdutil -E /System/Volumes/Data >/dev/null ||
+        warn "Could not rebuild the Spotlight index for /System/Volumes/Data"
+    info "Spotlight re-indexes in the background, so searches may be incomplete for a while; make doctor reports anything that stays indexed"
 }
 
 enable_touch_id_sudo() {
