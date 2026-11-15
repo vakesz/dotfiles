@@ -8,7 +8,7 @@
   "permissions": {
     "defaultMode": "auto"
   },
-  "model": "fable",
+  "model": "opus",
   "enabledPlugins": {
     "swift-lsp@claude-plugins-official": true,
     "clangd-lsp@claude-plugins-official": true,

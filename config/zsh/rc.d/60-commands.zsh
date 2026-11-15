@@ -86,7 +86,26 @@ fi
 (( $+commands[docker] )) && {
   alias dcu='docker compose up'
   alias dcd='docker compose down'
+  # Removes all stopped containers, unused images, networks, build cache and
+  # unused volumes (including data in volumes no container uses).
+  alias dprune='docker system prune -af --volumes'
 }
+
+# macOS only. `flushdns` clears the DNS cache; `flushdns --wifi` also turns
+# the Wi-Fi interface off and on.
+if (( $+commands[dscacheutil] )); then
+  flushdns() {
+    sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder || return
+    if [[ ${1:-} == --wifi ]]; then
+      local dev
+      dev="$(networksetup -listallhardwareports |
+        awk '/^Hardware Port: Wi-Fi/ { getline; print $2; exit }')"
+      [[ -n $dev ]] || { print -u2 'flushdns: no Wi-Fi interface found'; return 1; }
+      sudo ifconfig "$dev" down && sudo ifconfig "$dev" up
+    fi
+    print 'DNS cache flushed'
+  }
+fi
 
 (( $+commands[claude] )) && alias cc='claude'
 (( $+commands[codex] )) && alias cx='codex'
