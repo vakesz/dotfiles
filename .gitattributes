@@ -1,0 +1,5 @@
+# Unified diff context lines carry a leading space, and an empty context line
+# is a single trailing space; `git diff --check` reads those as trailing
+# whitespace. The patch content must stay byte-exact, so skip whitespace
+# checking for patch files instead of rewriting them.
+*.patch -whitespace
