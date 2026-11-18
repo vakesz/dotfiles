@@ -53,7 +53,9 @@ jobs:
 
   brewfile-names:
     runs-on: macos-latest
-    timeout-minutes: 10
+    # macOS runners can queue for 15+ minutes and queued time counts against
+    # this timeout; the job itself needs about a minute.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
       # Every entry comes from the default taps, so a missing name means the
@@ -64,7 +66,9 @@ jobs:
 
   bootstrap-macos:
     runs-on: macos-latest
-    timeout-minutes: 15
+    # Same queue budget as brewfile-names: this job runs in well under a minute,
+    # but macOS queue time at 15 minutes has cancelled it before it started.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
       - run: brew install stow
