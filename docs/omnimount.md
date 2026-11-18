@@ -6,21 +6,31 @@ It runs on FUSE-T from the Brewfile, which uses local NFS mounts instead of a ke
 
 ## Install
 
-The script asks before it builds anything, and skips the build if FUSE-T, the CLI and the app are already installed. FUSE-T comes from the Brewfile, so run `./bootstrap.sh` first.
+The script asks before it changes anything. FUSE-T comes from the Brewfile, so run `./bootstrap.sh` first. It stops if macFUSE is installed.
 
-The build:
+When `/Applications/Omnimount.app` has a stapled notarization ticket, the script leaves that app in place and points `$(brew --prefix)/bin/omnimount` and `$(brew --prefix)/sbin/fuse2fs` at the copies inside it. Homebrew does not manage those two paths: `brew cleanup` will not update or remove them. Sparkle updates the app, and the symlinks follow the new binaries. Replacing the notarized app with a local build would change the signing identity and drop Full Disk Access.
 
-- checks out a pinned upstream revision and applies `assets/macos/omnimount-build.patch`, which fixes the e2fsprogs and NTFS configure steps and Swift concurrency warnings, and translates the build messages and `omnimount doctor` into English (other CLI output may still be Spanish)
-- targets only the Mac's own architecture, even under Rosetta. FUSE-T's libraries are in `/usr/local` on both architectures, which doesn't mean an Intel build
-- happens in a temporary directory that is removed afterwards, whether or not it succeeds
-- installs the app to `/Applications/Omnimount.app`, the CLI to `$(brew --prefix)/bin` and `fuse2fs` to `$(brew --prefix)/sbin`
+A source build runs only when that notarized app is absent. It:
 
-To rebuild, for example to replace a universal build, quit Omnimount and run one of:
+- checks out Omnimount v0.4.8 and applies `assets/macos/omnimount-build.patch`, which builds for this Mac's architecture, including under Rosetta, and fixes the Swift concurrency warnings. Upstream messages are left unchanged
+- downloads e2fsprogs 1.47.3 and ntfs-3g 2026.7.7, checks their sha256, and hands those trees to the build
+- records the revision, architecture, FUSE-T version and signing identity in `$XDG_STATE_HOME/omnimount/build.stamp`, and builds again when one of those no longer matches
+- writes `$XDG_STATE_HOME/omnimount/build.log`, removes the build tree afterwards, and keeps the tree when `OMNIMOUNT_KEEP=1`
+- stops if Omnimount or its helper is running, because the install replaces `/Applications/Omnimount.app`
+
+`OMNIMOUNT_REBUILD=1` forces another pass. With a notarized app, that pass only refreshes the symlinks. Quit Omnimount first when the pass will compile.
 
 ```bash
 OMNIMOUNT_REBUILD=1 make macos
 OMNIMOUNT_REBUILD=1 ./scripts/platform/macos-omnimount.sh
+OMNIMOUNT_KEEP=1 ./scripts/platform/macos-omnimount.sh
 ```
+
+An ad-hoc signature, used when the keychain has no codesigning identity, does not keep Full Disk Access across rebuilds. The script warns when the installed CLI is signed that way.
+
+## Checks
+
+`make doctor` checks that the FUSE-T cask and `/usr/local/lib/libfuse-t.dylib` are present, that macFUSE is absent, and, when Omnimount.app is installed, that `$(brew --prefix)/bin/omnimount --version` matches the app and that `fuse2fs` links FUSE-T. A missing app is a warning: the install is optional. `omnimount doctor` only checks that the filesystem tools can be found.
 
 ## Permissions
 

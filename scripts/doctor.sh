@@ -251,6 +251,78 @@ check_macos_security() {
     fi
 }
 
+# FUSE-T is in the Brewfile. Omnimount itself is optional; when the app is
+# present, the CLI on the Homebrew prefix has to be that app's version and
+# fuse2fs has to link FUSE-T rather than macFUSE.
+check_macos_filesystems() {
+    local app="/Applications/Omnimount.app"
+    local fuse2fs="" cli="" app_version="" cli_version="" deps=""
+
+    section "Filesystems"
+
+    if ! has_command brew; then
+        fail "brew not on PATH; cannot check FUSE-T"
+        return 0
+    fi
+
+    verify "FUSE-T cask installed" "FUSE-T cask is not installed (brew install --cask fuse-t)" \
+        fail quietly brew list --cask fuse-t
+    if quietly brew list --cask fuse-t; then
+        verify "FUSE-T library installed" \
+            "FUSE-T cask is listed but /usr/local/lib/libfuse-t.dylib is missing; reinstall the cask" \
+            fail test -f /usr/local/lib/libfuse-t.dylib
+    fi
+
+    if [[ -e /Library/Filesystems/macfuse.fs ]]; then
+        fail "macFUSE is installed alongside FUSE-T; remove macFUSE"
+    else
+        pass "macFUSE is not installed"
+    fi
+
+    if [[ ! -d "$app" ]]; then
+        soft_warn "Omnimount.app is not installed (optional; run scripts/platform/macos-omnimount.sh)"
+        return 0
+    fi
+    pass "Omnimount.app is installed"
+
+    macos_brew_prefix || {
+        fail "Homebrew prefix unavailable; cannot check the Omnimount CLI"
+        return 0
+    }
+    cli="$MACOS_BREW_PREFIX/bin/omnimount"
+    if [[ ! -x "$cli" ]]; then
+        fail "Omnimount CLI is missing at $cli"
+    else
+        app_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Contents/Info.plist" 2>/dev/null)" || app_version=""
+        cli_version="$("$cli" --version 2>/dev/null)" || cli_version=""
+        cli_version="${cli_version%%$'\n'*}"
+        cli_version="${cli_version//$'\r'/}"
+        if [[ -n "$app_version" && "$cli_version" == "$app_version" ]]; then
+            pass "Omnimount CLI ${cli_version} matches the app"
+        else
+            fail "Omnimount CLI version (${cli_version:-unknown}) does not match the app (${app_version:-unknown})"
+        fi
+    fi
+
+    if [[ -x "$app/Contents/MacOS/fuse2fs" ]]; then
+        fuse2fs="$app/Contents/MacOS/fuse2fs"
+    else
+        fuse2fs="$MACOS_BREW_PREFIX/sbin/fuse2fs"
+    fi
+    if [[ ! -x "$fuse2fs" ]]; then
+        fail "fuse2fs is missing"
+        return 0
+    fi
+    deps="$(otool -L "$fuse2fs" 2>/dev/null)" || deps=""
+    # libfuse.2.dylib is macFUSE. libfuse-t and libfuse3 are FUSE-T.
+    if [[ "$deps" == *"libfuse-t"* || "$deps" == *"libfuse3"* ]] &&
+        [[ ! "$deps" =~ libfuse[.][^[:space:]]*|libosxfuse|macfuse ]]; then
+        pass "fuse2fs links FUSE-T"
+    else
+        fail "fuse2fs at $fuse2fs does not link FUSE-T"
+    fi
+}
+
 # Reads what Spotlight actually indexed, so it catches exclusions that never
 # took effect and items indexed before a path was excluded.
 check_macos_spotlight() {
@@ -300,6 +372,7 @@ main() {
     if is_macos; then
         check_brewfile
         check_macos_tooling
+        check_macos_filesystems
         check_macos_security
         check_macos_spotlight
     fi
