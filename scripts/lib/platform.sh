@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Operating system identity for the setup scripts.
+# Operating system identity for the setup scripts. bootstrap.sh sources this
+# before Homebrew exists, so keep it bash 3.2 compatible for macOS /bin/bash.
 
 [[ -n "${__DOTFILES_PLATFORM_LOADED:-}" ]] && return 0
 __DOTFILES_PLATFORM_LOADED=1
 
-# shellcheck source=scripts/lib/ui.sh
 source "${BASH_SOURCE[0]%/*}/ui.sh"
 
 # Print macos/linux for the current OS, or fail on anything else.
@@ -26,9 +26,9 @@ is_macos() {
 login_shell_name() {
     local shell_path="" user_name="${USER:-$(id -un 2>/dev/null)}"
 
-    if command -v getent >/dev/null 2>&1; then
+    if has_command getent; then
         shell_path="$(getent passwd "$user_name" 2>/dev/null | awk -F: '{print $7}')"
-    elif command -v dscl >/dev/null 2>&1; then
+    elif has_command dscl; then
         shell_path="$(dscl . -read "/Users/$user_name" UserShell 2>/dev/null | awk '{print $2}')"
     fi
 

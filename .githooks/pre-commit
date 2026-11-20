@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
-# Block commits that add secrets. The repo is public and now holds SSH,
-# Claude Code and VS Code config. Enable with: make hooks
+# Block commits that add secrets. The repo is public and holds SSH and Claude
+# Code config. Enable with: make hooks
 set -euo pipefail
 
 if ! command -v gitleaks >/dev/null 2>&1; then
-    printf 'pre-commit: gitleaks is not installed; skipping the secret scan\n' >&2
-    exit 0
+    {
+        printf 'pre-commit: gitleaks is not installed, so the secret scan cannot run.\n'
+        printf '  Install it: brew install gitleaks (or see https://github.com/gitleaks/gitleaks#installing)\n'
+        printf '  To commit without the scan, bypass the hook explicitly: git commit --no-verify\n'
+    } >&2
+    exit 1
 fi
 
 exec gitleaks git --staged --no-banner --redact

@@ -1,0 +1,11 @@
+# Every script in this repo is bash, including the extensionless git hooks.
+shell=bash
+# Follow `source` into the scripts/lib files so their functions are checked.
+external-sources=true
+# Resolve `source "$(dirname -- "${BASH_SOURCE[0]}")/..."` relative to the script.
+source-path=SCRIPTDIR
+# Resolve "$DOTFILES_ROOT/scripts/lib/..." from the repo root, whatever the
+# current directory: scripts/ and bootstrap.sh are one level below or at it,
+# scripts/lib and scripts/platform two.
+source-path=SCRIPTDIR/..
+source-path=SCRIPTDIR/../..

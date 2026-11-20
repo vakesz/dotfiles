@@ -7,7 +7,7 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 
 # Read by shfmt too (scripts/check.sh passes it no formatting flags).
-[*.sh]
+[{**.sh,.githooks/*}]
 indent_style = space
 indent_size = 4
 switch_case_indent = true
@@ -16,6 +16,14 @@ shell_variant = bash
 [{*.zsh,.zshenv,.zshrc,.zprofile}]
 indent_style = space
 indent_size = 2
+
+[*.{yml,yaml,json,toml,md}]
+indent_style = space
+indent_size = 2
+
+# Markdown uses trailing double spaces for line breaks.
+[*.md]
+trim_trailing_whitespace = false
 
 [Makefile]
 indent_style = tab

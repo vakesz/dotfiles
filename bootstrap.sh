@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
-# Link the dotfiles into $HOME and the XDG directories with stow.
+# Link the dotfiles into $HOME and the XDG directories with stow. On a fresh
+# Mac this runs under /bin/bash before Homebrew (and its bash 5) exists, so keep
+# it, and the scripts/lib files it sources, bash 3.2 compatible.
 
 set -euo pipefail
 
-# shellcheck source=scripts/lib/paths.sh
 source "$(dirname -- "${BASH_SOURCE[0]}")/scripts/lib/paths.sh"
-# shellcheck source=scripts/lib/ui.sh
 source "$DOTFILES_ROOT/scripts/lib/ui.sh"
-# shellcheck source=scripts/lib/platform.sh
 source "$DOTFILES_ROOT/scripts/lib/platform.sh"
 
 SCRIPT_NAME="${0##*/}"
@@ -77,6 +76,13 @@ parse_args() {
         esac
         shift
     done
+
+    # Check before preflight, which can take a long time on a fresh Mac.
+    if ((ADOPT)) && ! is_interactive; then
+        error "--adopt requires an interactive terminal"
+        info "Rerun interactively: ./$SCRIPT_NAME --adopt"
+        exit 1
+    fi
 }
 
 maybe_run_preflight() {
@@ -87,13 +93,12 @@ maybe_run_preflight() {
 
     is_macos || return 0
 
-    # shellcheck source=scripts/lib/macos-preflight.sh
     source "$DOTFILES_ROOT/scripts/lib/macos-preflight.sh"
     run_macos_preflight "$DOTFILES_BREWFILE"
 }
 
 require_stow() {
-    command -v stow >/dev/null 2>&1 || {
+    has_command stow || {
         error "stow is required"
         info "On macOS it comes from the Brewfile; rerun without --skip-preflight"
         info "On Linux install it with your package manager, e.g. 'sudo apt install stow'"
@@ -106,68 +111,12 @@ confirm_adopt() {
         return 0
     fi
 
-    if ! is_interactive; then
-        error "--adopt requires an interactive terminal"
-        info "Rerun interactively: ./$SCRIPT_NAME --adopt"
-        exit 1
-    fi
-
     warn "stow --adopt will overwrite repo files with any existing system files."
     warn "Review changes afterward with: git diff"
     confirm "Continue with stow --adopt?" || {
         info "Aborted"
         exit 0
     }
-}
-
-# Remove links left by older layouts that would block or outlive the current
-# packages. Each removal only matches the exact shape an older bootstrap made.
-# Safe to delete once every machine has rerun bootstrap.
-remove_legacy_links() {
-    local legacy_gradle="$GRADLE_USER_HOME/gradle.properties" path=""
-
-    # gradle.properties used to live in config/ and was linked into
-    # $GRADLE_USER_HOME with an absolute `ln -sfn`. stow can't replace that
-    # link, so the data/ package would conflict.
-    if [[ -L "$legacy_gradle" && "$(readlink "$legacy_gradle")" == "$XDG_CONFIG_HOME/gradle/gradle.properties" ]]; then
-        rm -f -- "$legacy_gradle"
-        info "Removed legacy link $legacy_gradle"
-    fi
-
-    # Restowing config/ leaves links to files that moved out of it dangling.
-    for path in gradle/gradle.properties linearmouse/linearmouse.json; do
-        remove_dangling_repo_link "$XDG_CONFIG_HOME/$path" "config/$path"
-    done
-}
-
-# Remove $1 if it is a dangling link to $DOTFILES_ROOT/$2, then its parent
-# directory if that is now empty.
-remove_dangling_repo_link() {
-    local link="$1" repo_path="$2" target="" existing="" rest=""
-
-    [[ -L "$link" && ! -e "$link" ]] || return 0
-
-    # stow links are relative to the link's directory.
-    target="$(readlink "$link")"
-    [[ "$target" == /* ]] || target="${link%/*}/$target"
-
-    # The file and maybe its directories are gone, so resolve the deepest
-    # directory that still exists and append the rest.
-    existing="${target%/*}"
-    rest="${target##*/}"
-    while [[ -n "$existing" && ! -d "$existing" ]]; do
-        rest="${existing##*/}/$rest"
-        existing="${existing%/*}"
-    done
-    # A .. below a missing directory can't be resolved; leave such links alone.
-    [[ "/$rest/" != */../* ]] || return 0
-    existing="$(cd "${existing:-/}" && pwd -P)" || return 0
-
-    [[ "$existing/$rest" == "$DOTFILES_ROOT/$repo_path" ]] || return 0
-
-    rm -f -- "$link"
-    rmdir -- "${link%/*}" 2>/dev/null || true
-    info "Removed stale link $link"
 }
 
 assert_stow_targets_clean() {
@@ -194,15 +143,15 @@ stow_packages() {
         assert_stow_targets_clean
     fi
 
+    # ensure_xdg_runtime_directories already created every target.
     while IFS=$'\t' read -r package target; do
-        mkdir -p "$target"
         info "Stowing $package/ into $target"
         stow "${stow_args[@]}" -t "$target" "$package"
     done < <(stow_package_targets)
 
     success "Dotfiles linked"
 
-    if ((ADOPT)) && command -v git >/dev/null 2>&1 && git -C "$DOTFILES_ROOT" rev-parse --git-dir >/dev/null 2>&1 && ! git -C "$DOTFILES_ROOT" diff --quiet 2>/dev/null; then
+    if ((ADOPT)) && has_command git && git -C "$DOTFILES_ROOT" rev-parse --git-dir >/dev/null 2>&1 && ! git -C "$DOTFILES_ROOT" diff --quiet 2>/dev/null; then
         warn "Existing files were adopted into the repo. Review with: git diff"
     fi
 }
@@ -241,7 +190,6 @@ main() {
     ensure_xdg_runtime_directories
     require_stow
     confirm_adopt
-    remove_legacy_links
     stow_packages
     maybe_run_platform_setup
 

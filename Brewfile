@@ -2,11 +2,14 @@
 # Install with: brew bundle install
 
 # Terminal and shell
+# macOS ships bash 3.2. scripts/ outside install.sh, bootstrap.sh and
+# scripts/lib may assume bash 5.
+brew "bash"
 brew "direnv"
+cask "ghostty"
 brew "starship"
 brew "zsh-autosuggestions"
 brew "zsh-syntax-highlighting"
-cask "ghostty"
 
 # Fonts
 cask "font-jetbrains-mono-nerd-font"
@@ -21,6 +24,7 @@ brew "zoxide"
 
 # CLI tools: utilities
 brew "bat"
+brew "cloc"
 brew "coreutils"
 brew "curl"
 brew "diffutils"
@@ -39,8 +43,8 @@ brew "yq"
 # Git
 brew "gh"
 brew "git"
-brew "git-lfs"
 cask "git-credential-manager"
+brew "git-lfs"
 
 # Languages and runtimes
 brew "bun"
@@ -56,11 +60,11 @@ cask "temurin@17"
 
 # Apple and iOS development
 brew "cocoapods"
+cask "sf-symbols"
 brew "swiftlint"
 brew "xcbeautify"
 brew "xcode-build-server"
 brew "xcodegen"
-cask "sf-symbols"
 
 # C and C++ development
 brew "autoconf"
@@ -70,12 +74,8 @@ brew "ccache"
 brew "cmake"
 brew "cppcheck"
 brew "flex"
-brew "freetype"
 brew "gcc"
 brew "glslang"
-brew "gnutls"
-brew "jpeg-turbo"
-brew "libpng"
 brew "lld"
 brew "llvm"
 brew "make"
@@ -95,9 +95,9 @@ brew "shfmt"
 brew "swift-format"
 
 # Containers and virtualization
+cask "orbstack"
 brew "qemu"
 brew "squashfs"
-cask "orbstack"
 
 # Filesystems
 cask "fuse-t"
@@ -106,28 +106,30 @@ cask "fuse-t"
 cask "android-commandlinetools"
 
 # AI tools
-brew "opencode"
 cask "claude-code@latest"
 cask "codex"
 cask "copilot-cli"
 cask "cursor-cli"
+brew "opencode"
 cask "t3-code@nightly"
 
 # General development tools
 cask "azure-cli"
+brew "ffmpeg"
+brew "ghidra"
 brew "imagemagick"
 brew "pngquant"
+cask "visual-studio-code"
 brew "watchman"
 brew "webp"
-cask "visual-studio-code"
 
 # Databases
 cask "tablepro"
 
 # Desktop apps: system and maintenance
-brew "mole"
 cask "citrix-workspace"
 cask "linearmouse"
+brew "mole"
 cask "tailscale-app"
 
 # Desktop apps: productivity and file access
@@ -138,6 +140,9 @@ cask "mountain-duck"
 # Desktop apps: game development
 # Tiled is the tile-map level editor, not a window manager.
 cask "tiled"
+
+# Desktop apps: games
+cask "steam"
 
 # Desktop apps: media and communication
 cask "iina"

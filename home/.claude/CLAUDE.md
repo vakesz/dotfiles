@@ -5,7 +5,7 @@ tool rather than guessing or asking in plain text.
 ## Team workflow (multi-part tasks only)
 For small or single-file tasks, just do the work. Don't spawn agents.
 
-For non-trivial, multi-part tasks, the main session (Fable) is the lead. The lead
+For non-trivial, multi-part tasks, the main session is the lead. The lead
 plans, delegates, approves and verifies. It does not do the bulk edits itself.
 
 Teammates live in ~/.claude/agents. Each one's model is set in its own file:

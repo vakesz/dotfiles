@@ -2,9 +2,12 @@
 # empty inherited value), so the loop below never globs /rc.d/*.zsh.
 : "${ZDOTDIR:=${${(%):-%N}:A:h}}"
 
-for zsh_config in "$ZDOTDIR"/rc.d/*.zsh(N); do
-  [[ -r "$zsh_config" ]] && source "$zsh_config"
+# -. skips dangling links: stow leaves one behind when a file is deleted from
+# the repo, until bootstrap restows.
+for zsh_config in "$ZDOTDIR"/rc.d/*.zsh(N-.); do
+  source "$zsh_config"
 done
+unset zsh_config
 
 # Untracked machine-local overrides
 [[ -f "$ZDOTDIR/.zshrc.local" ]] && source "$ZDOTDIR/.zshrc.local"

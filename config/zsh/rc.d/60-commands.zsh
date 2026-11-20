@@ -72,8 +72,9 @@ if (( $+commands[eza] )); then
   alias l='eza --oneline --group-directories-first'
   alias lt='eza --tree --level=2'
 else
-  # Only GNU ls accepts --version. Probing with --color=auto would print a listing.
-  if ls --version >/dev/null 2>&1; then
+  # Linux distros ship GNU ls (or uutils, which takes the same flags); macOS
+  # and the BSDs use -G. Checking $OSTYPE costs no fork.
+  if [[ "$OSTYPE" == linux* ]]; then
     alias ls='ls --color=auto'
   else
     alias ls='ls -G'
@@ -107,5 +108,6 @@ if (( $+commands[dscacheutil] )); then
   }
 fi
 
-(( $+commands[claude] )) && alias cc='claude'
+# Not cc, which would shadow the C compiler.
+(( $+commands[claude] )) && alias cl='claude'
 (( $+commands[codex] )) && alias cx='codex'

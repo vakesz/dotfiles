@@ -1,3 +1,6 @@
+# This file is public. Keep secrets and machine-specific values in
+# $XDG_CONFIG_HOME/git/gitconfig.local (included at the bottom).
+
 [user]
 	name = Gabor Pinkova
 	email = vakesz@users.noreply.github.com
@@ -10,6 +13,17 @@
 
 [apply]
 	whitespace = fix
+
+[help]
+	autocorrect = prompt
+
+[status]
+	showStash = true
+
+[transfer]
+	# Reject corrupt objects on fetch and push. For a broken legacy repo, bypass
+	# with: git -c transfer.fsckObjects=false fetch
+	fsckObjects = true
 
 [pull]
 	rebase = true
@@ -58,7 +72,7 @@
 	colorMoved = default
 
 [merge]
-	conflictstyle = zdiff3
+	conflictStyle = zdiff3
 
 [rebase]
 	autosquash = true

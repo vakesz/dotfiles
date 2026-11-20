@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # Repo paths, XDG defaults, and the runtime directories bootstrap creates.
+# bootstrap.sh sources this before Homebrew exists, so keep it bash 3.2
+# compatible for macOS /bin/bash.
 
 [[ -n "${__DOTFILES_PATHS_LOADED:-}" ]] && return 0
 __DOTFILES_PATHS_LOADED=1
@@ -50,8 +52,9 @@ stow_package_targets() {
     fi
 }
 
+# Callers run set_xdg_environment_defaults first.
 ensure_xdg_runtime_directories() {
-    set_xdg_environment_defaults
+    : "${XDG_CONFIG_HOME:?call set_xdg_environment_defaults first}"
 
     mkdir -p \
         "$XDG_CONFIG_HOME" \

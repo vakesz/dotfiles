@@ -3,43 +3,10 @@
 
 set -euo pipefail
 
-# shellcheck source-path=SCRIPTDIR
 source "$(dirname -- "${BASH_SOURCE[0]}")/../lib/paths.sh"
 source "$DOTFILES_ROOT/scripts/lib/ui.sh"
 source "$DOTFILES_ROOT/scripts/lib/platform.sh"
-
-# CLI tools from the Brewfile, one row each:
-#   tool|commands|apt-get|dnf|zypper|pacman|upstream install page
-# commands: any one on PATH means installed ("-" = check the package instead).
-# Package fields list alternatives, first available wins; "-" = never install
-# from that repo. Whether a repo carries a name is probed at install time, so
-# an older release that lacks a package just falls through to the hint.
-readonly -a CLI_TOOL_ROWS=(
-    "bat|bat batcat|bat|bat|bat|bat|https://github.com/sharkdp/bat#installation"
-    "bun|bun|bun|bun|bun|bun|https://bun.sh/docs/installation"
-    "ccache|ccache|ccache|ccache|ccache|ccache|https://ccache.dev/download.html"
-    "direnv|direnv|direnv|direnv|direnv|direnv|https://direnv.net/docs/installation.html"
-    "eza|eza|eza|eza|eza|eza|https://github.com/eza-community/eza/blob/main/INSTALL.md"
-    "fd|fd fdfind|fd-find|fd-find|fd|fd|https://github.com/sharkdp/fd#installation"
-    "fzf|fzf|fzf|fzf|fzf|fzf|https://github.com/junegunn/fzf#installation"
-    "git-lfs|git-lfs|git-lfs|git-lfs|git-lfs|git-lfs|https://git-lfs.com"
-    "jq|jq|jq|jq|jq|jq|https://jqlang.org/download/"
-    # Debian/Ubuntu ship an end-of-life node (18 on Ubuntu 24.04, 12 on 22.04).
-    "node|node|-|nodejs|-|nodejs|https://nodejs.org/en/download (fnm or NodeSource)"
-    "pnpm|pnpm|pnpm|pnpm|pnpm|pnpm|https://pnpm.io/installation"
-    "ripgrep|rg|ripgrep|ripgrep|ripgrep|ripgrep|https://github.com/BurntSushi/ripgrep#installation"
-    # Fedora's package ships only rustup-init; running it installs rustup.
-    "rustup|rustup rustup-init|rustup|rustup|rustup|rustup|https://rustup.rs"
-    "starship|starship|starship|starship|starship|starship|https://starship.rs/guide/#step-1-install-starship"
-    "tealdeer|tldr|tealdeer tldr|tealdeer tldr|tealdeer|tealdeer|https://tealdeer-rs.github.io/tealdeer/installing.html"
-    "uv|uv|uv|uv|uv|uv|https://docs.astral.sh/uv/getting-started/installation/"
-    # The Brewfile's yq is mikefarah's. Debian's yq package is an unrelated
-    # Python jq wrapper with a different CLI; Arch ships mikefarah's as go-yq.
-    "yq|yq|-|yq|yq|go-yq|https://github.com/mikefarah/yq#install"
-    "zoxide|zoxide|zoxide|zoxide|zoxide|zoxide|https://github.com/ajeetdsouza/zoxide#installation"
-    "zsh-autosuggestions|-|zsh-autosuggestions|zsh-autosuggestions|zsh-autosuggestions|zsh-autosuggestions|https://github.com/zsh-users/zsh-autosuggestions/blob/master/INSTALL.md"
-    "zsh-syntax-highlighting|-|zsh-syntax-highlighting|zsh-syntax-highlighting|zsh-syntax-highlighting|zsh-syntax-highlighting|https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/INSTALL.md"
-)
+source "$DOTFILES_ROOT/scripts/lib/cli-tools.sh"
 
 # Run "$@" as root: directly when already root (containers, root WSL), else
 # through sudo.
@@ -48,7 +15,7 @@ as_root() {
         "$@"
         return
     fi
-    command -v sudo >/dev/null 2>&1 || {
+    has_command sudo || {
         error "sudo not found; rerun as root or install sudo"
         return 1
     }
@@ -65,7 +32,7 @@ is_wsl() {
 package_manager() {
     local pm=""
     for pm in apt-get dnf zypper pacman; do
-        command -v "$pm" >/dev/null 2>&1 && {
+        has_command "$pm" && {
             printf '%s\n' "$pm"
             return 0
         }
@@ -139,7 +106,7 @@ install_locale() {
 # Persist LANG via localectl, falling back to /etc/locale.conf when localectl
 # is missing or fails (e.g. non-systemd WSL, containers).
 persist_locale_conf() {
-    if command -v localectl >/dev/null 2>&1 && as_root localectl set-locale LANG=en_US.UTF-8; then
+    if has_command localectl && as_root localectl set-locale LANG=en_US.UTF-8; then
         return 0
     fi
 
@@ -150,7 +117,7 @@ persist_locale_conf() {
 # Persist LANG only. LC_ALL overrides every locale category and is meant for
 # one-off commands. --reset and localectl also clear an old LC_ALL.
 persist_locale() {
-    if [[ "$1" == "apt-get" ]] && command -v update-locale >/dev/null 2>&1; then
+    if [[ "$1" == "apt-get" ]] && has_command update-locale; then
         as_root update-locale --reset LANG=en_US.UTF-8
     else
         persist_locale_conf
@@ -183,7 +150,7 @@ tool_installed() {
 
     if [[ "$commands" != "-" ]]; then
         for name in $commands; do
-            command -v "$name" >/dev/null 2>&1 && return 0
+            has_command "$name" && return 0
         done
         return 1
     fi
@@ -278,8 +245,8 @@ git_local_config_path() {
 # True when HTTPS auth is already handled: Git Credential Manager is on PATH,
 # or gitconfig.local already sets a helper, which is never overwritten.
 credential_helper_configured() {
-    command -v git-credential-manager >/dev/null 2>&1 && return 0
-    command -v git >/dev/null 2>&1 || return 1
+    has_command git-credential-manager && return 0
+    has_command git || return 1
     git config --file "$(git_local_config_path)" --get-all credential.helper >/dev/null 2>&1
 }
 

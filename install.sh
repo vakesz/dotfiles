@@ -7,7 +7,8 @@
 # git, stow and zsh with apt-get, dnf, zypper or pacman (needs root or sudo).
 # Then it clones the repo and hands off to bootstrap.sh for the rest. It must
 # stay self-contained: the repo isn't on disk yet, so nothing in scripts/lib
-# is available. Keep it bash 3.2 compatible for macOS /bin/bash.
+# is available. It runs before Homebrew (and its bash 5) exists, so keep it
+# bash 3.2 compatible for macOS /bin/bash.
 
 set -euo pipefail
 

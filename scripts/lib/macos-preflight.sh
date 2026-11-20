@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
-# Everything a fresh Mac needs before bootstrap.sh can stow.
+# Everything a fresh Mac needs before bootstrap.sh can stow. This runs before
+# Homebrew (and its bash 5) exists, so keep it bash 3.2 compatible.
 
 [[ -n "${__DOTFILES_MACOS_PREFLIGHT_LOADED:-}" ]] && return 0
 __DOTFILES_MACOS_PREFLIGHT_LOADED=1
 
-# shellcheck source=scripts/lib/ui.sh
 source "${BASH_SOURCE[0]%/*}/ui.sh"
-# shellcheck source=scripts/lib/macos-state.sh
 source "${BASH_SOURCE[0]%/*}/macos-state.sh"
 
 XCODE_CLI_TOOLS_WAIT_TIMEOUT="${XCODE_CLI_TOOLS_WAIT_TIMEOUT:-1800}"
@@ -47,7 +46,7 @@ ensure_xcode_cli_tools() {
 load_homebrew_environment() {
     local brew_path
 
-    command -v brew >/dev/null 2>&1 && return 0
+    has_command brew && return 0
 
     for brew_path in /opt/homebrew/bin/brew /usr/local/bin/brew; do
         if [[ -x "$brew_path" ]]; then
@@ -62,6 +61,8 @@ load_homebrew_environment() {
 
 # Install Homebrew if the shellenv loader above found nothing.
 ensure_homebrew() {
+    local installer="" status=0
+
     if load_homebrew_environment; then
         info "Homebrew already installed"
         return 0
@@ -69,11 +70,32 @@ ensure_homebrew() {
 
     info "Installing Homebrew (this asks for your password)..."
 
-    # NONINTERACTIVE skips the "press RETURN" prompt; sudo still asks for a password.
-    if ! NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL "$HOMEBREW_INSTALLER_URL")"; then
-        error "Homebrew installation failed"
+    # NONINTERACTIVE skips the "press RETURN" prompt, but it also makes the
+    # installer call `sudo -n`, which aborts unless sudo is already cached.
+    sudo -v || {
+        error "Homebrew installation needs sudo"
         return 1
+    }
+
+    # Download to a file first: `bash -c "$(curl ...)"` runs an empty script,
+    # and reports success, when the download fails.
+    installer="$(mktemp "${TMPDIR:-/tmp}/homebrew-install.XXXXXX")" || {
+        error "Could not create a temporary file for the Homebrew installer"
+        return 1
+    }
+    # shellcheck disable=SC2064 # expand the path now; the trap may run after return
+    trap "rm -f -- $(printf '%q' "$installer")" EXIT
+
+    if ! curl -fsSL --proto '=https' -o "$installer" "$HOMEBREW_INSTALLER_URL" || [[ ! -s "$installer" ]]; then
+        error "Could not download the Homebrew installer from $HOMEBREW_INSTALLER_URL"
+        status=1
+    elif ! NONINTERACTIVE=1 /bin/bash "$installer"; then
+        error "Homebrew installation failed"
+        status=1
     fi
+    rm -f -- "$installer"
+    trap - EXIT
+    ((status == 0)) || return 1
 
     load_homebrew_environment || {
         error "Homebrew installed but 'brew' is still not on PATH"
@@ -109,14 +131,22 @@ ensure_brewfile() {
     fi
 
     info "Installing packages from $brewfile (this takes a while)..."
-    brew bundle install --file "$brewfile" || {
-        error "Brewfile install failed"
+    if ! brew bundle install --file "$brewfile"; then
+        # One bad entry (often a mas app without an App Store sign-in) should
+        # not stop bootstrap from linking the dotfiles.
+        if has_command stow; then
+            warn "Some Brewfile entries failed to install; continuing because stow is available"
+            info "Fix them later with: brew bundle install --file $brewfile"
+            return 0
+        fi
+        error "Brewfile install failed, and stow is not installed yet"
         return 1
-    }
+    fi
     success "Brewfile packages installed"
 }
 
-# The Brewfile is required here because bootstrap needs stow from it.
+# Bootstrap needs stow from the Brewfile. ensure_brewfile only fails when stow
+# is still missing.
 run_macos_preflight() {
     local brewfile="$1"
 

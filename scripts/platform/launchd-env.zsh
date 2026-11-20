@@ -4,8 +4,11 @@
 # locations as the shell instead of falling back to dot-directories in $HOME.
 # The launchd-env LaunchAgent that macos.sh installs runs this at login.
 # Apps that are already running only pick up the change after a restart.
+#
+# Never put secrets (tokens, API keys) in .zshenv: everything it exports is
+# copied into launchd here and handed to every GUI app you open.
 
-emulate -L zsh
+emulate zsh
 
 # PATH stays out: launchd's PATH is shared with system services, and GUI apps
 # that need the shell PATH (editors, terminals) resolve it themselves.

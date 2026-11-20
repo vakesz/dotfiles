@@ -3,7 +3,6 @@
 
 set -euo pipefail
 
-# shellcheck source-path=SCRIPTDIR
 source "$(dirname -- "${BASH_SOURCE[0]}")/../lib/paths.sh"
 source "$DOTFILES_ROOT/scripts/lib/ui.sh"
 source "$DOTFILES_ROOT/scripts/lib/platform.sh"
@@ -15,17 +14,24 @@ MAU_AGENTS=(
 )
 readonly MAU_AGENTS
 
-# Unload and delete one launchd plist in the given domain.
+# Unload one launchd plist from launchd domain $1, then delete the file.
+# Agents in /Library/LaunchAgents load into each user's gui/<uid> domain, not
+# system, so only /Library/LaunchDaemons uses the system domain. Files under
+# /Library are root-owned whichever domain loaded them.
 remove_launchd_plist() {
     local domain="$1" plist="$2"
     [[ -e "$plist" ]] || return 0
 
     if [[ "$domain" == "system" ]]; then
         sudo launchctl bootout system "$plist" 2>/dev/null || true
+    else
+        launchctl bootout "$domain" "$plist" 2>/dev/null || true
+    fi
+
+    if [[ "$plist" == /Library/* ]]; then
         sudo chflags noschg "$plist" 2>/dev/null || true
         sudo rm -f -- "$plist"
     else
-        launchctl bootout "$domain" "$plist" 2>/dev/null || true
         chflags nouchg "$plist" 2>/dev/null || true
         rm -f -- "$plist"
     fi
@@ -52,7 +58,7 @@ remove_microsoft_autoupdate() {
 
     for name in "${MAU_AGENTS[@]}"; do
         remove_launchd_plist "gui/$uid" "$HOME/Library/LaunchAgents/$name"
-        remove_launchd_plist "system" "/Library/LaunchAgents/$name"
+        remove_launchd_plist "gui/$uid" "/Library/LaunchAgents/$name"
         remove_launchd_plist "system" "/Library/LaunchDaemons/$name"
     done
 

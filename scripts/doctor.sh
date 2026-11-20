@@ -1,30 +1,35 @@
 #!/usr/bin/env bash
 # Check that a bootstrapped machine is in the expected state. It only reports,
 # never fixes, and exits non-zero on any failure, so it works as a smoke test.
+# CI runs it with macOS /bin/bash, so keep it bash 3.2 compatible.
+#
+#   doctor.sh              every check for this platform
+#   doctor.sh --only stow  only the stow links (what CI asserts)
 
 # Deliberately no -e: every check must run so the summary counts all results.
 set -uo pipefail
 
-# shellcheck source=scripts/lib/paths.sh
 source "$(dirname -- "${BASH_SOURCE[0]}")/lib/paths.sh"
-# shellcheck source=scripts/lib/ui.sh
 source "$DOTFILES_ROOT/scripts/lib/ui.sh"
-# shellcheck source=scripts/lib/platform.sh
 source "$DOTFILES_ROOT/scripts/lib/platform.sh"
-# shellcheck source=scripts/lib/macos-state.sh
-is_macos && source "$DOTFILES_ROOT/scripts/lib/macos-state.sh"
+source "$DOTFILES_ROOT/scripts/lib/cli-tools.sh"
+if is_macos; then
+    source "$DOTFILES_ROOT/scripts/lib/macos-state.sh"
+    source "$DOTFILES_ROOT/scripts/lib/macos-defaults.sh"
+fi
 
 # Required by bootstrap on every platform.
 CORE_COMMANDS=(git stow zsh)
-# Installed by the Brewfile on macOS; optional on Linux. "a|b" accepts either
-# name: Debian and Ubuntu ship fd as fdfind and bat as batcat.
-WORKSTATION_COMMANDS=(starship fzf rg "fd|fdfind" "bat|batcat" eza zoxide jq uv tldr yq direnv ccache git-lfs node pnpm bun rustup)
+# The CLI tools table: installed by the Brewfile on macOS, optional on Linux.
+# "a|b" accepts either name, e.g. Debian's fdfind and Fedora's rustup-init.
+WORKSTATION_COMMANDS=()
+while IFS= read -r command_name; do
+    WORKSTATION_COMMANDS+=("$command_name")
+done < <(cli_tool_commands)
+unset command_name
 MACOS_COMMANDS=(brew dockutil gh mas topgrade)
 
-# True when $1 is on PATH.
-has_command() {
-    command -v "$1" >/dev/null 2>&1
-}
+ONLY=""
 
 # Print the first name in "a|b" that is on PATH; fail if none is.
 find_command() {
@@ -201,6 +206,8 @@ check_brewfile() {
 }
 
 check_macos_tooling() {
+    local script=""
+
     section "macOS tooling"
 
     verify "Touch ID for sudo enabled" "Touch ID for sudo not enabled (run scripts/platform/macos.sh)" \
@@ -211,24 +218,58 @@ check_macos_tooling() {
         soft_warn macos_full_xcode_installed
     verify "GitHub CLI authenticated" "GitHub CLI not authenticated (run: gh auth login)" \
         soft_warn quietly gh auth status
-    verify "launchd env agent installed and loaded" "launchd env agent not installed or not loaded (run scripts/platform/macos.sh)" \
-        soft_warn macos_launchd_env_agent_loaded
+
+    if ! macos_launchd_env_agent_loaded; then
+        soft_warn "launchd env agent not installed or not loaded (run scripts/platform/macos.sh)"
+    elif ! macos_launchd_env_agent_current; then
+        script="$(macos_launchd_env_agent_script)" || script="an unknown script"
+        soft_warn "launchd env agent is out of date: it runs $script (run scripts/platform/macos.sh to rewrite it)"
+    else
+        pass "launchd env agent installed, loaded and current"
+    fi
 }
 
-# Report only. macos-hardening.sh can fix FileVault, security updates and the
-# firewall; SIP can only be changed from Recovery.
+# Report every row of lib/macos-defaults.sh that differs from this machine.
+check_macos_defaults() {
+    local scope domain key type value have clean=1
+
+    section "macOS defaults"
+
+    while IFS='|' read -r scope domain key type value have; do
+        soft_warn "$domain $key is $have, expected $value (run scripts/platform/macos.sh)"
+        clean=0
+    done < <(macos_defaults_drift)
+
+    ((clean)) && pass "all $(macos_defaults_rows | wc -l | tr -d ' ') macOS defaults match"
+    return 0
+}
+
+# Report only. macos-hardening.sh can fix most of these; SIP can only be
+# changed from Recovery, and sharing from System Settings > General > Sharing.
 check_macos_security() {
+    local label="" check=""
+
     section "macOS security"
 
     verify "FileVault enabled" "FileVault is off (run scripts/platform/macos-hardening.sh)" \
         fail macos_filevault_enabled
-    verify "System Integrity Protection enabled" "SIP is disabled (re-enable from Recovery: csrutil enable)" \
+    verify "System Integrity Protection enabled" "SIP is disabled or customized (re-enable from Recovery: csrutil enable)" \
         fail macos_sip_enabled
-    # spctl can no longer re-enable Gatekeeper; only System Settings can.
-    verify "Gatekeeper assessments enabled" "Gatekeeper is off (re-enable in System Settings > Privacy & Security)" \
+    verify "Gatekeeper assessments enabled" "Gatekeeper is off (run scripts/platform/macos-hardening.sh)" \
         fail macos_gatekeeper_enabled
-    verify "Security responses install automatically" "Security responses are not automatic (run scripts/platform/macos-hardening.sh)" \
+    if macos_auto_login_enabled; then
+        fail "Automatic login is on (run scripts/platform/macos-hardening.sh)"
+    else
+        pass "Automatic login is off"
+    fi
+    verify "Automatic update checks, downloads and security responses enabled" \
+        "Automatic update checks, downloads or security responses are not all on (run scripts/platform/macos-hardening.sh; MDM may manage these)" \
         soft_warn macos_automatic_security_updates_enabled
+    if macos_remote_management_active; then
+        soft_warn "Remote Management is on (run scripts/platform/macos-hardening.sh, unless IT relies on it)"
+    else
+        pass "Remote Management is off"
+    fi
 
     if ! macos_firewall_available; then
         soft_warn "socketfilterfw not found; cannot check the firewall"
@@ -249,13 +290,29 @@ check_macos_security() {
     else
         soft_warn "Firewall Stealth Mode is off (run scripts/platform/macos-hardening.sh)"
     fi
+
+    if macos_firewall_signed_allowlist_off; then
+        pass "Firewall asks before signed software accepts connections"
+    elif macos_mdm_managed; then
+        soft_warn "Firewall allows signed software automatically; this Mac is MDM-managed, so change it in System Settings or ask IT"
+    else
+        soft_warn "Firewall allows signed software automatically (run scripts/platform/macos-hardening.sh)"
+    fi
+
+    for label in File Printer Internet Media; do
+        check="macos_$(printf '%s' "$label" | tr '[:upper:]' '[:lower:]')_sharing_enabled"
+        if "$check"; then
+            soft_warn "$label Sharing is on (turn it off in System Settings > General > Sharing)"
+        else
+            pass "$label Sharing is off"
+        fi
+    done
 }
 
 # FUSE-T is in the Brewfile. Omnimount itself is optional; when the app is
 # present, the CLI on the Homebrew prefix has to be that app's version and
 # fuse2fs has to link FUSE-T rather than macFUSE.
 check_macos_filesystems() {
-    local app="/Applications/Omnimount.app"
     local fuse2fs="" cli="" app_version="" cli_version="" deps=""
 
     section "Filesystems"
@@ -265,21 +322,22 @@ check_macos_filesystems() {
         return 0
     fi
 
-    verify "FUSE-T cask installed" "FUSE-T cask is not installed (brew install --cask fuse-t)" \
-        fail quietly brew list --cask fuse-t
-    if quietly brew list --cask fuse-t; then
+    if ! macos_fuse_t_cask_installed; then
+        fail "FUSE-T cask is not installed (brew install --cask fuse-t)"
+    else
+        pass "FUSE-T cask installed"
         verify "FUSE-T library installed" \
-            "FUSE-T cask is listed but /usr/local/lib/libfuse-t.dylib is missing; reinstall the cask" \
-            fail test -f /usr/local/lib/libfuse-t.dylib
+            "FUSE-T cask is listed but $FUSE_T_LIB is missing; reinstall the cask" \
+            fail macos_fuse_t_lib_present
     fi
 
-    if [[ -e /Library/Filesystems/macfuse.fs ]]; then
+    if macos_macfuse_present; then
         fail "macFUSE is installed alongside FUSE-T; remove macFUSE"
     else
         pass "macFUSE is not installed"
     fi
 
-    if [[ ! -d "$app" ]]; then
+    if [[ ! -d "$OMNIMOUNT_APP" ]]; then
         soft_warn "Omnimount.app is not installed (optional; run scripts/platform/macos-omnimount.sh)"
         return 0
     fi
@@ -293,10 +351,8 @@ check_macos_filesystems() {
     if [[ ! -x "$cli" ]]; then
         fail "Omnimount CLI is missing at $cli"
     else
-        app_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Contents/Info.plist" 2>/dev/null)" || app_version=""
-        cli_version="$("$cli" --version 2>/dev/null)" || cli_version=""
-        cli_version="${cli_version%%$'\n'*}"
-        cli_version="${cli_version//$'\r'/}"
+        app_version="$(macos_omnimount_app_version)" || app_version=""
+        cli_version="$(macos_omnimount_cli_version "$cli")" || cli_version=""
         if [[ -n "$app_version" && "$cli_version" == "$app_version" ]]; then
             pass "Omnimount CLI ${cli_version} matches the app"
         else
@@ -304,8 +360,8 @@ check_macos_filesystems() {
         fi
     fi
 
-    if [[ -x "$app/Contents/MacOS/fuse2fs" ]]; then
-        fuse2fs="$app/Contents/MacOS/fuse2fs"
+    if [[ -x "$OMNIMOUNT_APP/Contents/MacOS/fuse2fs" ]]; then
+        fuse2fs="$OMNIMOUNT_APP/Contents/MacOS/fuse2fs"
     else
         fuse2fs="$MACOS_BREW_PREFIX/sbin/fuse2fs"
     fi
@@ -333,7 +389,7 @@ check_macos_spotlight() {
     # One pass over the index: the first input is the existing exclusion
     # paths, the second every indexed item under $HOME.
     while IFS=$'\t' read -r count path; do
-        soft_warn "Spotlight indexes $count items under $path (run scripts/platform/macos.sh; if it's already on the Privacy list, rebuild the index: sudo mdutil -E /System/Volumes/Data)"
+        soft_warn "Spotlight indexes $count items under $path (run scripts/platform/macos-spotlight.sh; if it's already on the Privacy list, rebuild the index: sudo mdutil -E /System/Volumes/Data)"
         clean=0
     done < <(awk '
         NR == FNR { if ($0 != "") prefixes[++n] = $0; next }
@@ -358,12 +414,57 @@ print_summary() {
     success "All checks passed"
 }
 
+usage() {
+    cat <<EOF
+Usage: ${0##*/} [--only stow]
+
+Check that this machine matches what bootstrap.sh produces. Only reports;
+exits non-zero when a check fails.
+
+Options:
+  --only stow  Run only the stow link checks
+  -h, --help   Show this help text
+EOF
+}
+
+parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --only)
+                if [[ "${2:-}" != "stow" ]]; then
+                    usage >&2
+                    exit 2
+                fi
+                ONLY="stow"
+                shift
+                ;;
+            -h | --help)
+                usage
+                exit 0
+                ;;
+            *)
+                error "Unknown option: $1"
+                usage >&2
+                exit 2
+                ;;
+        esac
+        shift
+    done
+}
+
 main() {
+    parse_args "$@"
+
     info "Dotfiles doctor ($DOTFILES_ROOT)"
 
     set_xdg_environment_defaults
 
     check_stow_links
+    if [[ "$ONLY" == "stow" ]]; then
+        print_summary
+        return
+    fi
+
     check_xdg_directories
     check_directory_permissions
     check_commands
@@ -372,6 +473,7 @@ main() {
     if is_macos; then
         check_brewfile
         check_macos_tooling
+        check_macos_defaults
         check_macos_filesystems
         check_macos_security
         check_macos_spotlight

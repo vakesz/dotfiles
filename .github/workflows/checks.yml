@@ -4,6 +4,14 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Weekly run catches Brewfile entries that Homebrew deprecated or disabled.
+  schedule:
+    - cron: "17 5 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -11,8 +19,11 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       # zsh is needed by check_xdg_drift and ruby by `ruby -c Brewfile`.
       - run: sudo apt-get update -qq && sudo apt-get install -y jq python3 ruby shellcheck shfmt zsh ripgrep fd-find
       - run: |
@@ -27,9 +38,17 @@ jobs:
       - run: make check
 
   bootstrap-linux:
-    runs-on: ubuntu-latest
+    name: bootstrap-linux (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - run: sudo apt-get update -qq && sudo apt-get install -y git stow zsh
       # Not run from a terminal, so bootstrap skips the platform setup prompt.
       - run: ./bootstrap.sh
@@ -51,28 +70,45 @@ jobs:
           exit "$status"
         shell: bash
 
-  brewfile-names:
+  gitleaks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # Release binary checked against the sha256 file published with it.
+      - run: |
+          version=8.30.1
+          base="https://github.com/gitleaks/gitleaks/releases/download/v${version}"
+          archive="gitleaks_${version}_linux_x64.tar.gz"
+          curl -fsSLO "$base/$archive"
+          curl -fsSLO "$base/gitleaks_${version}_checksums.txt"
+          sha256sum --check --ignore-missing "gitleaks_${version}_checksums.txt"
+          tar -xzf "$archive" gitleaks
+          ./gitleaks git --redact --verbose .
+
+  macos:
     runs-on: macos-latest
     # macOS runners can queue for 15+ minutes and queued time counts against
     # this timeout; the job itself needs about a minute.
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       # Every entry comes from the default taps, so a missing name means the
-      # formula or cask was renamed or removed.
+      # formula or cask was renamed or removed. Deprecated and disabled entries
+      # fail too.
       - run: |
-          brew bundle list --file Brewfile --formula | xargs brew info --formula >/dev/null
-          brew bundle list --file Brewfile --cask | xargs brew info --cask >/dev/null
-
-  bootstrap-macos:
-    runs-on: macos-latest
-    # Same queue budget as brewfile-names: this job runs in well under a minute,
-    # but macOS queue time at 15 minutes has cancelled it before it started.
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v7
+          brew bundle list --file Brewfile --formula | xargs brew info --json=v2 --formula |
+            jq -e '[.formulae[] | select(.deprecated or .disabled) | .full_name] | if length == 0 then true else ("deprecated or disabled formulae: " + join(" ") | halt_error(1)) end'
+          brew bundle list --file Brewfile --cask | xargs brew info --json=v2 --cask |
+            jq -e '[.casks[] | select(.deprecated or .disabled) | .token] | if length == 0 then true else ("deprecated or disabled casks: " + join(" ") | halt_error(1)) end'
       - run: brew install stow
-      - run: ./bootstrap.sh --skip-preflight
+      # bash 3.2 is what a fresh Mac has, so run the scripts with it.
+      - run: /bin/bash ./bootstrap.sh --skip-preflight
       # One link from each stow package.
       - run: |
           test -L "$HOME/.zshenv"
@@ -80,15 +116,5 @@ jobs:
           test -L "$HOME/.local/share/gradle/gradle.properties"
           test -L "$HOME/.config/linearmouse/linearmouse.json"
       # Full `make doctor` fails on a hosted runner: FileVault is off and the
-      # Brewfile commands aren't installed. Only its stow check is asserted,
-      # by the pass line it prints. Rewording that line in doctor.sh breaks
-      # this step.
-      - run: |
-          ./scripts/doctor.sh >doctor.log 2>&1 || true
-          if ! grep -qF 'all managed files in home config data config-macos are linked' doctor.log; then
-            cat doctor.log
-            echo "doctor did not report the stow links as healthy" >&2
-            exit 1
-          fi
-        env:
-          NO_COLOR: "1"
+      # Brewfile commands aren't installed, so only the stow checks run.
+      - run: /bin/bash ./scripts/doctor.sh --only stow

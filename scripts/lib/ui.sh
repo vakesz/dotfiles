@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Status messages, prompts and check results. The only file in scripts/ that
-# prints ANSI colors.
+# prints ANSI colors. bootstrap.sh sources this before Homebrew exists, so keep
+# it bash 3.2 compatible for macOS /bin/bash.
 
 [[ -n "${__DOTFILES_UI_LOADED:-}" ]] && return 0
 __DOTFILES_UI_LOADED=1
@@ -103,7 +104,7 @@ offer() {
     )
     status=$?
     ((had_errexit)) && set -e
-    ((status == 0)) || warn "$1 did not complete"
+    ((status == 0)) || warn "Not completed: ${prompt%\?}"
     return 0
 }
 
@@ -119,9 +120,14 @@ offer_if_missing() {
     offer "$prompt" "$action_fn"
 }
 
+# True when $1 is on PATH.
+has_command() {
+    command -v "$1" >/dev/null 2>&1
+}
+
 # Skip the caller's step with info when $1 is missing from PATH.
 require_command() {
-    command -v "$1" >/dev/null 2>&1 && return 0
+    has_command "$1" && return 0
     info "$1 not installed; skipping ${2:-$1}"
     return 1
 }

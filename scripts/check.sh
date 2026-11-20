@@ -3,16 +3,14 @@
 
 set -euo pipefail
 
-# shellcheck source=scripts/lib/paths.sh
 source "$(dirname -- "${BASH_SOURCE[0]}")/lib/paths.sh"
-# shellcheck source=scripts/lib/ui.sh
 source "$DOTFILES_ROOT/scripts/lib/ui.sh"
 
 FILES=()
 
 # Abort unless the named command exists on PATH.
 require() {
-    command -v "$1" >/dev/null 2>&1 || die "$1 not installed${2:+: $2}"
+    has_command "$1" || die "$1 not installed${2:+: $2}"
 }
 
 # Tracked and untracked (but not ignored) files that still exist, so an
@@ -37,12 +35,13 @@ collect() {
     fi
 }
 
-# Shellcheck every bash script in the repo.
+# Shellcheck every bash script and git hook in the repo. .shellcheckrc sets
+# the shell and lets shellcheck follow sourced files.
 check_shell() {
     require shellcheck "brew install shellcheck"
-    collect '*.sh'
+    collect '*.sh' '.githooks/*'
 
-    shellcheck --shell=bash --external-sources "${FILES[@]}"
+    shellcheck "${FILES[@]}"
     printf 'shellcheck: clean\n'
 }
 
@@ -50,7 +49,7 @@ check_shell() {
 # .editorconfig; shfmt ignores that file as soon as any formatting flag is set.
 check_fmt() {
     require shfmt "brew install shfmt"
-    collect '*.sh'
+    collect '*.sh' '.githooks/*'
 
     shfmt -d "${FILES[@]}"
     printf 'shfmt: clean\n'
@@ -95,7 +94,7 @@ check_json() {
 toml_python() {
     local candidate
     for candidate in python3 python3.14 python3.13 python3.12 python3.11; do
-        command -v "$candidate" >/dev/null 2>&1 || continue
+        has_command "$candidate" || continue
         "$candidate" -c 'import tomllib' 2>/dev/null || continue
         printf '%s\n' "$candidate"
         return 0
@@ -120,7 +119,7 @@ check_actionlint() {
     if [[ -n "${CI:-}" ]]; then
         require actionlint
     fi
-    if command -v actionlint >/dev/null 2>&1; then
+    if has_command actionlint; then
         actionlint
     fi
 }
@@ -181,6 +180,9 @@ check_xdg_drift() {
     zsh_path="$(command -v zsh)"
 
     tmp="$(mktemp -d)"
+    # set -e can exit before the rm below, so clean up on any exit.
+    # shellcheck disable=SC2064 # expand the path now
+    trap "rm -rf -- $(printf '%q' "$tmp")" EXIT
     mkdir -p "$tmp/.config"
     ln -s "$DOTFILES_ROOT/home/.zshenv" "$tmp/.zshenv"
     ln -s "$DOTFILES_ROOT/config/zsh" "$tmp/.config/zsh"
@@ -188,6 +190,7 @@ check_xdg_drift() {
     zsh_values="$(zsh_env_values "$zsh_path" "$tmp" "${names[@]}")" || status=$?
     bash_values="$(bash_env_values "$tmp" "${names[@]}")" || status=$?
     rm -rf -- "$tmp"
+    trap - EXIT
 
     # A shell that failed to start is a broken check, not drift.
     if ((status != 0)) || [[ -z "$zsh_values" || -z "$bash_values" ]]; then

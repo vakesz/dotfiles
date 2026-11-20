@@ -3,11 +3,11 @@
 
 set -euo pipefail
 
-# shellcheck source-path=SCRIPTDIR
 source "$(dirname -- "${BASH_SOURCE[0]}")/../lib/paths.sh"
 source "$DOTFILES_ROOT/scripts/lib/ui.sh"
 source "$DOTFILES_ROOT/scripts/lib/platform.sh"
 source "$DOTFILES_ROOT/scripts/lib/macos-state.sh"
+source "$DOTFILES_ROOT/scripts/lib/macos-defaults.sh"
 source "$DOTFILES_ROOT/scripts/lib/macos-preflight.sh"
 
 set_xdg_environment_defaults
@@ -26,130 +26,55 @@ install_rosetta() {
     success "Rosetta installed"
 }
 
+# Write the rows of lib/macos-defaults.sh that differ, then read them back.
+# offer_if_missing skips this step, and so the Finder and Dock restarts, when
+# nothing differs.
 apply_macos_defaults() {
-    local failed=0
-
-    # Keep going past a domain macOS refuses (com.apple.universalaccess can
-    # fail without Full Disk Access) and report it at the end. This can't leak
-    # into other code: offer runs this function in a subshell.
-    # shellcheck disable=SC2032 # the `sudo defaults` elsewhere runs the real binary
-    defaults() {
-        command defaults "$@" || {
-            warn "defaults $* failed"
-            failed=1
-        }
-    }
+    local scope domain key type value have failed=0 spaces=0
 
     info "Applying macOS defaults..."
 
-    # Finder
-    defaults write com.apple.finder AppleShowAllFiles -bool false
-    defaults write NSGlobalDomain AppleShowAllExtensions -bool true
-    defaults write com.apple.finder ShowStatusBar -bool true
-    defaults write com.apple.finder ShowPathbar -bool true
-    defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
-    defaults write com.apple.finder _FXSortFoldersFirst -bool true
-    defaults write com.apple.finder FXArrangeGroupViewBy -string "Name"
-    defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
-    defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
-    defaults write com.apple.finder FXEnableExtensionChangeWarning -bool false
-    # SCcf: search the current folder. PfHm: new windows open at $HOME.
-    defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
-    defaults write com.apple.finder NewWindowTarget -string "PfHm"
-    defaults write com.apple.finder NewWindowTargetPath -string "file://${HOME}/"
-
-    # Keyboard
-    defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
-    defaults write NSGlobalDomain KeyRepeat -int 2
-    defaults write NSGlobalDomain InitialKeyRepeat -int 15
-    defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
-    defaults write NSGlobalDomain NSAutomaticCapitalizationEnabled -bool false
-    defaults write NSGlobalDomain NSAutomaticPeriodSubstitutionEnabled -bool false
-    defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
-    defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
-
-    # Panels
-    defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
-    defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
-    defaults write NSGlobalDomain NSWindowShouldDragOnGesture -bool true
-
-    # Trackpad. The built-in trackpad and a Magic Trackpad use separate domains.
-    defaults write com.apple.AppleMultitouchTrackpad Clicking -bool true
-    defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
-    defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
-    defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
-    defaults write com.apple.dock showAppExposeGestureEnabled -bool true
-
-    # Dock
-    defaults write com.apple.dock tilesize -int 32
-    defaults write com.apple.dock mineffect -string "scale"
-    defaults write com.apple.dock minimize-to-application -bool true
-    defaults write com.apple.dock show-process-indicators -bool true
-    defaults write com.apple.dock autohide -bool false
-    defaults write com.apple.dock show-recents -bool false
-    defaults write com.apple.dock size-immutable -bool true
-
-    # Mission Control
-    defaults write com.apple.dock mru-spaces -bool false
-    defaults write com.apple.dock expose-group-apps -bool true
-    defaults write NSGlobalDomain AppleSpacesSwitchOnActivate -bool true
-    # false turns "Displays have separate Spaces" on. Applies after logging out.
-    defaults write com.apple.spaces spans-displays -bool false
-
-    # Hot corners: 0 means no action.
-    local corner
-    for corner in tl tr bl br; do
-        defaults write com.apple.dock "wvous-${corner}-corner" -int 0
-        defaults write com.apple.dock "wvous-${corner}-modifier" -int 0
-    done
-
-    # Screenshots
-    defaults write com.apple.screencapture location -string "${HOME}/Desktop"
-    defaults write com.apple.screencapture type -string "png"
-    defaults write com.apple.screencapture disable-shadow -bool true
-
-    # Sandboxed Safari ignores this; use Safari > Settings > Advanced instead.
-    defaults write NSGlobalDomain WebKitDeveloperExtras -bool true
-
-    # Xcode
-    defaults write com.apple.dt.Xcode ShowBuildOperationDuration -bool true
-
-    # Tips
-    defaults write com.apple.tips TipsEnabled -bool false
-    defaults write com.apple.tips CloudKitSyncingEnabled -bool false
-    defaults write com.apple.tips NotificationsEnabled -bool false
-
-    # Siri
-    defaults write com.apple.assistant.support "Assistant Enabled" -bool false
-    defaults write com.apple.Siri StatusMenuVisible -bool false
-    defaults write com.apple.Siri VoiceTriggerUserEnabled -bool false
-
-    # Animation
-    defaults write com.apple.universalaccess reduceMotion -bool false
-    defaults write com.apple.dock launchanim -bool true
-    defaults write com.apple.dock expose-animation-duration -float 0.1
-    defaults write NSGlobalDomain NSAutomaticWindowAnimationsEnabled -bool false
-
-    # Time Machine
-    defaults write com.apple.TimeMachine DoNotOfferNewDisksForBackup -bool true
+    # Keep going past a domain macOS refuses and report it at the end.
+    while IFS='|' read -r scope domain key type value have; do
+        info "$domain $key: $have -> $value"
+        if ! macos_defaults_write "$scope" "$domain" "$key" "$type" "$value"; then
+            warn "Could not write $domain $key"
+            failed=1
+        fi
+        if [[ "$key" == "spans-displays" ]]; then
+            spaces=1
+        fi
+    done < <(macos_defaults_drift)
 
     killall Finder 2>/dev/null || true
     killall Dock 2>/dev/null || true
     killall SystemUIServer 2>/dev/null || true
 
-    if ((failed)); then
-        return 1
-    fi
+    while IFS='|' read -r scope domain key type value have; do
+        error "$domain $key is still $have, expected $value"
+        failed=1
+    done < <(macos_defaults_drift)
+
+    ((failed == 0)) || return 1
 
     success "macOS defaults applied"
-    info "Separate Spaces per display takes effect after the next log out"
+    if ((spaces)); then
+        info "Separate Spaces per display takes effect after the next log out"
+    fi
+}
+
+# Desktops have no battery, and `pmset -b` fails there.
+has_battery() {
+    pmset -g batt 2>/dev/null | grep -q InternalBattery
 }
 
 configure_power_management() {
     info "Configuring power management..."
 
     sudo -v
-    sudo pmset -b sleep 60 displaysleep 15
+    if has_battery; then
+        sudo pmset -b sleep 60 displaysleep 15
+    fi
     sudo pmset -c sleep 0 displaysleep 60
     sudo pmset -a powernap 0
 
@@ -177,95 +102,6 @@ install_keyboard_layout() {
     mkdir -p "$HOME/Library/Keyboard Layouts"
     cp -- "$ASSETS_DIR/hungarian-win.keylayout" "$HOME/Library/Keyboard Layouts/Hungarian_Win.keylayout"
     success "Keyboard layout installed"
-}
-
-# Print the Spotlight Privacy list, one path per line. Needs root.
-spotlight_privacy_list() {
-    local count="" i
-
-    # The key is absent until something has been excluded once.
-    count="$(sudo plutil -extract Exclusions raw -o - "$MACOS_SPOTLIGHT_CONFIG" 2>/dev/null)" || return 0
-    [[ "$count" =~ ^[0-9]+$ ]] || return 0
-    for ((i = 0; i < count; i++)); do
-        sudo plutil -extract "Exclusions.$i" raw -o - "$MACOS_SPOTLIGHT_CONFIG"
-    done
-}
-
-# Print the existing exclusion paths that the Privacy list lacks. Needs root.
-spotlight_missing_exclusions() {
-    local current="" path
-
-    current="$(spotlight_privacy_list)"
-    while IFS= read -r path; do
-        [[ -d "$path" ]] || continue
-        grep -Fxq -- "$path" <<<"$current" || printf '%s\n' "$path"
-    done < <(macos_spotlight_exclusion_paths)
-}
-
-# Uses cached sudo credentials only, so the check itself never prompts.
-spotlight_exclusions_applied() {
-    sudo -n true 2>/dev/null || return 1
-    sudo -n plutil -p "$MACOS_SPOTLIGHT_CONFIG" >/dev/null 2>&1 || return 1
-    [[ -z "$(spotlight_missing_exclusions)" ]]
-}
-
-# macOS 27 ignores .metadata_never_index markers. A folder name ending in
-# .noindex still works, but these folders can't be renamed, so use the Privacy
-# list. It lives in a root-only plist that mds reads when it starts.
-configure_spotlight_exclusions() {
-    local missing="" path="" still_missing=""
-
-    info "Adding high-churn dev paths to the Spotlight Privacy list..."
-    sudo -v
-    mkdir -p -- "$XDG_CACHE_HOME"
-
-    if ! sudo plutil -p "$MACOS_SPOTLIGHT_CONFIG" >/dev/null 2>&1; then
-        warn "Cannot read $MACOS_SPOTLIGHT_CONFIG"
-        info "Grant your terminal Full Disk Access and retry, or add the paths in System Settings > Spotlight > Search Privacy"
-        return 1
-    fi
-
-    missing="$(spotlight_missing_exclusions)"
-    if [[ -z "$missing" ]]; then
-        success "Spotlight Privacy list already complete"
-        return 0
-    fi
-
-    sudo plutil -extract Exclusions raw -o - "$MACOS_SPOTLIGHT_CONFIG" >/dev/null 2>&1 ||
-        sudo plutil -insert Exclusions -array "$MACOS_SPOTLIGHT_CONFIG"
-
-    while IFS= read -r path; do
-        info "Excluding $path"
-        sudo plutil -insert Exclusions -string "$path" -append "$MACOS_SPOTLIGHT_CONFIG"
-    done <<<"$missing"
-
-    # mds only reads the list at start. launchd respawns it at once.
-    sudo launchctl kickstart -k system/com.apple.metadata.mds 2>/dev/null ||
-        sudo killall mds 2>/dev/null || true
-
-    # mds can rewrite the file from memory as it exits, so check that the
-    # entries survived the restart.
-    sleep 2
-    still_missing="$(spotlight_missing_exclusions)"
-    if [[ -n "$still_missing" ]]; then
-        while IFS= read -r path; do
-            error "Spotlight dropped this exclusion on restart: $path"
-        done <<<"$still_missing"
-        info "Add them in System Settings > Spotlight > Search Privacy"
-        open "x-apple.systempreferences:com.apple.Spotlight-Settings.extension" 2>/dev/null || true
-        return 1
-    fi
-
-    success "Spotlight Privacy list updated"
-
-    # Already-indexed items stay searchable until the index is rebuilt. The
-    # home folder lives on the Data volume, which has its own index, so erasing
-    # / alone doesn't clear them.
-    info "Rebuilding the Spotlight indexes so excluded items drop out..."
-    sudo mdutil -E / >/dev/null || warn "Could not rebuild the Spotlight index for /"
-    sudo mdutil -E /System/Volumes/Data >/dev/null ||
-        warn "Could not rebuild the Spotlight index for /System/Volumes/Data"
-    info "Spotlight re-indexes in the background, so searches may be incomplete for a while; make doctor reports anything that stays indexed"
 }
 
 enable_touch_id_sudo() {
@@ -338,7 +174,6 @@ configure_computer_name() {
     sudo scutil --set ComputerName "$new"
     sudo scutil --set HostName "$local_name"
     sudo scutil --set LocalHostName "$local_name"
-    # shellcheck disable=SC2033 # no shadow here; it exists only in apply_macos_defaults's subshell
     sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server \
         NetBIOSName -string "$local_name"
 
@@ -386,7 +221,7 @@ run_xcode_first_launch() {
 report_missing_app_store_apps() {
     local installed="" id="" name="" missing=()
 
-    command -v mas >/dev/null 2>&1 || return 0
+    has_command mas || return 0
     [[ -f "$DOTFILES_BREWFILE" ]] || return 0
 
     if ! installed="$(mas list 2>/dev/null | awk '{print $1}')"; then
@@ -423,50 +258,43 @@ authenticate_gh() {
     success "GitHub authentication configured"
 }
 
-rustup_path() {
-    macos_brew_prefix || return 1
+# Homebrew's rustup is keg-only, so call it by its opt path. main fills
+# MACOS_BREW_PREFIX first; it stays empty when brew is missing.
+rustup_bin() {
     printf '%s/opt/rustup/bin/rustup\n' "$MACOS_BREW_PREFIX"
 }
 
 rustup_stable_toolchain_installed() {
-    local rustup_bin=""
-
-    rustup_bin="$(rustup_path)"
-    [[ -x "$rustup_bin" ]] || return 1
-    "$rustup_bin" toolchain list | grep -q '^stable'
+    [[ -n "$MACOS_BREW_PREFIX" && -x "$(rustup_bin)" ]] || return 1
+    "$(rustup_bin)" toolchain list | grep -q '^stable'
 }
 
 install_rustup_stable_toolchain() {
-    local rustup_bin=""
-
-    rustup_bin="$(rustup_path)"
-    [[ -x "$rustup_bin" ]] || {
+    [[ -n "$MACOS_BREW_PREFIX" && -x "$(rustup_bin)" ]] || {
         warn "Homebrew rustup not installed; skipping Rust setup"
         return 1
     }
 
     info "Installing the stable Rust toolchain..."
-    "$rustup_bin" default stable
+    "$(rustup_bin)" default stable
     success "Stable Rust toolchain installed"
 }
 
 # Homebrew llvm names it llvm-dlltool, but Wine's build looks for `dlltool`.
-# Callers check -x since the path may not exist when llvm isn't installed.
-llvm_dlltool_path() {
-    macos_brew_prefix || return 1
+llvm_dlltool_src() {
     printf '%s/opt/llvm/bin/llvm-dlltool\n' "$MACOS_BREW_PREFIX"
 }
 
 llvm_dlltool_linked() {
-    local src=""
-    src="$(llvm_dlltool_path)"
-    [[ -x "$src" && "$(readlink "$XDG_BIN_HOME/dlltool" 2>/dev/null)" == "$src" ]]
+    [[ -n "$MACOS_BREW_PREFIX" && -x "$(llvm_dlltool_src)" ]] || return 1
+    [[ "$(readlink "$XDG_BIN_HOME/dlltool" 2>/dev/null)" == "$(llvm_dlltool_src)" ]]
 }
 
 link_llvm_dlltool() {
     local src=""
-    src="$(llvm_dlltool_path)"
-    [[ -x "$src" ]] || {
+
+    src="$(llvm_dlltool_src)"
+    [[ -n "$MACOS_BREW_PREFIX" && -x "$src" ]] || {
         warn "Homebrew llvm not installed; skipping dlltool symlink"
         return 1
     }
@@ -476,31 +304,8 @@ link_llvm_dlltool() {
     success "Symlinked $XDG_BIN_HOME/dlltool -> $src"
 }
 
-# The plist needs absolute paths, so it's generated rather than stowed.
-launchd_env_plist() {
-    cat <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>Label</key>
-    <string>$LAUNCHD_ENV_LABEL</string>
-    <key>ProgramArguments</key>
-    <array>
-        <string>/bin/zsh</string>
-        <string>-f</string>
-        <string>$DOTFILES_ROOT/scripts/launchd-env.zsh</string>
-    </array>
-    <key>RunAtLoad</key>
-    <true/>
-</dict>
-</plist>
-EOF
-}
-
 launchd_env_agent_installed() {
-    macos_launchd_env_agent_loaded &&
-        [[ "$(cat "$LAUNCHD_ENV_PLIST")" == "$(launchd_env_plist)" ]]
+    macos_launchd_env_agent_loaded && macos_launchd_env_agent_current
 }
 
 # Give GUI apps the ~/.zshenv variables, so they stop writing dot-dirs into $HOME.
@@ -509,13 +314,25 @@ install_launchd_env_agent() {
     domain="gui/$(id -u)"
 
     mkdir -p -- "${LAUNCHD_ENV_PLIST%/*}"
-    launchd_env_plist >"$LAUNCHD_ENV_PLIST"
+    macos_launchd_env_plist >"$LAUNCHD_ENV_PLIST"
     launchctl bootout "$domain" "$LAUNCHD_ENV_PLIST" 2>/dev/null || true
     launchctl bootstrap "$domain" "$LAUNCHD_ENV_PLIST" || {
         warn "Couldn't load $LAUNCHD_ENV_PLIST"
         return 1
     }
     success "Installed the launchd env agent; restart running apps to pick it up"
+}
+
+# An installed agent that runs another path (the script moved, or the repo was
+# cloned elsewhere) fails at every login, so ask about it specifically.
+offer_launchd_env_agent() {
+    local prompt="Pass the ~/.zshenv variables to GUI apps with a LaunchAgent?"
+
+    if [[ -f "$LAUNCHD_ENV_PLIST" ]] && ! macos_launchd_env_agent_current; then
+        warn "The launchd env agent is out of date; it runs $(macos_launchd_env_agent_script || printf 'an unknown script')"
+        prompt="Rewrite the launchd env agent to run $DOTFILES_ROOT/scripts/platform/launchd-env.zsh?"
+    fi
+    offer_if_missing "$prompt" launchd_env_agent_installed install_launchd_env_agent "launchd env agent already installed"
 }
 
 main() {
@@ -540,16 +357,17 @@ main() {
 
     offer_if_missing "Set the computer name?" computer_name_configured configure_computer_name "Computer name already set"
 
-    offer "Apply macOS defaults?" apply_macos_defaults
+    offer_if_missing "Apply macOS defaults?" macos_defaults_applied apply_macos_defaults "macOS defaults already applied"
     offer "Configure power management?" configure_power_management
     require_command dockutil "the Dock layout" && offer "Apply the Dock layout?" configure_dock
 
-    offer_if_missing "Pass the ~/.zshenv variables to GUI apps with a LaunchAgent?" launchd_env_agent_installed install_launchd_env_agent "launchd env agent already installed"
+    offer_launchd_env_agent
     offer_if_missing "Unhide the user Library folder in Finder?" library_folder_visible unhide_library_folder "User Library folder already visible"
-    offer_if_missing "Add high-churn dev paths to the Spotlight Privacy list?" spotlight_exclusions_applied configure_spotlight_exclusions "Spotlight Privacy list already complete"
     offer_if_missing "Install the custom Hungarian keyboard layout?" keyboard_layout_installed install_keyboard_layout "Custom Hungarian keyboard layout already installed"
     offer_if_missing "Symlink LLVM dlltool into $XDG_BIN_HOME for Wine builds?" llvm_dlltool_linked link_llvm_dlltool "LLVM dlltool symlink already in place"
-    # Asks for confirmation itself and prints the setup checklist.
+    # Each sub-script asks for confirmation itself and can also run alone.
+    "$DOTFILES_ROOT/scripts/platform/macos-spotlight.sh" || warn "Spotlight setup did not complete"
+    # Also prints the Omnimount permissions checklist.
     "$DOTFILES_ROOT/scripts/platform/macos-omnimount.sh" || warn "Omnimount setup did not complete"
 
     report_missing_app_store_apps

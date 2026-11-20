@@ -1,7 +1,7 @@
 SHELL := /usr/bin/env bash
 
 .DEFAULT_GOAL := help
-.PHONY: help hooks bootstrap adopt macos linux doctor check check-shell check-fmt check-zsh check-config check-apps brew-check brew-install
+.PHONY: help hooks bootstrap adopt macos macos-hardening macos-omnimount macos-office-tweaks macos-spotlight linux doctor check check-shell check-fmt check-zsh check-config check-apps brew-check brew-install
 
 help: ## Show this help
 	@printf 'Targets:\n'
@@ -19,6 +19,18 @@ adopt: ## Bootstrap and import existing dotfiles into the repo
 
 macos: ## Run the macOS platform setup on its own
 	@./scripts/platform/macos.sh
+
+macos-hardening: ## Run the optional macOS hardening on its own
+	@./scripts/platform/macos-hardening.sh
+
+macos-omnimount: ## Install or repair Omnimount (ext2/3/4 and NTFS disks)
+	@./scripts/platform/macos-omnimount.sh
+
+macos-office-tweaks: ## Turn off Microsoft AutoUpdate so topgrade updates Office
+	@./scripts/platform/macos-office-tweaks.sh
+
+macos-spotlight: ## Add the dev paths to the Spotlight Privacy list
+	@./scripts/platform/macos-spotlight.sh
 
 linux: ## Run the Linux / WSL platform setup on its own
 	@./scripts/platform/linux.sh

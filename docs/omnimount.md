@@ -8,13 +8,13 @@ It runs on FUSE-T from the Brewfile, which uses local NFS mounts instead of a ke
 
 The script asks before it changes anything. FUSE-T comes from the Brewfile, so run `./bootstrap.sh` first. It stops if macFUSE is installed.
 
-When `/Applications/Omnimount.app` has a stapled notarization ticket, the script leaves that app in place and points `$(brew --prefix)/bin/omnimount` and `$(brew --prefix)/sbin/fuse2fs` at the copies inside it. Homebrew does not manage those two paths: `brew cleanup` will not update or remove them. Sparkle updates the app, and the symlinks follow the new binaries. Replacing the notarized app with a local build would change the signing identity and drop Full Disk Access.
+When `/Applications/Omnimount.app` has a stapled notarization ticket, the script checks that it is signed by the upstream developer team (`5QH6VFV9X3`), that `codesign --verify --strict` passes and that Gatekeeper (`spctl -a -vv`) accepts it as notarized Developer ID software. Any developer can notarize an app, so a notarized app from another team is refused rather than linked or replaced. A trusted app is left in place, and the script points `$(brew --prefix)/bin/omnimount` and `$(brew --prefix)/sbin/fuse2fs` at the copies inside it. Homebrew does not manage those two paths: `brew cleanup` will not update or remove them. Sparkle updates the app, and the symlinks follow the new binaries. Replacing the notarized app with a local build would change the signing identity and drop Full Disk Access.
 
 A source build runs only when that notarized app is absent. It:
 
 - checks out Omnimount v0.4.8 and applies `assets/macos/omnimount-build.patch`, which builds for this Mac's architecture, including under Rosetta, and fixes the Swift concurrency warnings. Upstream messages are left unchanged
 - downloads e2fsprogs 1.47.3 and ntfs-3g 2026.7.7, checks their sha256, and hands those trees to the build
-- records the revision, architecture, FUSE-T version and signing identity in `$XDG_STATE_HOME/omnimount/build.stamp`, and builds again when one of those no longer matches
+- records the revision, architecture, FUSE-T version and signing identity in `$XDG_STATE_HOME/omnimount/build.stamp`, and builds again when one of those no longer matches. Only source builds write this stamp; linking the notarized app removes it
 - writes `$XDG_STATE_HOME/omnimount/build.log`, removes the build tree afterwards, and keeps the tree when `OMNIMOUNT_KEEP=1`
 - stops if Omnimount or its helper is running, because the install replaces `/Applications/Omnimount.app`
 

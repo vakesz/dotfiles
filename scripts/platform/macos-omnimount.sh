@@ -1,25 +1,23 @@
 #!/usr/bin/env bash
 # Install Omnimount for ext2/3/4 and NTFS disks on FUSE-T.
-# A notarized app is linked into the Homebrew prefix. Source builds run only
-# when that app is absent.
+# A notarized app from the pinned upstream team is linked into the Homebrew
+# prefix. Source builds run only when no notarized app is installed.
 
 set -euo pipefail
 
-# shellcheck source-path=SCRIPTDIR
 source "$(dirname -- "${BASH_SOURCE[0]}")/../lib/paths.sh"
 source "$DOTFILES_ROOT/scripts/lib/ui.sh"
 source "$DOTFILES_ROOT/scripts/lib/platform.sh"
 source "$DOTFILES_ROOT/scripts/lib/macos-state.sh"
 
-readonly FUSE_T_CASK="fuse-t"
-readonly FUSE_T_LIB="/usr/local/lib/libfuse-t.dylib"
-readonly MACFUSE_FS="/Library/Filesystems/macfuse.fs"
-readonly OMNIMOUNT_APP="/Applications/Omnimount.app"
+# FUSE_T_CASK, FUSE_T_LIB, MACFUSE_FS and OMNIMOUNT_APP come from macos-state.sh.
 readonly OMNIMOUNT_REPOSITORY="https://github.com/ramdoor/omnimount.git"
 # v0.4.8 (2026-11-15). Upstream publishes no release archive, so this is the
 # source pin for machines without the notarized app.
 readonly OMNIMOUNT_REVISION="d15fad6a5ddb15df6bde32fa1490a668f5acd1a8"
 readonly OMNIMOUNT_VERSION="0.4.8"
+# Developer ID team that signs the upstream notarized app.
+readonly OMNIMOUNT_TEAM_ID="5QH6VFV9X3"
 readonly OMNIMOUNT_BUILD_PATCH="$DOTFILES_ROOT/assets/macos/omnimount-build.patch"
 # e2fsprogs sha256 matches kernel.org sha256sums.asc. The ntfs-3g sha256 is the
 # tarball at NTFS3G_URL, which is the URL this Omnimount revision downloads.
@@ -39,9 +37,9 @@ omnimount_arch() {
     fi
 }
 
-# Stamp directory. Honors XDG_STATE_HOME when the parent exported it.
+# Stamp and build log directory. main sets the XDG defaults first.
 omnimount_state_dir() {
-    printf '%s\n' "${XDG_STATE_HOME:-$HOME/.local/state}/omnimount"
+    printf '%s\n' "$XDG_STATE_HOME/omnimount"
 }
 
 # "fuse-t 1.2.9" -> "1.2.9". Empty when the cask is absent.
@@ -65,37 +63,20 @@ omnimount_sign_id() {
     fi
 }
 
-# TeamIdentifier from codesign, or 1 when the binary is ad-hoc / unsigned.
+# Print the TeamIdentifier codesign reports for $1. Fails for an unsigned
+# binary (codesign exits 1) and for an ad-hoc one, which codesign reports as
+# "TeamIdentifier=not set" with exit 0.
 omnimount_team_id() {
     local details="" line=""
 
     details="$(codesign -dv "$1" 2>&1)" || return 1
     while IFS= read -r line; do
-        if [[ "$line" == TeamIdentifier=* ]]; then
+        if [[ "$line" == TeamIdentifier=* && "$line" != "TeamIdentifier=not set" ]]; then
             printf '%s\n' "${line#TeamIdentifier=}"
             return 0
         fi
     done <<<"$details"
     return 1
-}
-
-omnimount_app_version() {
-    local version=""
-
-    version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$OMNIMOUNT_APP/Contents/Info.plist" 2>/dev/null)" || return 1
-    [[ -n "$version" ]] || return 1
-    printf '%s\n' "$version"
-}
-
-# First line of `omnimount --version`, without using a pipe (pipefail + head).
-omnimount_cli_version() {
-    local version=""
-
-    version="$("$1" --version 2>/dev/null)" || return 1
-    version="${version%%$'\n'*}"
-    version="${version//$'\r'/}"
-    [[ -n "$version" ]] || return 1
-    printf '%s\n' "$version"
 }
 
 # True when both paths exist and resolve to the same file.
@@ -108,8 +89,9 @@ omnimount_same_file() {
     [[ "$left" == "$right" ]]
 }
 
-# A stapled ticket means this is the upstream notarized app, not a local build.
-# Replacing it would change the signing identity and drop Full Disk Access.
+# A stapled ticket means this is a notarized app, not a local build. Replacing
+# it would change the signing identity and drop Full Disk Access. Any
+# developer can notarize an app, so omnimount_app_trusted pins the team too.
 omnimount_app_notarized() {
     local details=""
 
@@ -118,32 +100,52 @@ omnimount_app_notarized() {
     [[ "$details" == *"Notarization Ticket=stapled"* ]]
 }
 
+# True when the app is signed by the upstream team.
+omnimount_app_team_pinned() {
+    [[ "$(omnimount_team_id "$OMNIMOUNT_APP")" == "$OMNIMOUNT_TEAM_ID" ]]
+}
+
+# Full check before linking: pinned team, an intact signature, and a
+# Gatekeeper assessment that accepts it as notarized Developer ID software.
+omnimount_app_trusted() {
+    local team="" assessment=""
+
+    team="$(omnimount_team_id "$OMNIMOUNT_APP")" || team="none"
+    if [[ "$team" != "$OMNIMOUNT_TEAM_ID" ]]; then
+        error "$OMNIMOUNT_APP is signed by team $team, not the upstream team $OMNIMOUNT_TEAM_ID; not linking it"
+        return 1
+    fi
+    if ! codesign --verify --strict "$OMNIMOUNT_APP" 2>/dev/null; then
+        error "$OMNIMOUNT_APP fails codesign --verify --strict; reinstall it"
+        return 1
+    fi
+    if ! assessment="$(spctl -a -vv "$OMNIMOUNT_APP" 2>&1)" ||
+        [[ "$assessment" != *"source=Notarized Developer ID"* ]]; then
+        error "Gatekeeper does not accept $OMNIMOUNT_APP as notarized Developer ID software"
+        printf '%s\n' "$assessment" >&2
+        return 1
+    fi
+}
+
 omnimount_links_current() {
     omnimount_same_file "$MACOS_BREW_PREFIX/bin/omnimount" "$OMNIMOUNT_APP/Contents/MacOS/omnimount-cli" &&
         omnimount_same_file "$MACOS_BREW_PREFIX/sbin/fuse2fs" "$OMNIMOUNT_APP/Contents/MacOS/fuse2fs"
 }
 
-omnimount_macfuse_present() {
-    [[ -e "$MACFUSE_FS" ]]
-}
-
-# The cask can be listed while the privileged pkg copy of the library is missing.
 omnimount_fuse_t_ready() {
-    brew list --cask "$FUSE_T_CASK" >/dev/null 2>&1 || return 1
-    [[ -f "$FUSE_T_LIB" ]]
+    macos_fuse_t_cask_installed && macos_fuse_t_lib_present
 }
 
 # Source install is current when the stamp matches this pin, this Mac, the
 # installed FUSE-T, and the codesigning identity a rebuild would use.
 omnimount_source_current() {
-    local file="" mode="" revision="" arch="" fuse_t="" sign_id="" app_version=""
+    local file="" revision="" arch="" fuse_t="" sign_id="" app_version=""
     local cli_version="" expected_arch="" expected_fuse="" expected_sign="" key="" value=""
 
     file="$(omnimount_state_dir)/build.stamp"
     [[ -f "$file" ]] || return 1
     while IFS='=' read -r key value; do
         case "$key" in
-            mode) mode="$value" ;;
             revision) revision="$value" ;;
             arch) arch="$value" ;;
             fuse_t) fuse_t="$value" ;;
@@ -152,7 +154,7 @@ omnimount_source_current() {
         esac
     done <"$file"
 
-    [[ "$mode" == "source" && "$revision" == "$OMNIMOUNT_REVISION" ]] || return 1
+    [[ "$revision" == "$OMNIMOUNT_REVISION" ]] || return 1
     expected_arch="$(omnimount_arch)"
     [[ "$arch" == "$expected_arch" ]] || return 1
     expected_fuse="$(omnimount_fuse_t_version)" || return 1
@@ -160,27 +162,28 @@ omnimount_source_current() {
     expected_sign="$(omnimount_sign_id)"
     [[ "$sign_id" == "$expected_sign" ]] || return 1
     [[ -n "$app_version" ]] || return 1
-    [[ "$(omnimount_app_version)" == "$app_version" ]] || return 1
-    cli_version="$(omnimount_cli_version "$MACOS_BREW_PREFIX/bin/omnimount")" || return 1
+    [[ "$(macos_omnimount_app_version)" == "$app_version" ]] || return 1
+    cli_version="$(macos_omnimount_cli_version "$MACOS_BREW_PREFIX/bin/omnimount")" || return 1
     [[ "$cli_version" == "$app_version" ]]
 }
 
-# True when FUSE-T is present and either the notarized app is linked or the
-# source stamp still matches. OMNIMOUNT_REBUILD=1 forces another pass.
+# True when FUSE-T is present and either the upstream notarized app is linked
+# or the source stamp still matches. OMNIMOUNT_REBUILD=1 forces another pass.
 omnimount_installed() {
     local app_version="" cli_version=""
 
     [[ "${OMNIMOUNT_REBUILD:-0}" != "1" ]] || return 1
     macos_brew_prefix || return 1
     omnimount_fuse_t_ready || return 1
-    if omnimount_macfuse_present; then
+    if macos_macfuse_present; then
         return 1
     fi
 
     if omnimount_app_notarized; then
+        omnimount_app_team_pinned || return 1
         omnimount_links_current || return 1
-        app_version="$(omnimount_app_version)" || return 1
-        cli_version="$(omnimount_cli_version "$MACOS_BREW_PREFIX/bin/omnimount")" || return 1
+        app_version="$(macos_omnimount_app_version)" || return 1
+        cli_version="$(macos_omnimount_cli_version "$MACOS_BREW_PREFIX/bin/omnimount")" || return 1
         [[ "$app_version" == "$cli_version" ]]
         return
     fi
@@ -189,30 +192,22 @@ omnimount_installed() {
     omnimount_source_current
 }
 
+# Record what a source build was built against. Notarized installs need no
+# stamp: their symlinks follow the app.
 omnimount_write_stamp() {
-    local mode="$1"
-    local dir="" arch="" fuse_t="" sign_id="" app_version="" revision=""
+    local dir="" arch="" fuse_t="" app_version=""
 
     dir="$(omnimount_state_dir)"
     mkdir -p -- "$dir" || return 1
     arch="$(omnimount_arch)"
     fuse_t="$(omnimount_fuse_t_version)" || return 1
-    app_version="$(omnimount_app_version)" || return 1
-    if [[ "$mode" == "source" ]]; then
-        sign_id="$(omnimount_sign_id)"
-        revision="$OMNIMOUNT_REVISION"
-    else
-        sign_id="$(omnimount_team_id "$OMNIMOUNT_APP" || true)"
-        [[ -n "$sign_id" ]] || sign_id="notarized"
-        revision="notarized"
-    fi
+    app_version="$(macos_omnimount_app_version)" || return 1
 
     {
-        printf 'mode=%s\n' "$mode"
-        printf 'revision=%s\n' "$revision"
+        printf 'revision=%s\n' "$OMNIMOUNT_REVISION"
         printf 'arch=%s\n' "$arch"
         printf 'fuse_t=%s\n' "$fuse_t"
-        printf 'sign_id=%s\n' "$sign_id"
+        printf 'sign_id=%s\n' "$(omnimount_sign_id)"
         printf 'app_version=%s\n' "$app_version"
     } >"$dir/build.stamp" || return 1
 }
@@ -226,6 +221,7 @@ omnimount_link_notarized() {
     local fuse_dst="$brew_prefix/sbin/fuse2fs"
     local replaced=0
 
+    omnimount_app_trusted || return 1
     [[ -x "$cli_src" && -x "$fuse_src" ]] || {
         error "The notarized Omnimount app is missing omnimount-cli or fuse2fs"
         return 1
@@ -237,11 +233,9 @@ omnimount_link_notarized() {
     mkdir -p -- "$brew_prefix/bin" "$brew_prefix/sbin" || return 1
     ln -sfn -- "$cli_src" "$cli_dst" || return 1
     ln -sfn -- "$fuse_src" "$fuse_dst" || return 1
-    omnimount_write_stamp linked || {
-        error "Omnimount was linked, but the install stamp could not be written"
-        return 1
-    }
-    success "Linked ${cli_dst} to the notarized Omnimount $(omnimount_app_version)"
+    # A stamp only describes a source build, which these links replace.
+    rm -f -- "$(omnimount_state_dir)/build.stamp"
+    success "Linked ${cli_dst} to the notarized Omnimount $(macos_omnimount_app_version)"
     if ((replaced)); then
         warn "The CLI binary changed. Grant Full Disk Access to ${cli_dst} again if sudo omnimount cannot see disks."
     fi
@@ -378,10 +372,7 @@ omnimount_run_build() {
 }
 
 omnimount_warn_if_adhoc() {
-    local team=""
-
-    team="$(omnimount_team_id "$1" || true)"
-    if [[ -z "$team" || "$team" == "not set" ]]; then
+    if ! omnimount_team_id "$1" >/dev/null; then
         warn "Omnimount is ad-hoc signed. Full Disk Access will not survive the next rebuild until a codesigning identity is in the keychain."
     fi
 }
@@ -436,7 +427,7 @@ omnimount_build_from_source() {
         return 1
     fi
 
-    omnimount_write_stamp source || {
+    omnimount_write_stamp || {
         error "Omnimount built, but the install stamp could not be written"
         return 1
     }
@@ -451,7 +442,7 @@ omnimount_require_fuse_t() {
     if omnimount_fuse_t_ready; then
         return 0
     fi
-    if ! brew list --cask "$FUSE_T_CASK" >/dev/null 2>&1; then
+    if ! macos_fuse_t_cask_installed; then
         warn "FUSE-T is not installed; rerun ./bootstrap.sh to install the Brewfile first"
     else
         warn "FUSE-T is listed by Homebrew but ${FUSE_T_LIB} is missing; reinstall the fuse-t cask"
@@ -468,7 +459,7 @@ install_omnimount() {
     }
     brew_prefix="$MACOS_BREW_PREFIX"
     omnimount_require_fuse_t || return 1
-    if omnimount_macfuse_present; then
+    if macos_macfuse_present; then
         error "macFUSE is installed. Remove it before using FUSE-T; the two conflict."
         return 1
     fi
@@ -513,6 +504,4 @@ main() {
     fi
 }
 
-if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-    main "$@"
-fi
+main "$@"

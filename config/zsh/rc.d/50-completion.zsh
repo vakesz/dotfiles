@@ -2,7 +2,11 @@
 
 export ZSH_COMPDUMP="$XDG_CACHE_HOME/zsh/.zcompdump"
 
-# Homebrew's completions are already on fpath: brew shellenv (20-path.zsh) adds them.
+# Homebrew's completions. The system zsh only searches
+# /usr/local/share/zsh/site-functions, which misses /opt/homebrew and Linuxbrew.
+if [[ -n ${HOMEBREW_PREFIX:-} && -d $HOMEBREW_PREFIX/share/zsh/site-functions ]]; then
+  fpath=("$HOMEBREW_PREFIX/share/zsh/site-functions" "${fpath[@]}")
+fi
 
 if ! (( ${+_comps} )); then
   zmodload zsh/complist 2>/dev/null || true
@@ -15,10 +19,18 @@ if ! (( ${+_comps} )); then
     compinit -C -d "$ZSH_COMPDUMP"
   else
     compinit -d "$ZSH_COMPDUMP"
+    # compinit leaves a dump that is still valid untouched, so refresh its
+    # mtime or the check above fails every day after the first. -c never
+    # creates an empty dump if compinit couldn't write one.
+    command touch -c -- "$ZSH_COMPDUMP" 2>/dev/null
   fi
 
   _dotfiles_zcompile "$ZSH_COMPDUMP"
 fi
+
+# zoxide's init registers its cd completion with compdef, which only exists
+# after compinit. The cache is regenerated when this file changes.
+_dotfiles_cache_tool zoxide "zoxide init zsh --cmd cd" "${(%):-%N}"
 
 setopt ALWAYS_TO_END
 setopt AUTO_PARAM_SLASH

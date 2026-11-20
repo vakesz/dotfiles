@@ -3,14 +3,6 @@
 # .zshenv already made path unique.
 typeset -U fpath
 
-_dotfiles_path_prepend() {
-  local dir
-  for dir in "$@"; do
-    [[ -n "$dir" ]] && path=("$dir" "${path[@]}")
-  done
-  return 0
-}
-
 # Succeeds if the directory exists or can be created, and is writable. mkdir
 # only forks when the directory is missing. Callers skip caching on failure,
 # so a read-only cache or state dir never prints errors at startup.
@@ -59,7 +51,7 @@ _dotfiles_cache_source() {
       eval "$(eval "$init_command" 2>/dev/null)"
       return 0
     fi
-    # init_command comes from hardcoded call sites below (starship init,
+    # init_command comes from hardcoded call sites in rc.d (starship init,
     # zoxide init, ...), never from user input, so eval is safe here.
     if eval "$init_command" > "$tmp_file" 2>/dev/null; then
       command mv -f -- "$tmp_file" "$cache_file"
