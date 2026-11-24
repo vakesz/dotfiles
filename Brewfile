@@ -120,14 +120,14 @@ brew "ghidra"
 brew "imagemagick"
 brew "pngquant"
 cask "visual-studio-code"
-brew "watchman"
 brew "webp"
 
 # Databases
-cask "tablepro"
+cask "dbeaver-community"
 
 # Desktop apps: system and maintenance
 cask "citrix-workspace"
+cask "niklasravnsborg/tap/hidenotch"
 cask "linearmouse"
 brew "mole"
 cask "tailscale-app"
