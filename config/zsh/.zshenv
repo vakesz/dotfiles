@@ -13,8 +13,6 @@ fi
 
 export LANG="${LANG:-en_US.UTF-8}"
 
-# Forced rather than defaulted: launchd-env.zsh copies these into launchd and
-# runs with launchd's environment, so a default would keep a stale value.
 export EDITOR="vi"
 export VISUAL="vi"
 
@@ -38,7 +36,6 @@ export NODE_REPL_HISTORY="$XDG_STATE_HOME/node_repl_history"
 export NPM_CONFIG_CACHE="$XDG_CACHE_HOME/npm"
 export BUNDLE_USER_CACHE="$XDG_CACHE_HOME/bundle"
 export BUNDLE_USER_PLUGIN="$XDG_DATA_HOME/bundle"
-export GNUPGHOME="$XDG_DATA_HOME/gnupg"
 export TEALDEER_CONFIG_DIR="$XDG_CONFIG_HOME/tealdeer"
 
 # Toolchain locations. Their bin dirs go on PATH in _dotfiles_base_path below.
@@ -49,9 +46,11 @@ export UV_TOOL_DIR="$XDG_DATA_HOME/uv/tools"
 export UV_TOOL_BIN_DIR="$XDG_DATA_HOME/uv/bin"
 export UV_PYTHON_INSTALL_DIR="$XDG_DATA_HOME/uv/python"
 export PNPM_HOME="$XDG_DATA_HOME/pnpm"
+# Always run Homebrew's pnpm. Otherwise pnpm downloads whatever version a
+# project's packageManager field pins. pnpm 12 refuses this key in its global
+# config.yaml, so it has to be an environment variable.
+export PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS=false
 export CCACHE_DIR="$XDG_CACHE_HOME/ccache"
-export CARGO_HOME="$XDG_DATA_HOME/cargo"
-export RUSTUP_HOME="$XDG_DATA_HOME/rustup"
 export DOCKER_CONFIG="$XDG_CONFIG_HOME/docker"
 export GRADLE_USER_HOME="$XDG_DATA_HOME/gradle"
 export AZURE_CONFIG_DIR="$XDG_DATA_HOME/azure"
@@ -125,12 +124,16 @@ export ANDROID_AVD_HOME="$ANDROID_USER_HOME/avd"
 _dotfiles_base_path() {
   local -a tools brew android
   # $XDG_BIN_HOME wins over everything. Homebrew's rustup wrappers come before
-  # $CARGO_HOME/bin, which may hold rustup's own proxies, so cargo and rustc
-  # stay brew-managed. User-installed tools come before Homebrew.
+  # ~/.cargo/bin, which only holds `cargo install`ed binaries, so cargo and
+  # rustc stay brew-managed even if a rustup.rs install drops proxies there.
+  # Rust keeps rustup's default homes (~/.rustup, ~/.cargo) instead of XDG
+  # ones: GUI apps don't get this file's variables, only its PATH (see
+  # docs/macos.md), and would otherwise look for toolchains in ~/.rustup.
+  # User-installed tools come before Homebrew.
   tools=("$XDG_BIN_HOME")
   [[ -n "${HOMEBREW_PREFIX:-}" ]] && tools+=("$HOMEBREW_PREFIX/opt/rustup/bin")
   tools+=(
-    "$CARGO_HOME/bin" "$UV_TOOL_BIN_DIR" "$GOPATH/bin" "$GEM_HOME/bin"
+    "$HOME/.cargo/bin" "$UV_TOOL_BIN_DIR" "$GOPATH/bin" "$GEM_HOME/bin"
     "${COMPOSER_HOME:-$XDG_CONFIG_HOME/composer}/vendor/bin"
   )
   [[ -n "${HOMEBREW_PREFIX:-}" ]] && brew=("$HOMEBREW_PREFIX/bin" "$HOMEBREW_PREFIX/sbin")

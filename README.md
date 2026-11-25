@@ -53,7 +53,7 @@ Shell policy: `install.sh`, `bootstrap.sh` and `scripts/lib` must stay compatibl
 
 ## What's configured
 
-- `config/zsh/.zshenv`: XDG directories, `ZDOTDIR`, `EDITOR`, `VISUAL`, `HOMEBREW_NO_*`, tool locations (Go, Rust, uv, pnpm, ccache, Gradle, Android SDK) and the `PATH` every shell gets, in this order: `~/.local/bin`, rustup wrappers, cargo/uv/go/gem/composer bins, pnpm, Homebrew. Missing directories are skipped. There is no cached `brew shellenv`. On macOS `JAVA_HOME` is JDK 17: the JDK folders first, then Homebrew's `openjdk@17`, with `java_home` as the fallback. `home/.zshenv` is a shim that sets `ZDOTDIR` and sources it. Never put secrets in `.zshenv`: macOS exports it to every GUI app ([details](docs/macos.md#launchd-env-agent)).
+- `config/zsh/.zshenv`: XDG directories, `ZDOTDIR`, `EDITOR`, `VISUAL`, `HOMEBREW_NO_*`, tool locations (Go, Rust, uv, pnpm, ccache, Gradle, Android SDK) and the `PATH` every shell gets, in this order: `~/.local/bin`, rustup wrappers, cargo/uv/go/gem/composer bins, pnpm, Homebrew. Missing directories are skipped. There is no cached `brew shellenv`. On macOS `JAVA_HOME` is JDK 17: the JDK folders first, then Homebrew's `openjdk@17`, with `java_home` as the fallback. `home/.zshenv` is a shim that sets `ZDOTDIR` and sources it. GUI apps get only its `PATH` ([details](docs/macos.md#gui-app-path)).
 - `config/zsh`: `.zshrc` loads `rc.d/*.zsh` in order: helpers, PATH, options, tools, completion, commands, Python venvs, keybindings, then plugins (`25-wsl.zsh` on WSL). The PATH step adds keg-only formulae and ccache just ahead of Homebrew's bin, in interactive shells only. Tool init scripts are cached in `$XDG_CACHE_HOME/zsh`. Commands you type have plain names; internal helpers start with `_dotfiles_`.
 - `config/starship.toml`: the prompt. `config/ghostty`: the terminal.
 - `config/git`: config and global ignores. HTTPS credentials go through Git Credential Manager. `transfer.fsckObjects` is on, and `core.fsmonitor` is off globally (enable it per large repo). The Git LFS filter is part of the config.
@@ -86,7 +86,7 @@ The repo git-ignores and stow-ignores `*.local` files as a guard.
 ## Toolchains
 
 - **Homebrew** installs everything in the Brewfile, including the zsh plugins, so there's no plugin manager. The login shell is the system `/bin/zsh`.
-- **JavaScript**: Node, pnpm and Bun from Homebrew. **Python**: `uv`. **Ruby**: Homebrew's, gems in `$GEM_HOME`. **Rust**: Homebrew's rustup, toolchains in the XDG data directory.
+- **JavaScript**: Node, pnpm and Bun from Homebrew. **Python**: `uv`. **Ruby**: Homebrew's, gems in `$GEM_HOME`. **Rust**: Homebrew's rustup, toolchains in rustup's default `~/.rustup` so GUI apps find them.
 - **Updates** go through `topgrade`. **Xcode** is installed separately.
 
 More in [docs/macos.md](docs/macos.md#toolchains).

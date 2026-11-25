@@ -131,20 +131,18 @@ check_xdg_directories() {
 }
 
 check_directory_permissions() {
-    local dir mode
+    local dir="$HOME/.ssh" mode
 
     section "Private directory permissions"
 
-    for dir in "$GNUPGHOME" "$HOME/.ssh"; do
-        if [[ ! -d "$dir" ]]; then
-            soft_warn "not present: $dir"
-            continue
-        fi
+    if [[ ! -d "$dir" ]]; then
+        soft_warn "not present: $dir"
+        return
+    fi
 
-        # GNU and BSD stat take different flags. Try GNU first, then BSD (macOS).
-        mode="$(stat -c '%a' "$dir" 2>/dev/null)" || mode="$(stat -f '%Lp' "$dir" 2>/dev/null)"
-        verify "0700: $dir" "expected 0700, found 0$mode: $dir" fail test "$mode" = "700"
-    done
+    # GNU and BSD stat take different flags. Try GNU first, then BSD (macOS).
+    mode="$(stat -c '%a' "$dir" 2>/dev/null)" || mode="$(stat -f '%Lp' "$dir" 2>/dev/null)"
+    verify "0700: $dir" "expected 0700, found 0$mode: $dir" fail test "$mode" = "700"
 }
 
 check_commands() {
@@ -206,8 +204,6 @@ check_brewfile() {
 }
 
 check_macos_tooling() {
-    local script=""
-
     section "macOS tooling"
 
     verify "Touch ID for sudo enabled" "Touch ID for sudo not enabled (run scripts/platform/macos.sh)" \
@@ -219,14 +215,8 @@ check_macos_tooling() {
     verify "GitHub CLI authenticated" "GitHub CLI not authenticated (run: gh auth login)" \
         soft_warn quietly gh auth status
 
-    if ! macos_launchd_env_agent_loaded; then
-        soft_warn "launchd env agent not installed or not loaded (run scripts/platform/macos.sh)"
-    elif ! macos_launchd_env_agent_current; then
-        script="$(macos_launchd_env_agent_script)" || script="an unknown script"
-        soft_warn "launchd env agent is out of date: it runs $script (run scripts/platform/macos.sh to rewrite it)"
-    else
-        pass "launchd env agent installed, loaded and current"
-    fi
+    verify "GUI apps get the ~/.zshenv PATH" "GUI app PATH not set or out of date (run scripts/platform/macos.sh)" \
+        soft_warn macos_gui_path_configured
 }
 
 # Report every row of lib/macos-defaults.sh that differs from this machine.

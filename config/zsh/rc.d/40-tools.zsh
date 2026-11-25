@@ -1,7 +1,5 @@
 # Tool integrations (interactive shell plugins live in 90-plugins.zsh)
 
-# gpg-agent's pinentry needs to know which terminal to prompt on.
-[[ -t 0 ]] && export GPG_TTY="$TTY"
 # A default, not forced: terminals that know better set it themselves, and
 # ssh doesn't forward it, so remote shells would otherwise lose truecolor.
 export COLORTERM="${COLORTERM:-truecolor}"

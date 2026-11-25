@@ -18,22 +18,16 @@ set_xdg_environment_defaults() {
     export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
     export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
     export XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
-    export GNUPGHOME="${GNUPGHOME:-$XDG_DATA_HOME/gnupg}"
     export PNPM_HOME="${PNPM_HOME:-$XDG_DATA_HOME/pnpm}"
     export CCACHE_DIR="${CCACHE_DIR:-$XDG_CACHE_HOME/ccache}"
-    export CARGO_HOME="${CARGO_HOME:-$XDG_DATA_HOME/cargo}"
-    export RUSTUP_HOME="${RUSTUP_HOME:-$XDG_DATA_HOME/rustup}"
     export GRADLE_USER_HOME="${GRADLE_USER_HOME:-$XDG_DATA_HOME/gradle}"
 
     DOTFILES_STATE_DIRS=(
         "$XDG_STATE_HOME/zsh"
         "$XDG_CACHE_HOME/zsh"
         "$XDG_STATE_HOME/less"
-        "$GNUPGHOME"
         "$PNPM_HOME/bin"
         "$CCACHE_DIR"
-        "$CARGO_HOME"
-        "$RUSTUP_HOME"
         "$GRADLE_USER_HOME"
     )
 }
@@ -66,5 +60,5 @@ ensure_xdg_runtime_directories() {
         "$HOME/.ssh"
     # Created before stow so it never inherits the umask default (0755) when
     # stow makes it to hold home/.ssh/config.
-    chmod 700 "$GNUPGHOME" "$HOME/.ssh"
+    chmod 700 "$HOME/.ssh"
 }

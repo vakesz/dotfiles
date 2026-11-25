@@ -33,11 +33,10 @@ DOCK_APPS=(
 # shellcheck disable=SC2034 # read by macos.sh
 readonly DOCK_APPS
 
-# The generated LaunchAgent that gives GUI apps the ~/.zshenv variables.
-LAUNCHD_ENV_LABEL="io.github.vakesz.dotfiles.launchd-env"
-readonly LAUNCHD_ENV_LABEL
-LAUNCHD_ENV_PLIST="$HOME/Library/LaunchAgents/$LAUNCHD_ENV_LABEL.plist"
-readonly LAUNCHD_ENV_PLIST
+# launchd's persistent per-user config. `launchctl config user path` writes
+# PathEnvironmentVariable here, which every GUI app then starts with.
+LAUNCHD_USER_CONFIG=/private/var/db/com.apple.xpc.launchd/config/user.plist
+readonly LAUNCHD_USER_CONFIG
 
 # FUSE-T and Omnimount, shared by macos-omnimount.sh and doctor.sh.
 FUSE_T_CASK="fuse-t"
@@ -105,45 +104,20 @@ macos_brew_prefix() {
     [[ -n "$MACOS_BREW_PREFIX" ]]
 }
 
-# The LaunchAgent plist macos.sh installs. It needs absolute paths, so it is
-# generated rather than stowed. Needs DOTFILES_ROOT from paths.sh.
-macos_launchd_env_plist() {
-    cat <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>Label</key>
-    <string>$LAUNCHD_ENV_LABEL</string>
-    <key>ProgramArguments</key>
-    <array>
-        <string>/bin/zsh</string>
-        <string>-f</string>
-        <string>$DOTFILES_ROOT/scripts/platform/launchd-env.zsh</string>
-    </array>
-    <key>RunAtLoad</key>
-    <true/>
-</dict>
-</plist>
-EOF
+# The PATH ~/.zshenv builds, starting from the system default rather than the
+# caller's PATH, so interactive-only entries stay out.
+macos_gui_path() {
+    # shellcheck disable=SC2016 # expanded by the inner zsh, not here
+    env -i HOME="$HOME" PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin \
+        /bin/zsh -fc 'source "$HOME/.zshenv" && print -r -- "$PATH"'
 }
 
-# True when the generated LaunchAgent is on disk and launchd has it loaded.
-macos_launchd_env_agent_loaded() {
-    [[ -f "$LAUNCHD_ENV_PLIST" ]] &&
-        launchctl print "gui/$(id -u)/$LAUNCHD_ENV_LABEL" >/dev/null 2>&1
-}
-
-# True when the installed plist is exactly what this checkout would generate.
-# False after the script moved or the repo was cloned somewhere else.
-macos_launchd_env_agent_current() {
-    [[ -f "$LAUNCHD_ENV_PLIST" ]] &&
-        [[ "$(cat "$LAUNCHD_ENV_PLIST")" == "$(macos_launchd_env_plist)" ]]
-}
-
-# Print the script the installed LaunchAgent runs.
-macos_launchd_env_agent_script() {
-    /usr/libexec/PlistBuddy -c 'Print :ProgramArguments:2' "$LAUNCHD_ENV_PLIST" 2>/dev/null
+# True when launchd hands GUI apps exactly the PATH ~/.zshenv builds.
+macos_gui_path_configured() {
+    local want=""
+    want="$(macos_gui_path)" || return 1
+    [[ -r "$LAUNCHD_USER_CONFIG" ]] || return 1
+    [[ "$(plutil -extract PathEnvironmentVariable raw -o - "$LAUNCHD_USER_CONFIG" 2>/dev/null)" == "$want" ]]
 }
 
 # True when the fuse-t cask is installed. Slow (runs brew), so call it once.

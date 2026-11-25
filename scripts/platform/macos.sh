@@ -304,35 +304,24 @@ link_llvm_dlltool() {
     success "Symlinked $XDG_BIN_HOME/dlltool -> $src"
 }
 
-launchd_env_agent_installed() {
-    macos_launchd_env_agent_loaded && macos_launchd_env_agent_current
-}
-
-# Give GUI apps the ~/.zshenv variables, so they stop writing dot-dirs into $HOME.
-install_launchd_env_agent() {
-    local domain=""
-    domain="gui/$(id -u)"
-
-    mkdir -p -- "${LAUNCHD_ENV_PLIST%/*}"
-    macos_launchd_env_plist >"$LAUNCHD_ENV_PLIST"
-    launchctl bootout "$domain" "$LAUNCHD_ENV_PLIST" 2>/dev/null || true
-    launchctl bootstrap "$domain" "$LAUNCHD_ENV_PLIST" || {
-        warn "Couldn't load $LAUNCHD_ENV_PLIST"
+# GUI apps get /usr/bin:/bin:/usr/sbin:/sbin by default, so editors and IDEs
+# can't find brew's cargo, rustc, node or pnpm. `launchctl config user path`
+# stores the PATH in launchd itself, so it needs no LaunchAgent and applies to
+# every app, including login items. launchd can't persist other variables, so
+# tools GUI apps run must work with their default homes (Rust uses ~/.rustup
+# and ~/.cargo for this reason).
+configure_gui_path() {
+    local p=""
+    p="$(macos_gui_path)" || {
+        warn "Couldn't build the PATH from ~/.zshenv"
         return 1
     }
-    success "Installed the launchd env agent; restart running apps to pick it up"
-}
 
-# An installed agent that runs another path (the script moved, or the repo was
-# cloned elsewhere) fails at every login, so ask about it specifically.
-offer_launchd_env_agent() {
-    local prompt="Pass the ~/.zshenv variables to GUI apps with a LaunchAgent?"
-
-    if [[ -f "$LAUNCHD_ENV_PLIST" ]] && ! macos_launchd_env_agent_current; then
-        warn "The launchd env agent is out of date; it runs $(macos_launchd_env_agent_script || printf 'an unknown script')"
-        prompt="Rewrite the launchd env agent to run $DOTFILES_ROOT/scripts/platform/launchd-env.zsh?"
-    fi
-    offer_if_missing "$prompt" launchd_env_agent_installed install_launchd_env_agent "launchd env agent already installed"
+    sudo launchctl config user path "$p" || {
+        warn "launchctl config user path failed"
+        return 1
+    }
+    success "Set the GUI app PATH; reboot for it to take effect"
 }
 
 main() {
@@ -361,7 +350,7 @@ main() {
     offer "Configure power management?" configure_power_management
     require_command dockutil "the Dock layout" && offer "Apply the Dock layout?" configure_dock
 
-    offer_launchd_env_agent
+    offer_if_missing "Give GUI apps the ~/.zshenv PATH (needs sudo and a reboot)?" macos_gui_path_configured configure_gui_path "GUI app PATH already set"
     offer_if_missing "Unhide the user Library folder in Finder?" library_folder_visible unhide_library_folder "User Library folder already visible"
     offer_if_missing "Install the custom Hungarian keyboard layout?" keyboard_layout_installed install_keyboard_layout "Custom Hungarian keyboard layout already installed"
     offer_if_missing "Symlink LLVM dlltool into $XDG_BIN_HOME for Wine builds?" llvm_dlltool_linked link_llvm_dlltool "LLVM dlltool symlink already in place"
