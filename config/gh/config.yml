@@ -1,5 +1,5 @@
 # Only non-default keys; gh falls back to its defaults for everything else.
 version: 1
-git_protocol: https
+git_protocol: ssh
 aliases:
     co: pr checkout

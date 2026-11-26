@@ -42,7 +42,6 @@ brew "yq"
 # Git
 brew "gh"
 brew "git"
-cask "git-credential-manager"
 brew "git-lfs"
 
 # Languages and runtimes

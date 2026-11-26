@@ -282,8 +282,8 @@ choose_credential_helper() {
     fi
 }
 
-# config/git/config sets helper = manager, which fails on every HTTPS operation
-# without GCM. Add a reset plus a working helper to gitconfig.local.
+# config/git/config clears credential.helper (auth is SSH-only). For HTTPS,
+# add a reset plus a working helper to gitconfig.local.
 configure_git_credential_helper() {
     local file="" helper=""
 

@@ -55,11 +55,14 @@
 	ui = auto
 
 [credential]
-	# Git Credential Manager from the Brewfile (macOS). On Linux HTTPS auth
-	# falls back to the store/cache helper in gitconfig.local.
-	# An empty value clears helpers inherited from system config (Homebrew git sets osxkeychain).
+	# Auth is SSH-only, so no credential helper (and no browser sign-in popup).
+	# The empty value clears helpers inherited from system config (Homebrew git
+	# sets osxkeychain). On Linux, gitconfig.local may add one back.
 	helper =
-	helper = manager
+
+# Always talk to GitHub over SSH, even for https:// URLs (remotes, tools, taps).
+[url "git@github.com:"]
+	insteadOf = https://github.com/
 
 [gpg]
 	# Sign with SSH keys. The key, commit.gpgsign and gpg.ssh.allowedSignersFile
@@ -112,7 +115,6 @@
 	required = true
 
 [credential "https://dev.azure.com"]
-	useHttpPath = true
 
 # Machine-local overrides. Git skips the file if it doesn't exist.
 [include]
