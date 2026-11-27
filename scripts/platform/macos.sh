@@ -127,16 +127,35 @@ enable_touch_id_sudo() {
 }
 
 computer_name_configured() {
-    # Apple's default is "<Name>'s <Model>" (either apostrophe style). A custom
-    # name containing "'s " (e.g. "Bob's Desktop") still counts as configured
-    # unless it ends with a known Apple model suffix.
     local current=""
     current="$(scutil --get ComputerName 2>/dev/null)" || return 1
     [[ -n "$current" ]] || return 1
-    if [[ "$current" == *"'s "* || "$current" == *"’s "* ]]; then
-        [[ "$current" != *" Mac" && "$current" != *"MacBook"* && "$current" != *"iMac"* && "$current" != *"Mac mini"* && "$current" != *"Mac Pro"* && "$current" != *"Mac Studio"* ]] || return 1
-    fi
+
+    # Apple's default is "<Name>'s <Model>", with either apostrophe. A custom
+    # name containing "'s " (e.g. "Bob's Desktop") still counts as configured
+    # unless it also names an Apple model.
+    case "$current" in
+        *"'s "* | *"’s "*) ;;
+        *) return 0 ;;
+    esac
+    case "$current" in
+        *" Mac" | *MacBook* | *iMac* | *"Mac mini"* | *"Mac Pro"* | *"Mac Studio"*) return 1 ;;
+    esac
     return 0
+}
+
+# Print $1 as a LocalHostName: a DNS label that also fits NetBIOS's 15
+# characters. Lowercase, turn each run of other characters into one hyphen,
+# then trim hyphens from both ends, again after cutting to 15 characters.
+# LC_ALL=C makes tr work on bytes, so any non-ASCII name is safe.
+hostname_label() {
+    local label=""
+
+    label="$(printf '%s' "$1" | LC_ALL=C tr '[:upper:]' '[:lower:]' | LC_ALL=C tr -cs 'a-z0-9' '-')"
+    while [[ "$label" == -* ]]; do label="${label#-}"; done
+    label="${label:0:15}"
+    while [[ "$label" == *- ]]; do label="${label%-}"; done
+    printf '%s\n' "$label"
 }
 
 configure_computer_name() {
@@ -162,9 +181,7 @@ configure_computer_name() {
         return 0
     fi
 
-    # LocalHostName must be a DNS label, so turn everything else into hyphens.
-    # NetBIOS names are limited to 15 chars, so truncate there too.
-    local_name="$(printf '%s' "$new" | sed -E 's/[^a-zA-Z0-9]+/-/g; s/^-+//; s/-+$//' | tr '[:upper:]' '[:lower:]' | cut -c1-15 | sed -E 's/-+$//')"
+    local_name="$(hostname_label "$new")"
     if [[ -z "$local_name" ]]; then
         warn "Computer name must contain at least one ASCII letter or number"
         return 1

@@ -135,6 +135,7 @@ _dotfiles_base_path() {
   tools+=(
     "$HOME/.cargo/bin" "$UV_TOOL_BIN_DIR" "$GOPATH/bin" "$GEM_HOME/bin"
     "${COMPOSER_HOME:-$XDG_CONFIG_HOME/composer}/vendor/bin"
+    "$HOME/.kiri/bin"
   )
   [[ -n "${HOMEBREW_PREFIX:-}" ]] && brew=("$HOMEBREW_PREFIX/bin" "$HOMEBREW_PREFIX/sbin")
   [[ "$OSTYPE" == linux* ]] && brew+=(/snap/bin)

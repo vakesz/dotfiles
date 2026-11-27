@@ -82,6 +82,7 @@ brew "mingw-w64"
 brew "molten-vk"
 brew "ninja"
 brew "pkgconf"
+brew "xwin"
 
 # Linters and formatters
 brew "actionlint"
@@ -93,7 +94,8 @@ brew "shfmt"
 brew "swift-format"
 
 # Containers and virtualization
-cask "orbstack"
+cask "libracoder/kiri/kiri"
+brew "docker-credential-helper"
 brew "qemu"
 brew "squashfs"
 
@@ -105,6 +107,7 @@ cask "android-commandlinetools"
 
 # AI tools
 cask "claude-code@latest"
+cask "codexbar"
 cask "codex"
 cask "copilot-cli"
 cask "cursor-cli"
@@ -116,6 +119,7 @@ cask "azure-cli"
 brew "ffmpeg"
 brew "ghidra"
 brew "imagemagick"
+brew "innoextract"
 brew "pngquant"
 cask "visual-studio-code"
 brew "webp"
@@ -125,6 +129,7 @@ cask "dbeaver-community"
 
 # Desktop apps: system and maintenance
 cask "citrix-workspace"
+cask "hiddenbar"
 cask "niklasravnsborg/tap/hidenotch"
 cask "linearmouse"
 brew "mole"

@@ -17,7 +17,7 @@ macos_defaults_rows() {
         "user|NSGlobalDomain|AppleShowAllExtensions|bool|true"
         "user|com.apple.finder|ShowStatusBar|bool|true"
         "user|com.apple.finder|ShowPathbar|bool|true"
-        "user|com.apple.finder|FXPreferredViewStyle|string|Nlsv"
+        "user|com.apple.finder|FXPreferredViewStyle|string|icnv"
         "user|com.apple.finder|_FXSortFoldersFirst|bool|true"
         "user|com.apple.finder|FXArrangeGroupViewBy|string|Name"
         "user|com.apple.desktopservices|DSDontWriteNetworkStores|bool|true"
@@ -83,8 +83,8 @@ macos_defaults_rows() {
         "user|com.apple.tips|CloudKitSyncingEnabled|bool|false"
         "user|com.apple.tips|NotificationsEnabled|bool|false"
 
-        # Siri
-        "user|com.apple.assistant.support|Assistant Enabled|bool|false"
+        # Siri stays on, without the menu bar icon or "Hey Siri".
+        "user|com.apple.assistant.support|Assistant Enabled|bool|true"
         "user|com.apple.Siri|StatusMenuVisible|bool|false"
         "user|com.apple.Siri|VoiceTriggerUserEnabled|bool|false"
 
